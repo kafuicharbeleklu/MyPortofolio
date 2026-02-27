@@ -30,11 +30,11 @@ export default function Home() {
       <main>
         <Hero />
         <About />
+        <Projects />
+        <Philosophy />
         <Expertise />
         <TechStack />
         <Experience />
-        <Projects />
-        <Philosophy />
         <Contact />
       </main>
       <footer className="py-8 text-center text-sm text-carbon-text-secondary border-t border-carbon-border-subtle bg-carbon-layer-1">

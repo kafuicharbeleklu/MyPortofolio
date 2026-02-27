@@ -14,7 +14,7 @@ export default function Philosophy() {
   ];
 
   return (
-    <section className="py-24 bg-carbon-bg relative overflow-hidden">
+    <section id="philosophy" className="py-24 bg-carbon-bg relative overflow-hidden">
       <div className="absolute inset-0 z-0 opacity-10">
         <img 
           src={philosophyBackground} 

@@ -9,6 +9,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const baseUrl = import.meta.env.BASE_URL;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,11 +20,12 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: t('nav.about'), href: '/#about' },
-    { name: t('nav.expertise'), href: '/#expertise' },
-    { name: t('nav.experience'), href: '/#experience' },
-    { name: t('nav.projects'), href: '/#projects' },
-    { name: t('nav.contact'), href: '/#contact' },
+    { name: t('nav.about'), href: `${baseUrl}#about` },
+    { name: t('nav.expertise'), href: `${baseUrl}#expertise` },
+    { name: t('nav.experience'), href: `${baseUrl}#experience` },
+    { name: t('nav.projects'), href: `${baseUrl}#projects` },
+    { name: t('philosophy.title'), href: `${baseUrl}#philosophy` },
+    { name: t('nav.contact'), href: `${baseUrl}#contact` },
   ];
 
   const toggleLanguage = () => {
@@ -61,7 +63,7 @@ export default function Navbar() {
               <span className={language === 'fr' ? 'text-carbon-blue' : 'opacity-50'}>FR</span>
             </span>
           </button>
-          <a href="/resume.pdf" target="_blank" rel="noreferrer" className="ml-4 px-6 py-2.5 bg-carbon-blue text-white text-sm font-medium hover:bg-carbon-blue-hover transition-colors">
+          <a href={`${baseUrl}resume.pdf`} target="_blank" rel="noreferrer" className="ml-4 px-6 py-2.5 bg-carbon-blue text-white text-sm font-medium hover:bg-carbon-blue-hover transition-colors">
             {t('nav.resume')}
           </a>
         </nav>
@@ -102,7 +104,7 @@ export default function Navbar() {
               {link.name}
             </a>
           ))}
-          <a href="/resume.pdf" target="_blank" rel="noreferrer" className="mt-4 text-center px-6 py-3 bg-carbon-blue text-white text-sm font-medium hover:bg-carbon-blue-hover">
+          <a href={`${baseUrl}resume.pdf`} target="_blank" rel="noreferrer" className="mt-4 text-center px-6 py-3 bg-carbon-blue text-white text-sm font-medium hover:bg-carbon-blue-hover">
             {t('nav.resume')}
           </a>
         </motion.div>

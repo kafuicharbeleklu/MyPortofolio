@@ -7,7 +7,7 @@ import ScrollToTop from './components/ScrollToTop';
 export default function App() {
   return (
     <LanguageProvider>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/project/:id" element={<ProjectDetails />} />

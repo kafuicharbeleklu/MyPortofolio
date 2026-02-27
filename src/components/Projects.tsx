@@ -1,10 +1,14 @@
+import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowUpRight, Security, Cloud, ChartLine, SettingsAdjust, ArrowRight } from '@carbon/icons-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
+type ProjectFilter = 'all' | 'ai' | 'security' | 'infrastructure' | 'data';
+
 export default function Projects() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const [activeFilter, setActiveFilter] = useState<ProjectFilter>('all');
 
   const projects = [
     {
@@ -13,7 +17,8 @@ export default function Projects() {
       problem: t('projects.p1.problem'),
       solution: t('projects.p1.solution'),
       impact: [t('projects.p1.i1'), t('projects.p1.i2'), t('projects.p1.i3')],
-      tags: ['Power Apps', 'Governance', 'Automation']
+      tags: ['Power Apps', 'Governance', 'Automation'],
+      categories: ['data', 'infrastructure'] as ProjectFilter[]
     },
     {
       id: 'wazuh-ai',
@@ -22,7 +27,8 @@ export default function Projects() {
       problem: t('projects.p2.problem'),
       solution: t('projects.p2.solution'),
       impact: [t('projects.p2.i1'), t('projects.p2.i2'), t('projects.p2.i3')],
-      tags: ['Wazuh SIEM', 'Gemini API', 'Python']
+      tags: ['Wazuh SIEM', 'Gemini API', 'Python'],
+      categories: ['ai', 'security'] as ProjectFilter[]
     },
     {
       id: 'power-bi',
@@ -31,7 +37,8 @@ export default function Projects() {
       problem: t('projects.p3.problem'),
       solution: t('projects.p3.solution'),
       impact: [t('projects.p3.i1'), t('projects.p3.i2'), t('projects.p3.i3')],
-      tags: ['Power BI', 'Data Analytics', 'Matrix42']
+      tags: ['Power BI', 'Data Analytics', 'Matrix42'],
+      categories: ['data'] as ProjectFilter[]
     },
     {
       title: t('projects.p4.title'),
@@ -39,9 +46,25 @@ export default function Projects() {
       problem: t('projects.p4.problem'),
       solution: t('projects.p4.solution'),
       impact: [t('projects.p4.i1'), t('projects.p4.i2'), t('projects.p4.i3')],
-      tags: ['Windows Server', 'pfSense', 'IAM', '2FA']
+      tags: ['Windows Server', 'pfSense', 'IAM', '2FA'],
+      categories: ['security', 'infrastructure'] as ProjectFilter[]
     }
   ];
+
+  const filters: Array<{ id: ProjectFilter; label: string }> = [
+    { id: 'all', label: language === 'en' ? 'All' : 'Tous' },
+    { id: 'ai', label: 'AI' },
+    { id: 'security', label: language === 'en' ? 'Security' : 'Securite' },
+    { id: 'infrastructure', label: language === 'en' ? 'Infrastructure' : 'Infrastructure' },
+    { id: 'data', label: language === 'en' ? 'Data' : 'Data' },
+  ];
+
+  const filteredProjects = useMemo(() => {
+    if (activeFilter === 'all') {
+      return projects;
+    }
+    return projects.filter((project) => project.categories.includes(activeFilter));
+  }, [activeFilter, projects]);
 
   return (
     <section id="projects" className="py-24 bg-carbon-layer-1">
@@ -66,8 +89,24 @@ export default function Projects() {
           </a>
         </motion.div>
 
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          {filters.map((filter) => (
+            <button
+              key={filter.id}
+              onClick={() => setActiveFilter(filter.id)}
+              className={`px-3 py-1.5 text-xs font-mono border transition-colors ${
+                activeFilter === filter.id
+                  ? 'bg-carbon-blue text-white border-carbon-blue'
+                  : 'bg-carbon-layer-2 text-carbon-text-secondary border-carbon-border-subtle hover:border-carbon-blue hover:text-carbon-text-primary'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
         <div className="grid lg:grid-cols-2 gap-6">
-          {projects.map((project, index) => {
+          {filteredProjects.map((project, index) => {
             const Icon = project.icon;
             const CardContent = (
               <>
@@ -122,7 +161,7 @@ export default function Projects() {
 
             return (
               <motion.div
-                key={index}
+                key={`${project.title}-${index}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -135,7 +174,9 @@ export default function Projects() {
                 
                 {project.id ? (
                   <Link to={`/project/${project.id}`} className="absolute inset-0 z-10">
-                    <span className="sr-only">View {project.title} details</span>
+                    <span className="sr-only">
+                      {language === 'en' ? 'View' : 'Voir'} {project.title} {language === 'en' ? 'details' : 'details'}
+                    </span>
                   </Link>
                 ) : null}
                 <div className="relative z-20 pointer-events-none">
