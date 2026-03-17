@@ -7,11 +7,13 @@ export default defineConfig(({mode}) => {
   const projectRoot = process.cwd();
   const env = loadEnv(mode, projectRoot, '');
   const geminiApiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || '';
+  const base = env.VITE_BASE_PATH || (mode === 'production' ? '/MyPortofolio/' : '/');
   const usePolling =
     process.platform === 'win32' &&
     process.env.VITE_DISABLE_POLLING !== 'true';
   return {
     root: projectRoot,
+    base,
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(geminiApiKey),
