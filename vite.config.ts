@@ -4,22 +4,34 @@ import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
-  const env = loadEnv(mode, '.', '');
+  const projectRoot = process.cwd();
+  const env = loadEnv(mode, projectRoot, '');
+  const geminiApiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || '';
+  const usePolling =
+    process.platform === 'win32' &&
+    process.env.VITE_DISABLE_POLLING !== 'true';
   return {
-    base: mode === 'production' ? '/MyPortofolio/' : '/',
+    root: projectRoot,
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(geminiApiKey),
+    },
+    optimizeDeps: {
+      entries: ['src/main.tsx'],
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(projectRoot, '.'),
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
+      watch: usePolling
+        ? {
+            usePolling: true,
+            interval: 300,
+          }
+        : undefined,
     },
   };
 });

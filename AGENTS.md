@@ -1,48 +1,23 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This is a Vite + React + TypeScript portfolio app.
+`src/main.tsx` boots the React app, and `src/App.tsx` contains the main portfolio flow and section-level page switching. Reusable interactive pieces live in `src/components/`, currently `BackToTop.tsx` and `ChatbotButton.tsx`. Global styling, design tokens, and responsive rules are centralized in `src/index.css`.
 
-- `src/main.tsx`: app entry point.
-- `src/App.tsx`: router and top-level providers.
-- `src/pages/`: route-level pages (`Home`, `ProjectDetails`).
-- `src/components/`: reusable UI sections (e.g., `Hero`, `Projects`, `Navbar`).
-- `src/context/`: shared state (`LanguageContext`).
-- `src/index.css`: global styles and Tailwind-driven styling.
-- `images/`: static project images grouped by topic.
-- Root config: `vite.config.ts`, `tsconfig.json`, `.env.example`.
-
-Use `@/` alias imports (configured in `vite.config.ts`) when paths become deep.
+Root configuration lives in `index.html`, `vite.config.ts`, `tsconfig.json`, `metadata.json`, and `.env.example`. Large static assets such as PDFs, the profile image, and HTML mockups are stored at the repository root and referenced directly by the UI, so keep filenames stable or update the matching paths in `src/App.tsx`.
 
 ## Build, Test, and Development Commands
-- `npm install`: install dependencies.
-- `npm run dev`: start local dev server on port `3000` (`0.0.0.0` host).
-- `npm run build`: create production build in `dist/`.
-- `npm run preview`: serve the built app locally.
-- `npm run lint`: TypeScript type-check (`tsc --noEmit`).
-- `npm run clean`: remove `dist/` output.
+`npm install` installs dependencies. `npm run dev` starts the Vite dev server on port `3000` and binds to `0.0.0.0`. `npm run build` creates the production bundle in `dist/`. `npm run preview` serves the built app locally for a final check. `npm run lint` runs TypeScript type-checking with `tsc --noEmit`; there is no ESLint setup in this copy.
+
+`npm run clean` removes `dist/` with `rm -rf`. On PowerShell, use `Remove-Item dist -Recurse -Force` if the script is unavailable.
 
 ## Coding Style & Naming Conventions
-- Language: TypeScript + React functional components.
-- Indentation: 2 spaces; prefer single quotes and trailing semicolons.
-- Components/pages/context providers: `PascalCase` file names (`TechStack.tsx`).
-- Hooks, variables, functions: `camelCase`; constants: `UPPER_SNAKE_CASE` only when truly constant.
-- Keep components focused; move shared cross-page logic into `src/context/` or small utilities.
+Use TypeScript React function components and follow the existing 2-space indentation style in `.tsx` and CSS files. Component files and exports use PascalCase, while state, refs, helpers, and DOM IDs use camelCase. Prefer the current visual system: CSS variables in `:root`, DM Sans/DM Serif typography, and French-first content for portfolio copy.
 
 ## Testing Guidelines
-No automated test framework is currently configured in this snapshot.
-
-- Minimum gate before PR: `npm run lint` and manual verification of `/` and `/project/:id`.
-- When adding tests, prefer Vitest + React Testing Library.
-- Test naming pattern: `ComponentName.test.tsx`, colocated with component or in a nearby `__tests__/` directory.
+No automated test suite exists yet. Before submitting changes, run `npm run lint` and `npm run build`, then manually verify navigation, responsive layouts, chatbot open/send behavior, and downloadable asset links. If you add tests, place them near the feature as `*.test.ts` or `*.test.tsx` and add the runner script to `package.json`.
 
 ## Commit & Pull Request Guidelines
-Local `.git` history is not available in this workspace export, so follow Conventional Commits:
-
-- Examples: `feat: add project detail hero`, `fix: handle missing translation key`.
-- Keep commits small and scoped to one concern.
-- PRs should include: summary, changed paths, validation steps, screenshots/GIFs for UI changes, and linked issue/ticket when available.
+Git history is not available in this workspace, so use short imperative commit messages such as `feat: refine hero layout` or `fix: guard chatbot request`. Pull requests should include a concise summary, screenshots for UI changes, any `.env` or Gemini configuration notes, and the manual verification steps you ran.
 
 ## Security & Configuration Tips
-- Do not commit secrets. Keep API keys in `.env.local`; use `.env.example` as the template.
-- Review `vite.config.ts` `define` values carefully to avoid exposing unintended environment variables.
+Copy `.env.example` to `.env.local` and set `GEMINI_API_KEY`; never commit real secrets. The current Vite config injects `process.env.GEMINI_API_KEY` into client code, so treat it as frontend-visible configuration.

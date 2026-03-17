@@ -1,0 +1,308 @@
+
+<style>
+#kw{position:relative;height:500px;background:#eae5dc;border-radius:12px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:54px;font-family:Georgia,serif;user-select:none;}
+#kcanvas{position:absolute;inset:0;pointer-events:none;}
+#kbw{position:relative;z-index:2;perspective:480px;transform-style:preserve-3d;cursor:pointer;}
+.kp{width:196px;height:25px;display:flex;align-items:center;justify-content:center;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#3d3228;border:1.5px solid #3d3228;background:rgba(234,229,220,.72);backface-visibility:hidden;transition:background .18s;}
+.kp.top{border-bottom:none;transform-origin:bottom center;}
+.kp.bot{border-top:none;transform-origin:top center;}
+#kbw:hover .kp{background:rgba(234,229,220,.9);}
+.kp.fold.top{animation:fTop .36s ease-in forwards;}
+.kp.fold.bot{animation:fBot .36s ease-in forwards;}
+.kp.reform.top{animation:rTop .44s cubic-bezier(.18,1.4,.55,1) forwards;}
+.kp.reform.bot{animation:rBot .44s cubic-bezier(.18,1.4,.55,1) forwards;}
+@keyframes fTop{to{transform:rotateX(-90deg);opacity:0;}}
+@keyframes fBot{to{transform:rotateX(90deg);opacity:0;}}
+@keyframes rTop{from{transform:rotateX(-90deg);opacity:0;}to{transform:rotateX(0);opacity:1;}}
+@keyframes rBot{from{transform:rotateX(90deg);opacity:0;}to{transform:rotateX(0);opacity:1;}}
+#krp{position:absolute;top:14px;right:16px;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a7060;border:1px solid #c4b09a;background:transparent;padding:5px 12px;border-radius:2px;cursor:pointer;opacity:0;transition:opacity .3s;font-family:Georgia,serif;}
+#krp.show{opacity:1;}
+.klbl{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);color:#6a5a48;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;text-align:center;line-height:3;opacity:.28;pointer-events:none;}
+</style>
+
+<div id="kw">
+  <div class="klbl">Kafui Charbel EKLU<br><span style="font-size:8.5px;opacity:.55;">— cliquer le bouton —</span></div>
+  <canvas id="kcanvas"></canvas>
+  <div id="kbw" onclick="kGo()">
+    <div class="kp top" id="kp1">↑ HAUT</div>
+    <div class="kp bot" id="kp2">DE PAGE</div>
+  </div>
+  <button id="krp" onclick="kReset()">↺ Rejouer</button>
+</div>
+
+<script>
+(function(){
+  var cv=document.getElementById('kcanvas');
+  var kw=document.getElementById('kw');
+  var ctx,W,H;
+  var busy=false,aid=null;
+  var springing=false,flying=false;
+  var sS=0,sV=0;
+  var trailPts=[],dashOff=0;
+  var plX,plY,plA,plAlpha;
+  var prevA=null,bankAngle=0,bankV=0;
+  var startTs=null;
+  var P0,P1,P2,P3;
+  var SCALE=0.9;
+
+  function setup(){
+    W=kw.clientWidth; H=kw.clientHeight;
+    cv.width=W*devicePixelRatio; cv.height=H*devicePixelRatio;
+    cv.style.width=W+'px'; cv.style.height=H+'px';
+    ctx=cv.getContext('2d');
+    ctx.scale(devicePixelRatio,devicePixelRatio);
+  }
+
+  function bzPt(t){
+    var m=1-t;
+    return {
+      x:m*m*m*P0.x+3*m*m*t*P1.x+3*m*t*t*P2.x+t*t*t*P3.x,
+      y:m*m*m*P0.y+3*m*m*t*P1.y+3*m*t*t*P2.y+t*t*t*P3.y
+    };
+  }
+  function bzTan(t){
+    var m=1-t;
+    return {
+      x:3*(m*m*(P1.x-P0.x)+2*m*t*(P2.x-P1.x)+t*t*(P3.x-P2.x)),
+      y:3*(m*m*(P1.y-P0.y)+2*m*t*(P2.y-P1.y)+t*t*(P3.y-P2.y))
+    };
+  }
+
+  /* ── Dessin de l'avion papier (vue isométrique 3/4 dessus) ── */
+  function drawPlane(x,y,angle,sc,alpha,bank){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(angle);
+    ctx.scale(sc,sc);
+
+    /* Ombre portée douce */
+    ctx.save();
+    ctx.globalAlpha=alpha*0.18;
+    ctx.translate(5,10);
+    ctx.scale(1.05,0.28);
+    ctx.beginPath();
+    ctx.ellipse(0,0,24,13,0,0,Math.PI*2);
+    ctx.fillStyle='#3d3228';
+    ctx.fill();
+    ctx.restore();
+
+    var bk=Math.cos(bank); /* compression latérale selon banking */
+
+    ctx.globalAlpha=alpha;
+
+    /* Aile haute (surface exposée à la lumière) */
+    ctx.beginPath();
+    ctx.moveTo(24,0);
+    ctx.lineTo(-9,-16*bk);
+    ctx.lineTo(-3,-3);
+    ctx.closePath();
+    ctx.fillStyle='#f5f0e2';
+    ctx.fill();
+
+    /* Aile basse (dans l'ombre) */
+    ctx.beginPath();
+    ctx.moveTo(24,0);
+    ctx.lineTo(-3,3);
+    ctx.lineTo(-9,16*bk);
+    ctx.closePath();
+    ctx.fillStyle='#a08868';
+    ctx.fill();
+
+    /* Fuselage haut (demi-lumière) */
+    ctx.beginPath();
+    ctx.moveTo(24,0);
+    ctx.lineTo(-3,-3);
+    ctx.lineTo(-9,0);
+    ctx.closePath();
+    ctx.fillStyle='#ddd0b8';
+    ctx.fill();
+
+    /* Fuselage bas (ombre douce) */
+    ctx.beginPath();
+    ctx.moveTo(24,0);
+    ctx.lineTo(-9,0);
+    ctx.lineTo(-3,3);
+    ctx.closePath();
+    ctx.fillStyle='#c0a888';
+    ctx.fill();
+
+    /* Empennage haut */
+    ctx.beginPath();
+    ctx.moveTo(-3,-3);
+    ctx.lineTo(-9,-16*bk);
+    ctx.lineTo(-9,0);
+    ctx.closePath();
+    ctx.fillStyle='#cfc0a0';
+    ctx.fill();
+
+    /* Empennage bas */
+    ctx.beginPath();
+    ctx.moveTo(-3,3);
+    ctx.lineTo(-9,0);
+    ctx.lineTo(-9,16*bk);
+    ctx.closePath();
+    ctx.fillStyle='#b09070';
+    ctx.fill();
+
+    /* Ligne de pliure principale */
+    ctx.beginPath();
+    ctx.moveTo(24,0);
+    ctx.lineTo(-9,0);
+    ctx.globalAlpha=alpha*0.85;
+    ctx.strokeStyle='#7a6050';
+    ctx.lineWidth=1;
+    ctx.stroke();
+
+    /* Liseré lumineux bord d'aile haut */
+    ctx.beginPath();
+    ctx.moveTo(24,0);
+    ctx.lineTo(-9,-16*bk);
+    ctx.globalAlpha=alpha*0.35;
+    ctx.strokeStyle='rgba(255,250,238,0.9)';
+    ctx.lineWidth=0.7;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /* ── Sillage en pointillés ── */
+  function drawTrail(alpha){
+    if(trailPts.length<2)return;
+    ctx.save();
+    ctx.setLineDash([4,10]);
+    ctx.lineDashOffset=-dashOff;
+    ctx.globalAlpha=alpha*0.48;
+    ctx.strokeStyle='#3d3228';
+    ctx.lineWidth=1.5;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.beginPath();
+    ctx.moveTo(trailPts[0].x,trailPts[0].y);
+    for(var i=1;i<trailPts.length;i++) ctx.lineTo(trailPts[i].x,trailPts[i].y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function tick(ts){
+    ctx.clearRect(0,0,W,H);
+    dashOff+=0.55;
+
+    /* Phase 1 : pop-in élastique */
+    if(springing){
+      var dt=0.016;
+      sV+=(300*(1-sS)-26*sV)*dt;
+      sS+=sV*dt;
+      var sc=Math.max(0,sS)*SCALE;
+      drawPlane(plX,plY,plA,sc,1,0);
+      if(Math.abs(1-sS)<0.01&&Math.abs(sV)<0.01){
+        springing=false; flying=true; startTs=ts;
+        trailPts=[{x:plX,y:plY}];
+      }
+      aid=requestAnimationFrame(tick);
+      return;
+    }
+
+    /* Phase 2 : vol en courbe */
+    if(flying){
+      if(!startTs) startTs=ts;
+      var prog=Math.min((ts-startTs)/2100,1);
+      var e=prog<0.5?4*prog*prog*prog:1-Math.pow(-2*prog+2,3)/2;
+
+      var pos=bzPt(e);
+      var tan=bzTan(e);
+
+      /* Légère oscillation verticale (souffle de vol) */
+      pos.y+=Math.sin(prog*Math.PI*3.5)*2.2;
+
+      plX=pos.x; plY=pos.y;
+      plA=Math.atan2(tan.y,tan.x);
+
+      /* Banking : smooth lagging derrière le changement d'angle */
+      var angleDiff=0;
+      if(prevA!==null){
+        angleDiff=plA-prevA;
+        while(angleDiff>Math.PI) angleDiff-=2*Math.PI;
+        while(angleDiff<-Math.PI) angleDiff+=2*Math.PI;
+      }
+      bankV+=(angleDiff*22-bankAngle)*0.28-bankV*0.35;
+      bankAngle+=bankV;
+      bankAngle=Math.max(-0.9,Math.min(0.9,bankAngle));
+      prevA=plA;
+
+      plAlpha=prog>0.78?1-(prog-0.78)/0.22:1;
+
+      /* Ajout au sillage */
+      var lp=trailPts[trailPts.length-1];
+      var dx=pos.x-lp.x,dy=pos.y-lp.y;
+      if(dx*dx+dy*dy>12){
+        trailPts.push({x:pos.x,y:pos.y});
+        if(trailPts.length>160) trailPts.shift();
+      }
+
+      drawTrail(plAlpha);
+      drawPlane(plX,plY,plA,SCALE,plAlpha,bankAngle);
+
+      if(prog<1){
+        aid=requestAnimationFrame(tick);
+      }else{
+        flying=false;
+        ctx.clearRect(0,0,W,H);
+        document.getElementById('krp').classList.add('show');
+      }
+      return;
+    }
+  }
+
+  window.kGo=function(){
+    if(busy)return; busy=true;
+    var bw=document.getElementById('kbw');
+    document.getElementById('kp1').classList.add('fold');
+    document.getElementById('kp2').classList.add('fold');
+
+    setTimeout(function(){
+      bw.style.visibility='hidden';
+      var br=bw.getBoundingClientRect();
+      var kr=kw.getBoundingClientRect();
+      var sx=br.left-kr.left+br.width/2;
+      var sy=br.top-kr.top+br.height/2;
+
+      /* Courbe de Bézier : départ bas-centre → arabesque → arrivée haut */
+      P0={x:sx,y:sy};
+      P1={x:sx-W*0.28,y:sy-H*0.28};
+      P2={x:sx+W*0.22,y:sy-H*0.64};
+      P3={x:sx+W*0.05,y:26};
+
+      plX=sx; plY=sy;
+      plA=Math.atan2(P1.y-P0.y,P1.x-P0.x);
+      sS=0; sV=0; bankAngle=0; bankV=0; prevA=null;
+      springing=true; flying=false;
+      trailPts=[]; dashOff=0; startTs=null;
+
+      if(aid) cancelAnimationFrame(aid);
+      aid=requestAnimationFrame(tick);
+    },360);
+  };
+
+  window.kReset=function(){
+    if(aid) cancelAnimationFrame(aid);
+    ctx.clearRect(0,0,W,H);
+    flying=false; springing=false; trailPts=[];
+    var bw=document.getElementById('kbw');
+    var rp=document.getElementById('krp');
+    var k1=document.getElementById('kp1'),k2=document.getElementById('kp2');
+    rp.classList.remove('show');
+    k1.classList.remove('fold','reform');
+    k2.classList.remove('fold','reform');
+    void bw.offsetWidth;
+    bw.style.visibility='visible';
+    k1.classList.add('reform'); k2.classList.add('reform');
+    k1.addEventListener('animationend',function(){
+      k1.classList.remove('reform'); k2.classList.remove('reform');
+      busy=false;
+    },{once:true});
+  };
+
+  setup();
+})();
+</script>
