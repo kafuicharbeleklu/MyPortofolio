@@ -113,7 +113,7 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) => {
-  const [leftSlide, setLeftSlide] = useState(0);
+  const [leftSlide, setLeftSlide] = useState(1);
   const [rightSlide, setRightSlide] = useState(0);
   const [isHoveringLeft, setIsHoveringLeft] = useState(false);
   const [isHoveringRight, setIsHoveringRight] = useState(false);
@@ -131,6 +131,7 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
   const skillItems = [...v.skills.stripItems].sort((a, b) =>
     a.localeCompare(b, lang === 'FR' ? 'fr' : 'en', { sensitivity: 'base' })
   );
+  const marqueeItems = [...skillItems, ...skillItems];
   const profileImage = `${import.meta.env.BASE_URL}_KSP4314.jpg`;
 
   useEffect(() => {
@@ -360,11 +361,11 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
       </AnimatePresence>
 
       <div className="skills-strip">
-        <div className="skills-track" style={{ animationDuration: '30s' }}>
-          {[...skillItems, ...skillItems, ...skillItems].map((item, index) => (
+        <div className="skills-track" style={{ animationDuration: '26s' }}>
+          {marqueeItems.map((item, index) => (
             <React.Fragment key={`${item}-${index}`}>
               <span className="sk">{item}</span>
-              {index < skillItems.length * 3 - 1 && <div className="sk-sep"></div>}
+              {index < marqueeItems.length - 1 && <div className="sk-sep"></div>}
             </React.Fragment>
           ))}
         </div>

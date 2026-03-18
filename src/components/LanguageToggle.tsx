@@ -8,7 +8,22 @@ interface LanguageToggleProps {
 
 const LanguageToggle: React.FC<LanguageToggleProps> = ({ lang, onToggle }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dragTop, setDragTop] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dragStateRef = useRef<{
+    pointerId: number | null;
+    offsetY: number;
+    startY: number;
+    moved: boolean;
+  }>({
+    pointerId: null,
+    offsetY: 0,
+    startY: 0,
+    moved: false,
+  });
+  const suppressClickRef = useRef(false);
   const v = t[lang];
 
   useEffect(() => {
@@ -33,20 +48,134 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({ lang, onToggle }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const clampTop = (nextTop: number, height: number) => {
+      const margin = 0;
+      const maxTop = Math.max(margin, window.innerHeight - height - margin);
+
+      return Math.min(Math.max(margin, nextTop), maxTop);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      const wrapper = wrapperRef.current;
+      if (!wrapper || dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const nextTop = clampTop(
+        event.clientY - dragState.offsetY,
+        wrapper.getBoundingClientRect().height
+      );
+
+      if (!dragState.moved && Math.abs(event.clientY - dragState.startY) > 6) {
+        dragState.moved = true;
+        suppressClickRef.current = true;
+        setIsDragging(true);
+        setIsOpen(false);
+      }
+
+      if (dragState.moved) {
+        setDragTop(nextTop);
+      }
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      if (dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      if (buttonRef.current?.hasPointerCapture(event.pointerId)) {
+        buttonRef.current.releasePointerCapture(event.pointerId);
+      }
+
+      dragState.pointerId = null;
+      dragState.offsetY = 0;
+      dragState.startY = 0;
+      dragState.moved = false;
+      setIsDragging(false);
+    };
+
+    const handleResize = () => {
+      const wrapper = wrapperRef.current;
+      if (!wrapper || dragTop === null) {
+        return;
+      }
+
+      setDragTop((currentTop) =>
+        currentTop === null
+          ? currentTop
+          : clampTop(currentTop, wrapper.getBoundingClientRect().height)
+      );
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [dragTop]);
+
   const handleSelect = (nextLang: Language) => {
     onToggle(nextLang);
     setIsOpen(false);
   };
 
+  const handleClick = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+
+    setIsOpen((prev) => !prev);
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    const wrapper = wrapperRef.current;
+    if (!wrapper) {
+      return;
+    }
+
+    const rect = wrapper.getBoundingClientRect();
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      offsetY: event.clientY - rect.top,
+      startY: event.clientY,
+      moved: false,
+    };
+
+    if (buttonRef.current) {
+      buttonRef.current.setPointerCapture(event.pointerId);
+    }
+  };
+
   return (
-    <div className="lang-toggle-wrapper" ref={wrapperRef}>
+    <div
+      className={`lang-toggle-wrapper ${isDragging ? 'is-dragging' : ''}`}
+      ref={wrapperRef}
+      style={dragTop === null ? undefined : { top: `${dragTop}px`, transform: 'none' }}
+    >
       <button
         type="button"
         className="lang-toggle-btn"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleClick}
+        onPointerDown={handlePointerDown}
         aria-label={v.language.label}
         aria-haspopup="menu"
         aria-expanded={isOpen}
+        aria-grabbed={isDragging}
+        ref={buttonRef}
       >
         <svg
           width="16"
