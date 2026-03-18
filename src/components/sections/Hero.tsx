@@ -1,68 +1,110 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import usePrefersReducedMotion from '../../hooks/usePrefersReducedMotion';
-import TestimonialCard from '../TestimonialCard';
-import { t, Language } from '../../translations';
+import { Language, t } from '../../translations';
 
-const getRightHeroSlides = (lang: Language) => [
+type RightHeroSlide = {
+  idx: string;
+  pill: string;
+  quote: string;
+};
+
+type LeftHeroSlide =
+  | {
+      id: 'statement';
+      type: 'statement';
+      label: string;
+      body: string;
+    }
+  | {
+      id: 'profile';
+      type: 'profile';
+      role: string;
+    };
+
+const getRightHeroSlides = (lang: Language): RightHeroSlide[] => [
   {
-    idx: lang === 'FR' ? '— 01 / Profil' : '— 01 / Profile',
+    idx: lang === 'FR' ? '\u2014 01 / Profil' : '\u2014 01 / Profile',
     pill:
       lang === 'FR'
         ? 'Administrateur Digital Workplace & Infrastructure'
         : 'Digital Workplace & Infrastructure Administrator',
     quote:
       lang === 'FR'
-        ? '"Les infrastructures robustes ne se voient pas — elles se ressentent."'
-        : '"Robust infrastructures are not seen — they are felt."',
+        ? '"Les infrastructures robustes ne se voient pas \u2014 elles se ressentent."'
+        : '"Robust infrastructures are not seen \u2014 they are felt."',
   },
   {
-    idx: lang === 'FR' ? '— 02 / Sécurité' : '— 02 / Security',
+    idx: lang === 'FR' ? '\u2014 02 / S\u00e9curit\u00e9' : '\u2014 02 / Security',
     pill: 'Wazuh Security Ambassador',
     quote:
       lang === 'FR'
-        ? '"Anticiper les menaces avant qu\'elles n\'atteignent le cœur du système."'
+        ? "\"Anticiper les menaces avant qu'elles n'atteignent le c\u0153ur du syst\u00e8me.\""
         : '"Anticipate threats before they reach the core of the system."',
   },
   {
-    idx: lang === 'FR' ? '— 03 / Vision' : '— 03 / Vision',
-    pill: lang === 'FR' ? 'Architecte Réseaux & Systèmes' : 'Network & Systems Architect',
+    idx: lang === 'FR' ? '\u2014 03 / Vision' : '\u2014 03 / Vision',
+    pill:
+      lang === 'FR' ? 'Architecte R\u00e9seaux & Syst\u00e8mes' : 'Network & Systems Architect',
     quote:
       lang === 'FR'
-        ? '"Connecter les environnements complexes avec fiabilité et performance."'
+        ? '"Connecter les environnements complexes avec fiabilit\u00e9 et performance."'
         : '"Connecting complex environments with reliability and performance."',
   },
 ];
 
-const getLeftHeroSlides = (lang: Language) => [
+const getLeftHeroSlides = (lang: Language): LeftHeroSlide[] => [
   {
-    quote:
+    id: 'statement',
+    type: 'statement',
+    label: lang === 'FR' ? 'Vision infrastructure' : 'Infrastructure focus',
+    body:
       lang === 'FR'
-        ? 'Bâtir des\ninfrastructures\nrobustes &\nsécurisées.'
-        : 'Building\nrobust & secure\ninfrastructures.',
+        ? "Ing\u00e9nieur r\u00e9seaux & syst\u00e8mes bas\u00e9 \u00e0 Lom\u00e9 \u2014 je con\u00e7ois, d\u00e9ploie et s\u00e9curise les infrastructures IT avec une approche rigoureuse, lisible et orient\u00e9e r\u00e9sultat. Master II mention bien \u00b7 Wazuh Security Ambassador."
+        : 'Network & systems engineer based in Lome \u2014 I design, deploy, and secure IT infrastructures with a rigorous, readable, and results-driven approach. Master II with honors \u00b7 Wazuh Security Ambassador.',
+  },
+  {
+    id: 'profile',
+    type: 'profile',
     role:
       lang === 'FR'
         ? 'Administrateur Digital Workplace & Infrastructure'
         : 'Digital Workplace & Infrastructure Administrator',
-    eyebrow: lang === 'FR' ? 'Vision métier' : 'Core focus',
-  },
-  {
-    quote:
-      lang === 'FR'
-        ? 'Anticiper les menaces avant qu\'elles n\'atteignent le cœur du système.'
-        : 'Anticipate threats before they reach the core of the system.',
-    role: 'Wazuh Security Ambassador',
-    eyebrow: lang === 'FR' ? 'Approche sécurité' : 'Security mindset',
-  },
-  {
-    quote:
-      lang === 'FR'
-        ? 'Concevoir des environnements fiables, lisibles et prêts pour la production.'
-        : 'Design reliable, readable environments that are ready for production.',
-    role: lang === 'FR' ? 'Architecte Réseaux & Systèmes' : 'Network & Systems Architect',
-    eyebrow: lang === 'FR' ? 'Mode opératoire' : 'Delivery mode',
   },
 ];
+
+const renderStatementTitle = (lang: Language) => {
+  if (lang === 'FR') {
+    return (
+      <>
+        {'B\u00e2tir des'}
+        <br />
+        {'infra'}
+        <span className="it">{'struc'}</span>
+        {'tures'}
+        <br />
+        <span className="out">{'robustes'}</span>
+        {' &'}
+        <br />
+        <span className="it">{'s\u00e9curis\u00e9es.'}</span>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {'Building'}
+      <br />
+      {'ro'}
+      <span className="it">{'bust'}</span>
+      {' &'}
+      <br />
+      <span className="it">{'secure'}</span>
+      <br />
+      <span className="out">{'infrastructures.'}</span>
+    </>
+  );
+};
 
 interface HeroProps {
   lang: Language;
@@ -71,127 +113,188 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isHoveringHero, setIsHoveringHero] = useState(false);
+  const [leftSlide, setLeftSlide] = useState(0);
+  const [rightSlide, setRightSlide] = useState(0);
+  const [isHoveringLeft, setIsHoveringLeft] = useState(false);
+  const [isHoveringRight, setIsHoveringRight] = useState(false);
+  const [isPortraitOpen, setIsPortraitOpen] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const slideTransition = prefersReducedMotion ? { duration: 0 } : { duration: 0.5 };
+
+  const leftTransition = prefersReducedMotion ? { duration: 0 } : { duration: 0.72 };
+  const rightTransition = prefersReducedMotion ? { duration: 0 } : { duration: 0.46 };
 
   const v = t[lang];
   const rightHeroSlides = getRightHeroSlides(lang);
   const leftHeroSlides = getLeftHeroSlides(lang);
-  const skillItems = v.skills.stripItems;
+  const activeLeftSlide = leftHeroSlides[leftSlide];
+  const activeRightSlide = rightHeroSlides[rightSlide];
+  const skillItems = [...v.skills.stripItems].sort((a, b) =>
+    a.localeCompare(b, lang === 'FR' ? 'fr' : 'en', { sensitivity: 'base' })
+  );
   const profileImage = `${import.meta.env.BASE_URL}_KSP4314.jpg`;
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | undefined;
+    let startTimer: ReturnType<typeof setTimeout> | undefined;
+    let intervalTimer: ReturnType<typeof setInterval> | undefined;
 
-    if (!isHoveringHero && !prefersReducedMotion) {
-      timer = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % rightHeroSlides.length);
-      }, 4200);
+    if (!isHoveringLeft && !prefersReducedMotion && leftHeroSlides.length > 1) {
+      startTimer = setTimeout(() => {
+        intervalTimer = setInterval(() => {
+          setLeftSlide((prev) => (prev + 1) % leftHeroSlides.length);
+        }, 6200);
+      }, 450);
     }
 
     return () => {
-      if (timer) {
-        clearInterval(timer);
+      if (startTimer) {
+        clearTimeout(startTimer);
+      }
+      if (intervalTimer) {
+        clearInterval(intervalTimer);
       }
     };
-  }, [isHoveringHero, prefersReducedMotion, rightHeroSlides.length]);
+  }, [isHoveringLeft, leftHeroSlides.length, prefersReducedMotion]);
+
+  useEffect(() => {
+    let startTimer: ReturnType<typeof setTimeout> | undefined;
+    let intervalTimer: ReturnType<typeof setInterval> | undefined;
+
+    if (!isHoveringRight && !prefersReducedMotion && rightHeroSlides.length > 1) {
+      startTimer = setTimeout(() => {
+        intervalTimer = setInterval(() => {
+          setRightSlide((prev) => (prev + 1) % rightHeroSlides.length);
+        }, 4300);
+      }, 1550);
+    }
+
+    return () => {
+      if (startTimer) {
+        clearTimeout(startTimer);
+      }
+      if (intervalTimer) {
+        clearInterval(intervalTimer);
+      }
+    };
+  }, [isHoveringRight, prefersReducedMotion, rightHeroSlides.length]);
+
+  useEffect(() => {
+    if (!isPortraitOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsPortraitOpen(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isPortraitOpen]);
 
   return (
     <>
       <section id="hero" className="kp-hero">
         <div className="kp-hero-top">
-          <div className="kp-hero-index">Kafui Charbel Eklu · 2026</div>
+          <div className="kp-hero-index">{`Kafui Charbel Eklu \u00b7 2026`}</div>
+
           <div className="kp-hero-main">
-            <div>
-              <div className="kp-hero-eyebrow">{v.hero.eyebrow}</div>
-              <h1 className="kp-hero-h1">
-                {lang === 'FR' ? (
-                  <>
-                    Bâtir des
-                    <br />
-                    infra<span className="it">struc</span>tures
-                    <br />
-                    <span className="out">robustes</span> &
-                    <br />
-                    <span className="it">sécurisées.</span>
-                  </>
-                ) : (
-                  <>
-                    Building
-                    <br />
-                    ro<span className="it">bust</span> &
-                    <br />
-                    <span className="it">secure</span>
-                    <br />
-                    <span className="out">infrastructures.</span>
-                  </>
-                )}
-              </h1>
-              <p className="kp-hero-body">
-                {lang === 'FR'
-                  ? "Ingénieur réseaux & systèmes basé à Lomé — je conçois, déploie et sécurise les infrastructures IT avec une approche rigoureuse, lisible et orientée résultat. Master II mention bien · Wazuh Security Ambassador."
-                  : 'Network & systems engineer based in Lome — I design, deploy, and secure IT infrastructures with a rigorous, readable, and results-driven approach. Master II with honors · Wazuh Security Ambassador.'}
-              </p>
-              <div
-                className="kp-hero-card-slot"
-                onMouseEnter={() => setIsHoveringHero(true)}
-                onMouseLeave={() => setIsHoveringHero(false)}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`left-${currentSlide}`}
-                    initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -16 }}
-                    transition={slideTransition}
-                    className="kp-hero-card-frame"
-                  >
-                    <TestimonialCard
-                      imageSrc={profileImage}
-                      imageAlt="Portrait de Kafui Charbel Eklu"
-                      quote={leftHeroSlides[currentSlide].quote}
-                      author="Kafui Charbel Eklu"
-                      role={leftHeroSlides[currentSlide].role}
-                      eyebrow={leftHeroSlides[currentSlide].eyebrow}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-              <div className="kp-hero-btns">
-                <button type="button" className="kp-btn-dark" onClick={onDiscoverProfile}>
-                  {v.hero.btnPrimary}
-                </button>
-                <button type="button" className="kp-btn-line" onClick={onViewProjects}>
-                  {v.hero.btnSecondary} →
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="hero-r">
+            <div className="kp-hero-eyebrow">{v.hero.eyebrow}</div>
+
             <div
-              className="hr-top overflow-hidden"
-              onMouseEnter={() => setIsHoveringHero(true)}
-              onMouseLeave={() => setIsHoveringHero(false)}
+              className="kp-hero-showcase"
+              onMouseEnter={() => setIsHoveringLeft(true)}
+              onMouseLeave={() => setIsHoveringLeft(false)}
             >
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={`right-${currentSlide}`}
+                  key={`left-${activeLeftSlide.id}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={leftTransition}
+                  className="kp-hero-showcase-panel"
+                >
+                  {activeLeftSlide.type === 'statement' ? (
+                    <div className="kp-hero-statement-card">
+                      <div className="kp-hero-slide-label">{activeLeftSlide.label}</div>
+                      <h1 className="kp-hero-h1">{renderStatementTitle(lang)}</h1>
+                      <p className="kp-hero-body">{activeLeftSlide.body}</p>
+                    </div>
+                  ) : (
+                    <div className="kp-hero-card-frame">
+                      <article className="kp-hero-portrait-card">
+                        <button
+                          type="button"
+                          className="kp-hero-portrait-media kp-hero-portrait-media-btn"
+                          onClick={() => setIsPortraitOpen(true)}
+                          aria-label={
+                            lang === 'FR'
+                              ? 'Afficher la photo en plein ecran'
+                              : 'Open portrait in full screen'
+                          }
+                        >
+                          <img
+                            src={profileImage}
+                            alt={
+                              lang === 'FR'
+                                ? 'Portrait de Kafui Charbel Eklu'
+                                : 'Portrait of Kafui Charbel Eklu'
+                            }
+                            className="kp-hero-portrait-image"
+                          />
+                        </button>
+                        <div className="kp-hero-portrait-meta">
+                          <span className="kp-hero-portrait-name">Kafui Charbel Eklu</span>
+                          <span className="kp-hero-portrait-role">{activeLeftSlide.role}</span>
+                        </div>
+                      </article>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            <div className="kp-hero-btns">
+              <button type="button" className="kp-btn-dark" onClick={onDiscoverProfile}>
+                {v.hero.btnPrimary}
+              </button>
+              <button type="button" className="kp-btn-line" onClick={onViewProjects}>
+                {v.hero.btnSecondary} {'\u2192'}
+              </button>
+            </div>
+          </div>
+
+          <div className="hero-r">
+            <div
+              className="hr-top overflow-hidden"
+              onMouseEnter={() => setIsHoveringRight(true)}
+              onMouseLeave={() => setIsHoveringRight(false)}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`right-${activeRightSlide.idx}`}
                   initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
-                  transition={slideTransition}
+                  transition={rightTransition}
                   className="hero-slide-inner"
                 >
-                  <p className="hr-idx">{rightHeroSlides[currentSlide].idx}</p>
+                  <p className="hr-idx">{activeRightSlide.idx}</p>
                   <div>
-                    <div className="hr-pill">{rightHeroSlides[currentSlide].pill}</div>
-                    <p className="hr-quote">{rightHeroSlides[currentSlide].quote}</p>
+                    <div className="hr-pill">{activeRightSlide.pill}</div>
+                    <p className="hr-quote">{activeRightSlide.quote}</p>
                   </div>
                 </motion.div>
               </AnimatePresence>
             </div>
+
             <div className="hr-bot">
               <div className="ib">
                 <small>{lang === 'FR' ? 'Certification' : 'Certification'}</small>
@@ -206,6 +309,7 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
                   Ambassador
                 </a>
               </div>
+
               <div className="ib">
                 <small>{lang === 'FR' ? 'Contact' : 'Contact'}</small>
                 <p>charbelkafuieklu@gmail.com</p>
@@ -214,6 +318,46 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {isPortraitOpen && (
+          <motion.div
+            className="kp-portrait-lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
+            onClick={() => setIsPortraitOpen(false)}
+          >
+            <button
+              type="button"
+              className="kp-portrait-lightbox-close"
+              onClick={() => setIsPortraitOpen(false)}
+              aria-label={lang === 'FR' ? 'Fermer la photo' : 'Close portrait'}
+            >
+              ×
+            </button>
+            <motion.div
+              className="kp-portrait-lightbox-dialog"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.24 }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <img
+                src={profileImage}
+                alt={
+                  lang === 'FR'
+                    ? 'Portrait de Kafui Charbel Eklu en plein ecran'
+                    : 'Full-screen portrait of Kafui Charbel Eklu'
+                }
+                className="kp-portrait-lightbox-image"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="skills-strip">
         <div className="skills-track" style={{ animationDuration: '30s' }}>

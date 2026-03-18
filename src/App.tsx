@@ -38,6 +38,7 @@ type ProjectTag = {
 
 type ProjectCardData = {
   id: string;
+  sortDate: number;
   title: Record<Language, string>;
   companyLine: Record<Language, string>;
   desc: Record<Language, string>;
@@ -111,6 +112,7 @@ const renderProjectIcon = (icon: ProjectCardData['icon'], accent: string) => {
 const projectCatalog: ProjectCardData[] = [
   {
     id: 'siem',
+    sortDate: 202411,
     title: {
       FR: 'Déploiement SIEM / XDR Wazuh',
       EN: 'Wazuh SIEM / XDR Deployment',
@@ -140,6 +142,7 @@ const projectCatalog: ProjectCardData[] = [
   },
   {
     id: 'moov',
+    sortDate: 202412,
     title: {
       FR: 'Portabilité MOOV → Togocom',
       EN: 'MOOV → Togocom Portability',
@@ -168,6 +171,7 @@ const projectCatalog: ProjectCardData[] = [
   },
   {
     id: 'orabank',
+    sortDate: 202210,
     title: {
       FR: 'Contrôleur de domaine Orabank',
       EN: 'Orabank Domain Controller',
@@ -196,6 +200,7 @@ const projectCatalog: ProjectCardData[] = [
   },
   {
     id: 'biasa',
+    sortDate: 202109,
     title: {
       FR: 'Services réseau Linux · BIASA',
       EN: 'Linux Network Services · BIASA',
@@ -224,6 +229,7 @@ const projectCatalog: ProjectCardData[] = [
   },
   {
     id: 'azure-infra',
+    sortDate: 202307,
     title: {
       FR: 'Déploiement infra cloud Azure',
       EN: 'Azure Cloud Infrastructure Deployment',
@@ -252,6 +258,7 @@ const projectCatalog: ProjectCardData[] = [
   },
   {
     id: 'lan-wan',
+    sortDate: 202209,
     title: {
       FR: 'Refonte réseau LAN/WAN',
       EN: 'LAN/WAN Network Redesign',
@@ -374,6 +381,48 @@ function App() {
       phoneHref: 'tel:+22890541391',
     },
   ];
+  const alphaCollator = new Intl.Collator(lang === 'FR' ? 'fr' : 'en', {
+    numeric: true,
+    sensitivity: 'base',
+  });
+  const sortAlphabetically = <T,>(items: T[], getValue: (item: T) => string) =>
+    [...items].sort((a, b) => alphaCollator.compare(getValue(a), getValue(b)));
+  const getSortedTags = (tags: ProjectTag[]) =>
+    sortAlphabetically(tags, (tag) => tag.label);
+  const sortedSkillsData = sortAlphabetically(skillsData, (skill) => skill.title);
+  const sortedFormationData = sortAlphabetically(formationData, (item) => item.title);
+  const sortedReferencesData = sortAlphabetically(referencesData, (reference) => reference.name);
+  const bioExpertiseItems = sortAlphabetically(
+    [
+      {
+        label: 'Wazuh Security Ambassador',
+        className: 'bio-tag-link tag tc',
+        href: 'https://wazuh.com/ambassadors/kafui-charbel-eklu/',
+        icon: (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 2L20 6V12C20 17 16 20 12 22C8 20 4 17 4 12V6L12 2Z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              fill="none"
+            />
+          </svg>
+        ),
+      },
+      { label: 'Windows Server', className: 'tag tr' },
+      { label: 'Active Directory', className: 'tag tr' },
+      { label: 'Linux / Ubuntu', className: 'tag tl2' },
+      { label: 'Réseaux / VSAT', className: 'tag tt' },
+      { label: 'TCP/IP · Routage', className: 'tag tt' },
+      { label: 'SIEM / XDR', className: 'tag tc' },
+      { label: 'Python', className: 'tag tb' },
+      { label: 'Bash · PowerShell', className: 'tag tb' },
+      { label: 'Power BI / DAX', className: 'tag' },
+      { label: 'Azure / M365', className: 'tag' },
+      { label: 'SCCM / MECM', className: 'tag' },
+    ],
+    (item) => item.label
+  );
   const projectFilters = [
     { key: 'all' as const, label: lang === 'FR' ? 'Tous' : 'All' },
     {
@@ -389,24 +438,33 @@ function App() {
       label: lang === 'FR' ? 'Infrastructure' : 'Infrastructure',
     },
   ];
+  const sortedProjectFilters = [
+    projectFilters[0],
+    ...sortAlphabetically(projectFilters.slice(1), (filter) => filter.label),
+  ];
   const normalizedProjectSearch = projectSearch.trim().toLowerCase();
-  const filteredProjects = projectCatalog.filter((project) => {
-    const matchesFilter =
-      projectFilter === 'all' || project.categoryKey === projectFilter;
-    const searchableContent = [
-      project.title[lang],
-      project.companyLine[lang],
-      project.desc[lang],
-      project.category[lang],
-      ...project.tags.map((tag) => tag.label),
-    ]
-      .join(' ')
-      .toLowerCase();
-    const matchesSearch =
-      !normalizedProjectSearch || searchableContent.includes(normalizedProjectSearch);
+  const filteredProjects = projectCatalog
+    .filter((project) => {
+      const matchesFilter =
+        projectFilter === 'all' || project.categoryKey === projectFilter;
+      const searchableContent = [
+        project.title[lang],
+        project.companyLine[lang],
+        project.desc[lang],
+        project.category[lang],
+        ...project.tags.map((tag) => tag.label),
+      ]
+        .join(' ')
+        .toLowerCase();
+      const matchesSearch =
+        !normalizedProjectSearch || searchableContent.includes(normalizedProjectSearch);
 
-    return matchesFilter && matchesSearch;
-  });
+      return matchesFilter && matchesSearch;
+    })
+    .sort(
+      (a, b) =>
+        b.sortDate - a.sortDate || alphaCollator.compare(a.title[lang], b.title[lang])
+    );
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const withBase = (assetPath: string) =>
@@ -537,7 +595,7 @@ function App() {
             <span className="sec-sub">{(v.skills as any).subtitle ?? v.skills.sub}</span>
           </div>
           <div className="skills-grid">
-            {getSkillsData(lang).map((skill, i) => (
+            {sortedSkillsData.map((skill, i) => (
               <div className="skill-card" key={i}>
                 <div className="skill-icon" style={{ background: skill.bg }}>
                   {skill.icon}
@@ -576,7 +634,7 @@ function App() {
             <span className="sec-sub">{educationSection.subtitle}</span>
           </div>
           <div className="edu-grid">
-            {getFormationData(lang).map((item, i) => (
+            {sortedFormationData.map((item, i) => (
               <div className="edu-card" key={i}>
                 <p className="edu-year">{item.year}</p>
                 <h3 className="edu-title">{item.title}</h3>
@@ -603,7 +661,7 @@ function App() {
             <span className="sec-sub">{referencesSection.subtitle}</span>
           </div>
           <div className="ref-grid">
-            {referencesData.map((reference) => (
+            {sortedReferencesData.map((reference) => (
               <div className="ref-card" key={reference.phoneHref}>
                 <div className="ref-av">{reference.initials}</div>
                 <p className="ref-name">{reference.name}</p>
@@ -652,7 +710,7 @@ function App() {
         </nav>
         <div className="sec">
           <div className="det-hero">
-            <div className="det-vis" style={{ background: '#2C3E2E' }}><div className="det-cat" style={{ background: 'rgba(212,149,106,.2)', color: '#D4956A' }}>Cybersécurité · Projet phare</div><svg width="100" height="100" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}><path d="M45 10L75 24L75 48C75 64 60 76 45 80C30 76 15 64 15 48L15 24Z" stroke="#D4956A" strokeWidth="2" fill="none" /><circle cx="45" cy="46" r="14" stroke="#D4956A" strokeWidth="1.5" fill="none" /><circle cx="45" cy="46" r="6" fill="#D4956A" opacity=".5" /><line x1="45" y1="22" x2="45" y2="32" stroke="#D4956A" /><line x1="45" y1="60" x2="45" y2="70" stroke="#D4956A" /><line x1="21" y1="46" x2="31" y2="46" stroke="#D4956A" /><line x1="59" y1="46" x2="69" y2="46" stroke="#D4956A" /></svg></div>
+            <div className="det-vis" style={{ background: '#2C3E2E' }}><svg width="100" height="100" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}><path d="M45 10L75 24L75 48C75 64 60 76 45 80C30 76 15 64 15 48L15 24Z" stroke="#D4956A" strokeWidth="2" fill="none" /><circle cx="45" cy="46" r="14" stroke="#D4956A" strokeWidth="1.5" fill="none" /><circle cx="45" cy="46" r="6" fill="#D4956A" opacity=".5" /><line x1="45" y1="22" x2="45" y2="32" stroke="#D4956A" /><line x1="45" y1="60" x2="45" y2="70" stroke="#D4956A" /><line x1="21" y1="46" x2="31" y2="46" stroke="#D4956A" /><line x1="59" y1="46" x2="69" y2="46" stroke="#D4956A" /></svg></div>
             <div><p className="det-eye">01 — Neemba Togo · 2023–2024</p><h1 className="det-title">Déploiement SIEM / XDR Wazuh</h1><p className="det-co">Neemba Togo</p><p className="det-desc">Déploiement complet d'une plateforme SIEM/XDR Wazuh sur l'ensemble du parc afin de centraliser la détection des menaces, automatiser les alertes et fournir une visibilité totale sur les événements de sécurité.</p>
               <div className="det-meta"><div className="dm"><small>Durée</small><p>14 mois</p></div><div className="dm"><small>Rôle</small><p>Lead technique</p></div><div className="dm"><small>Env.</small><p>Linux · On-premise</p></div><div className="dm"><small>Statut</small><p style={{ color: '#4CAF7D' }}>Production active</p></div></div></div>
           </div>
@@ -721,7 +779,7 @@ function App() {
         </nav>
         <div className="sec">
           <div className="det-hero">
-            <div className="det-vis" style={{ background: '#2B3A4A' }}><div className="det-cat" style={{ background: 'rgba(123,191,208,.2)', color: '#7BBFD0' }}>Infrastructure Télécom</div><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><circle cx="30" cy="30" r="22" stroke="#7BBFD0" strokeWidth="1.5" fill="none" /><circle cx="30" cy="30" r="15" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="8" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="3" fill="#7BBFD0" /></svg></div>
+            <div className="det-vis" style={{ background: '#2B3A4A' }}><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><circle cx="30" cy="30" r="22" stroke="#7BBFD0" strokeWidth="1.5" fill="none" /><circle cx="30" cy="30" r="15" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="8" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="3" fill="#7BBFD0" /></svg></div>
             <div><p className="det-eye">02 — Neemba Togo · 2024</p><h1 className="det-title">Portabilité Réseau MOOV → Togocom</h1><p className="det-co">Neemba Togo</p><p className="det-desc">Pilotage de la migration complète du réseau mobile de Neemba Togo depuis l'opérateur MOOV vers Togocom. Coordination multi-acteurs, maintien de la continuité de service et supervision VSAT tout au long de la transition.</p>
               <div className="det-meta"><div className="dm"><small>Durée</small><p>6 mois</p></div><div className="dm"><small>Rôle</small><p>Chef de projet IT</p></div><div className="dm"><small>Type</small><p>Migration réseau</p></div><div className="dm"><small>Statut</small><p style={{ color: '#4CAF7D' }}>Livré</p></div></div></div>
           </div>
@@ -787,7 +845,7 @@ function App() {
         </nav>
         <div className="sec">
           <div className="det-hero">
-            <div className="det-vis" style={{ background: '#3A2C1E' }}><div className="det-cat" style={{ background: 'rgba(200,168,90,.2)', color: '#C8A85A' }}>Réseau Entreprise</div><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="20" y="6" width="20" height="14" rx="2" stroke="#C8A85A" strokeWidth="1.5" fill="none" /><rect x="6" y="36" width="18" height="12" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><rect x="36" y="36" width="18" height="12" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><line x1="30" y1="20" x2="30" y2="36" stroke="#C8A85A" strokeWidth="1.2" /><line x1="15" y1="28" x2="45" y2="28" stroke="#C8A85A" /><line x1="15" y1="28" x2="15" y2="36" stroke="#C8A85A" /><line x1="45" y1="28" x2="45" y2="36" stroke="#C8A85A" /></svg></div>
+            <div className="det-vis" style={{ background: '#3A2C1E' }}><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="20" y="6" width="20" height="14" rx="2" stroke="#C8A85A" strokeWidth="1.5" fill="none" /><rect x="6" y="36" width="18" height="12" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><rect x="36" y="36" width="18" height="12" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><line x1="30" y1="20" x2="30" y2="36" stroke="#C8A85A" strokeWidth="1.2" /><line x1="15" y1="28" x2="45" y2="28" stroke="#C8A85A" /><line x1="15" y1="28" x2="15" y2="36" stroke="#C8A85A" /><line x1="45" y1="28" x2="45" y2="36" stroke="#C8A85A" /></svg></div>
             <div><p className="det-eye">03 — Orabank Togo · Stage 2022</p><h1 className="det-title">Contrôleur de Domaine Orabank</h1><p className="det-co">Orabank Togo</p><p className="det-desc">Installation et configuration d'un contrôleur de domaine Windows Server pour centraliser l'authentification, appliquer les GPO et assurer le support N2/N3 des agences bancaires.</p>
               <div className="det-meta"><div className="dm"><small>Durée</small><p>5 mois (stage)</p></div><div className="dm"><small>Rôle</small><p>Technicien Système</p></div><div className="dm"><small>Env.</small><p>Windows Server 2019</p></div><div className="dm"><small>Statut</small><p style={{ color: '#4CAF7D' }}>Livré</p></div></div></div>
           </div>
@@ -853,7 +911,7 @@ function App() {
         </nav>
         <div className="sec">
           <div className="det-hero">
-            <div className="det-vis" style={{ background: '#2A3830' }}><div className="det-cat" style={{ background: 'rgba(125,196,160,.2)', color: '#7DC4A0' }}>Infrastructure Linux</div><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="8" y="14" width="44" height="10" rx="2" stroke="#7DC4A0" strokeWidth="1.5" fill="none" /><rect x="8" y="28" width="44" height="10" rx="2" stroke="#7DC4A0" strokeWidth="1" fill="none" /><circle cx="46" cy="19" r="2.5" fill="#7DC4A0" /><line x1="30" y1="42" x2="30" y2="50" stroke="#7DC4A0" strokeWidth="1.2" /><line x1="18" y1="50" x2="42" y2="50" stroke="#7DC4A0" strokeWidth="1.2" /></svg></div>
+            <div className="det-vis" style={{ background: '#2A3830' }}><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="8" y="14" width="44" height="10" rx="2" stroke="#7DC4A0" strokeWidth="1.5" fill="none" /><rect x="8" y="28" width="44" height="10" rx="2" stroke="#7DC4A0" strokeWidth="1" fill="none" /><circle cx="46" cy="19" r="2.5" fill="#7DC4A0" /><line x1="30" y1="42" x2="30" y2="50" stroke="#7DC4A0" strokeWidth="1.2" /><line x1="18" y1="50" x2="42" y2="50" stroke="#7DC4A0" strokeWidth="1.2" /></svg></div>
             <div><p className="det-eye">04 — Clinique BIASA · Stage 2021</p><h1 className="det-title">Services Réseau Linux · Clinique BIASA</h1><p className="det-co">Clinique BIASA</p><p className="det-desc">Déploiement de services réseau essentiels (DNS, DHCP, Apache, NAT) sur Ubuntu Server pour interconnecter les équipements de la clinique et héberger les ressources internes.</p>
               <div className="det-meta"><div className="dm"><small>Durée</small><p>2 mois (stage)</p></div><div className="dm"><small>Rôle</small><p>Technicien réseau</p></div><div className="dm"><small>OS</small><p>Ubuntu Server LTS</p></div><div className="dm"><small>Statut</small><p style={{ color: '#4CAF7D' }}>Livré</p></div></div></div>
           </div>
@@ -1041,21 +1099,24 @@ function App() {
             <h2 className="sec-ttl">Expertises clés.</h2>
           </div>
           <div className="bio-expertise-wrap">
-            <a href="https://wazuh.com/ambassadors/kafui-charbel-eklu/" target="_blank" rel="noopener noreferrer" className="bio-tag-link tag tc">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16 20 12 22C8 20 4 17 4 12V6L12 2Z" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>
-              Wazuh Security Ambassador
-            </a>
-            <span className="tag tr">Windows Server</span>
-            <span className="tag tr">Active Directory</span>
-            <span className="tag tl2">Linux / Ubuntu</span>
-            <span className="tag tt">Réseaux / VSAT</span>
-            <span className="tag tt">TCP/IP · Routage</span>
-            <span className="tag tc">SIEM / XDR</span>
-            <span className="tag tb">Python</span>
-            <span className="tag tb">Bash · PowerShell</span>
-            <span className="tag">Power BI / DAX</span>
-            <span className="tag">Azure / M365</span>
-            <span className="tag">SCCM / MECM</span>
+            {bioExpertiseItems.map((item) =>
+              item.href ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={item.className}
+                >
+                  {item.icon}
+                  {item.label}
+                </a>
+              ) : (
+                <span key={item.label} className={item.className}>
+                  {item.label}
+                </span>
+              )
+            )}
           </div>
         </section>
 
@@ -1138,7 +1199,7 @@ function App() {
                 role="group"
                 aria-label={lang === 'FR' ? 'Filtres de projet' : 'Project filters'}
               >
-                {projectFilters.map((filter) => (
+                {sortedProjectFilters.map((filter) => (
                   <button
                     key={filter.key}
                     type="button"
@@ -1190,7 +1251,7 @@ function App() {
                         <p className="pj-desc">{project.desc[lang]}</p>
                         <div className="pj-foot">
                           <div className="tags">
-                            {project.tags.map((tag) => (
+                            {getSortedTags(project.tags).map((tag) => (
                               <span key={`${project.id}-${tag.label}`} className={`tag ${tag.className}`}>
                                 {tag.label}
                               </span>
@@ -1220,7 +1281,7 @@ function App() {
                         <p className="pj-desc">{project.desc[lang]}</p>
                         <div className="pj-foot">
                           <div className="tags">
-                            {project.tags.map((tag) => (
+                            {getSortedTags(project.tags).map((tag) => (
                               <span key={`${project.id}-${tag.label}`} className={`tag ${tag.className}`}>
                                 {tag.label}
                               </span>

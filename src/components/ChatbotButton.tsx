@@ -180,22 +180,9 @@ const ChatbotButton: React.FC = () => {
             <div className="chat-unavailable">
               <p className="chat-unavailable-copy">
                 {isGitHubPagesHost
-                  ? "Pour un contact rapide, utilisez les liens ci-dessous."
+                  ? "Le chatbot IA n'est pas disponible sur cette version GitHub Pages."
                   : "Ajoutez une cle Gemini locale pour activer l'assistant."}
               </p>
-              <div className="chat-help-links">
-                <a className="chat-help-link" href="mailto:charbelkafuieklu@gmail.com">
-                  Email
-                </a>
-                <a
-                  className="chat-help-link"
-                  href="https://www.linkedin.com/in/kafui-charbel-eklu"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  LinkedIn
-                </a>
-              </div>
             </div>
           )}
         </div>
