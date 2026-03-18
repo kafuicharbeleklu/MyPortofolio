@@ -12,7 +12,9 @@ const geminiApiKey = (
 const assistantGreeting =
   "Bonjour ! Je suis l'assistant virtuel de Kafui. Comment puis-je vous aider aujourd'hui ?";
 const missingKeyMessage =
-  'Le chatbot n\'est pas configure. Ajoutez VITE_GEMINI_API_KEY ou GEMINI_API_KEY dans .env.local, puis redemarrez npm run dev.';
+  "Le chatbot n'est pas configuré. Ajoutez VITE_GEMINI_API_KEY ou GEMINI_API_KEY dans .env.local, puis redémarrez npm run dev.";
+const chatbotPanelId = 'chatbot-panel';
+const chatbotTitleId = 'chatbot-title';
 
 type ChatMessage = {
   text: string;
@@ -57,7 +59,9 @@ const ChatbotButton: React.FC = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading) {
+      return;
+    }
 
     const userMessage = input.trim();
     setInput('');
@@ -78,9 +82,7 @@ const ChatbotButton: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
-          text:
-            response.text ||
-            "Desole, je n'ai pas pu generer de reponse.",
+          text: response.text || "Désolé, je n'ai pas pu générer de réponse.",
           isUser: false,
         },
       ]);
@@ -89,7 +91,7 @@ const ChatbotButton: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
-          text: 'Une erreur est survenue. Verifiez la cle Gemini et reessayez.',
+          text: 'Une erreur est survenue. Vérifiez la clé Gemini et réessayez.',
           isUser: false,
         },
       ]);
@@ -101,18 +103,29 @@ const ChatbotButton: React.FC = () => {
   return (
     <>
       {isOpen && (
-        <div className="chat-window">
+        <div
+          className="chat-window"
+          id={chatbotPanelId}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={chatbotTitleId}
+        >
           <div className="chat-header">
             <div className="chat-header-left">
               <div className={`chat-status-dot ${geminiApiKey ? 'online' : 'offline'}`}></div>
-              <h3>Assistant Virtuel</h3>
+              <h3 id={chatbotTitleId}>Assistant Virtuel</h3>
             </div>
-            <button className="chat-close-btn" onClick={() => setIsOpen(false)}>
+            <button
+              type="button"
+              className="chat-close-btn"
+              onClick={() => setIsOpen(false)}
+              aria-label="Fermer le chatbot"
+            >
               <X size={20} />
             </button>
           </div>
 
-          <div className="chat-messages">
+          <div className="chat-messages" aria-live="polite" aria-busy={isLoading}>
             {messages.map((msg, idx) => (
               <div
                 key={idx}
@@ -147,11 +160,14 @@ const ChatbotButton: React.FC = () => {
                   : 'Configurez la clé Gemini dans .env.local'
               }
               disabled={!geminiApiKey || isLoading}
+              aria-label="Message à envoyer"
             />
             <button
+              type="button"
               className="chat-send-btn"
               onClick={handleSend}
               disabled={!geminiApiKey || isLoading}
+              aria-label="Envoyer le message"
             >
               <Send size={18} />
             </button>
@@ -160,8 +176,12 @@ const ChatbotButton: React.FC = () => {
       )}
 
       <button
+        type="button"
         className="chat-fab"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? 'Fermer le chatbot' : 'Ouvrir le chatbot'}
+        aria-expanded={isOpen}
+        aria-controls={chatbotPanelId}
       >
         {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
       </button>

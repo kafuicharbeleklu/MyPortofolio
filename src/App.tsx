@@ -2,99 +2,84 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import BackToTop from './components/BackToTop';
 import ChatbotButton from './components/ChatbotButton';
+import MobileNav from './components/MobileNav';
+import Hero from './components/sections/Hero';
+import About from './components/sections/About';
+import Projects from './components/sections/Projects';
+import Contact from './components/sections/Contact';
+import Footer from './components/sections/Footer';
+import { skillsData, timelineData, formationData } from './data';
+import usePrefersReducedMotion from './hooks/usePrefersReducedMotion';
 
 function App() {
   const [activePage, setActivePage] = useState('main');
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [statIndex, setStatIndex] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const withBase = (assetPath: string) =>
     `${import.meta.env.BASE_URL}${assetPath.replace(/^\//, '')}`;
+  const getScrollBehavior = () => (prefersReducedMotion ? 'auto' : 'smooth');
+  const getNavOffset = () => {
+    const nav = document.querySelector('.nav');
 
-  const heroSlides = [
-    {
-      idx: "— 01 / Profil",
-      pill: "Administrateur Digital Workplace & Infrastructure",
-      quote: "\"Les infrastructures robustes ne se voient pas — elles se ressentent.\""
-    },
-    {
-      idx: "— 02 / Sécurité",
-      pill: "Wazuh Security Ambassador",
-      quote: "\"Anticiper les menaces avant qu'elles n'atteignent le cœur du système.\""
-    },
-    {
-      idx: "— 03 / Vision",
-      pill: "Architecte Réseaux & Systèmes",
-      quote: "\"Connecter les environnements complexes avec fiabilité et performance.\""
-    }
-  ];
+    return nav instanceof HTMLElement ? nav.getBoundingClientRect().height + 16 : 96;
+  };
+  const scrollToElement = (id: string) => {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    const targetTop =
+      window.scrollY + element.getBoundingClientRect().top - getNavOffset();
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: getScrollBehavior(),
+    });
+  };
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 4000);
-    const statTimer = setInterval(() => {
-      setStatIndex((prev) => (prev + 1) % 4);
-    }, 3000);
-    return () => {
-      clearInterval(timer);
-      clearInterval(statTimer);
-    };
-  }, []);
+    if (activePage !== 'main') return;
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, { rootMargin: '-30% 0px -70% 0px' });
+
+    const sections = document.querySelectorAll('main section');
+    sections.forEach(sec => observer.observe(sec));
+
+    return () => observer.disconnect();
+  }, [activePage]);
 
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
     if (activePage !== 'main') {
       setActivePage('main');
       setTimeout(() => {
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToElement(id);
       }, 100);
     } else {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToElement(id);
     }
   };
 
   const handleDiscoverProfile = () => scrollToSection('about');
   const handleViewProjects = () => scrollToSection('projets');
 
-  const MobileNav = () => (
-    <AnimatePresence>
-      {isMobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="mobile-nav"
-        >
-          <div className="close-btn" onClick={toggleMobileMenu}>✕</div>
-          <ul className="mobile-nav-links">
-            <li><a href="#about" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>À propos</a></li>
-            <li><a href="#skills" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('skills'); }}>Compétences</a></li>
-            <li><a href="#parcours" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('parcours'); }}>Expérience</a></li>
-            <li><a href="#formation" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('formation'); }}>Formation</a></li>
-            <li><a href="#projets" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('projets'); }}>Projets</a></li>
-            <li><a href="#refs" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('refs'); }}>Références</a></li>
-            <li><a href="#contact" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a></li>
-          </ul>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
   const showDetail = (id: string) => {
     setActivePage(id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: getScrollBehavior() });
   };
 
   const backToMain = () => {
     setActivePage('main');
     setTimeout(() => {
-      const el = document.getElementById('projets');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToElement('projets');
     }, 100);
   };
 
@@ -103,205 +88,49 @@ function App() {
       {/* ====== MAIN PAGE ====== */}
       <main className={`page ${activePage === 'main' ? 'active' : ''}`} id="page-main">
         <nav className="nav">
-          <div className="nav-logo" onClick={() => scrollToSection('hero')}>K · E</div>
-          <div className="hamburger" onClick={toggleMobileMenu}>
+          <button
+            type="button"
+            className="nav-logo nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            K · E
+          </button>
+          <button
+            type="button"
+            className="hamburger nav-control-btn"
+            onClick={toggleMobileMenu}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
+            aria-label="Ouvrir le menu"
+          >
             <span></span>
             <span></span>
             <span></span>
-          </div>
+          </button>
           <ul className="nav-links">
-            <li><a href="#about" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>À propos</a></li>
-            <li><a href="#skills" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('skills'); }}>Compétences</a></li>
-            <li><a href="#parcours" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('parcours'); }}>Expérience</a></li>
-            <li><a href="#formation" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('formation'); }}>Formation</a></li>
-            <li><a href="#projets" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('projets'); }}>Projets</a></li>
-            <li><a href="#refs" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('refs'); }}>Références</a></li>
-            <li><a href="#contact" role="button" tabIndex={0} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a></li>
+            <li><a href="#about" className={activeSection === 'about' ? 'active' : ''} aria-current={activeSection === 'about' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>À propos</a></li>
+            <li><a href="#skills" className={activeSection === 'skills' ? 'active' : ''} aria-current={activeSection === 'skills' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('skills'); }}>Compétences</a></li>
+            <li><a href="#parcours" className={activeSection === 'parcours' ? 'active' : ''} aria-current={activeSection === 'parcours' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('parcours'); }}>Expérience</a></li>
+            <li><a href="#formation" className={activeSection === 'formation' ? 'active' : ''} aria-current={activeSection === 'formation' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('formation'); }}>Formation</a></li>
+            <li><a href="#projets" className={activeSection === 'projets' ? 'active' : ''} aria-current={activeSection === 'projets' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('projets'); }}>Projets</a></li>
+            <li><a href="#refs" className={activeSection === 'refs' ? 'active' : ''} aria-current={activeSection === 'refs' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('refs'); }}>Références</a></li>
+            <li><a href="#contact" className={activeSection === 'contact' ? 'active' : ''} aria-current={activeSection === 'contact' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a></li>
           </ul>
           <div className="nav-tag">Lomé, Togo</div>
         </nav>
-        <MobileNav />
+        <MobileNav 
+          isMobileMenuOpen={isMobileMenuOpen} 
+          activeSection={activeSection} 
+          toggleMobileMenu={toggleMobileMenu} 
+          scrollToSection={scrollToSection} 
+        />
 
-        {/* HERO */}
-        <section id="hero" className="kp-hero">
-          <div className="kp-hero-top">
-            <div className="kp-hero-index">Kafui Charbel Eklu — 2026</div>
-            <div className="kp-hero-main">
-              <div>
-                <div className="kp-hero-eyebrow">Administrateur Réseaux & Systèmes</div>
-                <h1 className="kp-hero-h1">
-                  Bâtir des<br />
-                  infra<span className="it">struc</span>tures<br />
-                  <span className="out">robustes</span> &<br />
-                  <span className="it">sécurisées.</span>
-                </h1>
-                <p className="kp-hero-body">
-                  Ingénieur réseaux & systèmes basé à Lomé — je conçois, déploie et sécurise les infrastructures IT avec la rigueur d'un architecte. Master II Mention Bien · Wazuh Security Ambassador.
-                </p>
-                <div className="kp-hero-btns">
-                  <button className="kp-btn-dark" onClick={handleDiscoverProfile}>Découvrir mon profil</button>
-                  <button className="kp-btn-line" onClick={handleViewProjects}>Voir mes projets →</button>
-                </div>
-              </div>
-            </div>
-            <div className="hero-r">
-              <div className="hr-top" style={{ position: 'relative', overflow: 'hidden' }}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentSlide}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.5 }}
-                    style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}
-                  >
-                    <p className="hr-idx">{heroSlides[currentSlide].idx}</p>
-                    <div>
-                      <div className="hr-pill">{heroSlides[currentSlide].pill}</div>
-                      <p className="hr-quote">{heroSlides[currentSlide].quote}</p>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-              <div className="hr-bot">
-                <div className="ib">
-                  <small>Certification</small>
-                  <a href="https://wazuh.com/ambassador/" target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none', color: '#fff', cursor: 'pointer', border: '1px solid #7DC4A0', borderRadius: '4px', padding: '0.5rem', marginTop: '0.5rem', backgroundColor: '#7DC4A0', transition: 'background-color 0.2s ease' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#6ab08d'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#7DC4A0'}>
-                    Wazuh Security<br />Ambassador
-                  </a>
-                </div>
-                <div className="ib"><small>Contact</small><p>eklu.kafuicharbel<br />@gmail.com</p></div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <Hero 
+          onDiscoverProfile={handleDiscoverProfile} 
+          onViewProjects={handleViewProjects} 
+        />
 
-        {/* SKILLS STRIP */}
-        <div className="skills-strip">
-          <div className="skills-track">
-            <span className="sk">Wazuh / SIEM XDR</span><div className="sk-sep"></div>
-            <span className="sk">Windows Server</span><div className="sk-sep"></div>
-            <span className="sk">VSAT / Réseaux</span><div className="sk-sep"></div>
-            <span className="sk">Power BI / DAX</span><div className="sk-sep"></div>
-            <span className="sk">Azure / M365</span><div className="sk-sep"></div>
-            <span className="sk">Bash · PowerShell · Python</span><div className="sk-sep"></div>
-            <span className="sk">SCCM / MECM</span><div className="sk-sep"></div>
-            <span className="sk">EVE-NG / GNS3</span><div className="sk-sep"></div>
-            <span className="sk">TCP/IP · Routage · Switching</span><div className="sk-sep"></div>
-            <span className="sk">Wazuh / SIEM XDR</span><div className="sk-sep"></div>
-            <span className="sk">Windows Server</span><div className="sk-sep"></div>
-            <span className="sk">VSAT / Réseaux</span><div className="sk-sep"></div>
-            <span className="sk">Power BI / DAX</span><div className="sk-sep"></div>
-            <span className="sk">Azure / M365</span><div className="sk-sep"></div>
-            <span className="sk">Bash · PowerShell · Python</span><div className="sk-sep"></div>
-            <span className="sk">SCCM / MECM</span><div className="sk-sep"></div>
-            <span className="sk">EVE-NG / GNS3</span><div className="sk-sep"></div>
-            <span className="sk">TCP/IP · Routage · Switching</span>
-          </div>
-        </div>
-
-        {/* À PROPOS */}
-        <section className="sec" id="about">
-          <div className="sec-hdr">
-            <span className="sec-num">02</span>
-            <h2 className="sec-ttl">À propos de moi.</h2>
-          </div>
-          <div className="about-grid">
-            <div className="about-text">
-              <p>Ingénieur des Travaux Informatiques (IAI-Togo, Bac+3), j'ai obtenu mon <strong>Master II Réseaux & Systèmes d'Information</strong> au Collège de Paris Supérieur de Lomé avec la <strong>Mention Bien</strong>.</p>
-              <p>Actuellement chez <strong>Neemba Togo</strong>, je pilote les budgets IT et des projets télécoms d'envergure tout en optimisant les infrastructures via l'IA. En tant que <strong>Wazuh Security Ambassador</strong>, je déploie des solutions SIEM/XDR avancées pour une protection proactive.</p>
-              <p style={{ marginTop: '1.25rem' }}><button className="nav-btn" onClick={() => showDetail('biography')}>En savoir plus →</button></p>
-            </div>
-            <div className="acard" style={{ position: 'relative', overflow: 'hidden' }}>
-              <small>Expérience IT</small>
-              <div style={{ position: 'relative', height: '3.75rem' }}>
-                <AnimatePresence mode="wait">
-                  {statIndex === 0 && (
-                    <motion.div
-                      key="stat1"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ position: 'absolute', top: 0, left: 0 }}
-                    >
-                      <big>3+</big><br/><em>Années · Admin & Sécurité</em>
-                    </motion.div>
-                  )}
-                  {statIndex === 1 && (
-                    <motion.div
-                      key="stat2"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ position: 'absolute', top: 0, left: 0 }}
-                    >
-                      <big>15+</big><br/><em>Technologies maîtrisées</em>
-                    </motion.div>
-                  )}
-                  {statIndex === 2 && (
-                    <motion.div
-                      key="stat3"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ position: 'absolute', top: 0, left: 0 }}
-                    >
-                      <big>6</big><br/><em>Projets techniques livrés</em>
-                    </motion.div>
-                  )}
-                  {statIndex === 3 && (
-                    <motion.div
-                      key="stat4"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ position: 'absolute', top: 0, left: 0 }}
-                    >
-                      <big style={{ fontSize: '2rem' }}>Master II</big><br/><em>Collège de Paris · Mention Bien</em>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-            <div className="acard-dark" style={{ position: 'relative', overflow: 'hidden' }}>
-              <small>Localisation & Poste</small>
-              <div style={{ position: 'relative', height: '3.75rem' }}>
-                <AnimatePresence mode="wait">
-                  {statIndex % 2 === 0 && (
-                    <motion.div
-                      key="loc1"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ position: 'absolute', top: 0, left: 0 }}
-                    >
-                      <big>Lomé,<br />Togo</big>
-                      <em><div className="dot-g"></div>Mobilité internationale</em>
-                    </motion.div>
-                  )}
-                  {statIndex % 2 === 1 && (
-                    <motion.div
-                      key="loc2"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ position: 'absolute', top: 0, left: 0 }}
-                    >
-                      <big style={{ fontSize: '1.375rem' }}>Neemba Togo</big><br />
-                      <em>Admin Digital Workplace</em>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-        </section>
+        <About onReadMore={() => showDetail('biography')} />
 
         {/* CE QUE JE MAÎTRISE */}
         <section className="sec" id="skills" style={{ background: '#EEEAE3' }}>
@@ -311,48 +140,15 @@ function App() {
             <span className="sec-sub">15+ technologies au service de l'infrastructure et de la sécurité.</span>
           </div>
           <div className="skills-grid">
-            <div className="skill-card">
-              <div className="skill-icon" style={{ background: '#EDE0D4' }}>
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16 20 12 22C8 20 4 17 4 12V6L12 2Z" stroke="#A0603A" strokeWidth="1.5" fill="none" /><circle cx="12" cy="12" r="3" stroke="#A0603A" strokeWidth="1.2" fill="none" /></svg>
+            {skillsData.map((skill, i) => (
+              <div className="skill-card" key={i}>
+                <div className="skill-icon" style={{ background: skill.bg }}>
+                  {skill.icon}
+                </div>
+                <h4>{skill.title}</h4>
+                <p>{skill.desc}</p>
               </div>
-              <h4>Cybersécurité</h4>
-              <p>Wazuh SIEM/XDR, détection d'intrusion, audit sécurité, politiques de protection proactive.</p>
-            </div>
-            <div className="skill-card">
-              <div className="skill-icon" style={{ background: '#D8E8F0' }}>
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="6" rx="1" stroke="#3A7A8E" strokeWidth="1.5" fill="none" /><rect x="2" y="14" width="20" height="6" rx="1" stroke="#3A7A8E" strokeWidth="1.2" fill="none" /><circle cx="19" cy="7" r="1.2" fill="#3A7A8E" /></svg>
-              </div>
-              <h4>Systèmes</h4>
-              <p>Windows Server, Active Directory, GPO, SCCM/MECM, Ubuntu Server, maintenance parc IT.</p>
-            </div>
-            <div className="skill-card">
-              <div className="skill-icon" style={{ background: '#D8EEE4' }}>
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2E7055" strokeWidth="1.5" fill="none" /><circle cx="12" cy="12" r="5" stroke="#2E7055" strokeWidth="1" fill="none" /><circle cx="12" cy="12" r="2" fill="#2E7055" opacity=".6" /></svg>
-              </div>
-              <h4>Réseaux</h4>
-              <p>TCP/IP, routage, switching, VSAT/ARCEP, protocoles réseau, GNS3/EVE-NG, supervision.</p>
-            </div>
-            <div className="skill-card">
-              <div className="skill-icon" style={{ background: '#E4E0F0' }}>
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="16" width="4" height="5" rx="1" fill="#5A4A90" opacity=".8" /><rect x="10" y="11" width="4" height="10" rx="1" fill="#5A4A90" opacity=".6" /><rect x="17" y="6" width="4" height="15" rx="1" fill="#5A4A90" opacity=".4" /></svg>
-              </div>
-              <h4>Gestion & BI</h4>
-              <p>Power BI, DAX, CMDB, Matrix42, Veeam, pilotage budget IT, reporting de performance.</p>
-            </div>
-            <div className="skill-card">
-              <div className="skill-icon" style={{ background: '#EEE0D8' }}>
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="4,17 9,12 13,15 20,7" stroke="#A0603A" strokeWidth="1.5" fill="none" /><circle cx="4" cy="17" r="1.5" fill="#A0603A" /><circle cx="20" cy="7" r="1.5" fill="#A0603A" /></svg>
-              </div>
-              <h4>Scripting & IA</h4>
-              <p>Bash, PowerShell, Python, Power Automate, Vibe Coding, automatisation et IA générative.</p>
-            </div>
-            <div className="skill-card">
-              <div className="skill-icon" style={{ background: '#D8E4EE' }}>
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 8 Q12 4 20 8 Q12 12 4 8Z" stroke="#185FA5" strokeWidth="1.2" fill="none" /><path d="M4 12 Q12 8 20 12" stroke="#185FA5" strokeWidth="1" fill="none" /><path d="M4 16 Q12 12 20 16" stroke="#185FA5" strokeWidth=".8" fill="none" /></svg>
-              </div>
-              <h4>Cloud & Virtualisation</h4>
-              <p>Microsoft Azure, Microsoft 365, solutions cloud hybrides, infrastructure virtualisée.</p>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -364,30 +160,14 @@ function App() {
             <span className="sec-sub">Expériences professionnelles forgeant mon expertise technique.</span>
           </div>
           <div className="timeline">
-            <div className="tl-item current">
-              <p className="tl-date">Août 2024 — Présent</p>
-              <h3 className="tl-title">Administrateur Digital Workplace & Infrastructure</h3>
-              <p className="tl-co">Neemba Togo</p>
-              <p className="tl-desc">Élaboration du budget IT, pilotage de la portabilité réseau mobile, supervision VSAT, support N2/N3, et optimisation via IA (Vibe Coding). Gestion de projets télécoms d'envergure.</p>
-            </div>
-            <div className="tl-item">
-              <p className="tl-date">Mai 2023 — Août 2024</p>
-              <h3 className="tl-title">Technicien Informatique</h3>
-              <p className="tl-co">Neemba Togo</p>
-              <p className="tl-desc">Déploiement complet SIEM/XDR Wazuh — ambassadeur officiel de la solution. Maintenance du parc informatique et surveillance des performances réseau.</p>
-            </div>
-            <div className="tl-item">
-              <p className="tl-date">Juin 2022 — Oct. 2022</p>
-              <h3 className="tl-title">Technicien Support & Système (Stage)</h3>
-              <p className="tl-co">Orabank Togo</p>
-              <p className="tl-desc">Installation contrôleur de domaine Windows Server, configuration des solutions de transfert de fonds, support N2/N3 sur l'ensemble des agences.</p>
-            </div>
-            <div className="tl-item">
-              <p className="tl-date">Septembre 2021</p>
-              <h3 className="tl-title">Technicien Informatique (Stage)</h3>
-              <p className="tl-co">Clinique BIASA</p>
-              <p className="tl-desc">Assistance aux utilisateurs et installation de services réseau sous Linux Ubuntu Server (DNS, DHCP, Apache, NAT). Formation des équipes internes.</p>
-            </div>
+            {timelineData.map((item, i) => (
+              <div className={`tl-item ${item.isCurrent ? 'current' : ''}`} key={i}>
+                <p className="tl-date">{item.date}</p>
+                <h3 className="tl-title">{item.title}</h3>
+                <p className="tl-co">{item.company}</p>
+                <p className="tl-desc">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -399,143 +179,81 @@ function App() {
             <span className="sec-sub">Diplômes obtenus avec distinction dans les meilleures institutions de Lomé.</span>
           </div>
           <div className="edu-grid">
-            <div className="edu-card">
-              <p className="edu-year">2024 — 2025</p>
-              <h3 className="edu-title">Master II Professionnel</h3>
-              <p className="edu-school">Collège de Paris Supérieur · Lomé<br />Réseaux & Systèmes d'Information</p>
-              <div className="edu-grade"><big>15,07</big><span>/ 20 · Mention Bien</span></div>
-            </div>
-            <div className="edu-card">
-              <p className="edu-year">2022 — 2023</p>
-              <h3 className="edu-title">Licence Professionnelle</h3>
-              <p className="edu-school">IAI-TOGO · Institut Africain d'Informatique<br />Administration Système & Réseau</p>
-              <p className="edu-check">✓ Diplôme obtenu</p>
-            </div>
+            {formationData.map((item, i) => (
+              <div className="edu-card" key={i}>
+                <p className="edu-year">{item.year}</p>
+                <h3 className="edu-title">{item.title}</h3>
+                <p className="edu-school" dangerouslySetInnerHTML={{ __html: item.school }}></p>
+                {item.gradeNode}
+              </div>
+            ))}
           </div>
         </section>
 
         {/* MES RÉALISATIONS */}
-        <section className="sec" id="projets">
-          <div className="sec-hdr">
-            <span className="sec-num">06</span>
-            <h2 className="sec-ttl">Mes réalisations.</h2>
-            <span className="sec-sub">6 projets techniques livrés, chacun résolvant un problème réel.</span>
-          </div>
+        <Projects
+          onProjectClick={showDetail}
+          onViewAll={() => {
+            setActivePage('all-projects');
+            window.scrollTo({ top: 0, behavior: getScrollBehavior() });
+          }}
+        />
 
-          <div className="proj-feat" onClick={() => showDetail('siem')}>
-            <div className="pf-vis" style={{ background: '#2C3E2E' }}>
-              <div className="cat-b" style={{ background: 'rgba(212,149,106,.2)', color: '#D4956A' }}>Cybersécurité · Projet phare</div>
-              <svg width="80" height="80" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}><path d="M45 10L75 24L75 48C75 64 60 76 45 80C30 76 15 64 15 48L15 24Z" stroke="#D4956A" strokeWidth="2" fill="none" /><circle cx="45" cy="46" r="13" stroke="#D4956A" strokeWidth="1.5" fill="none" /><circle cx="45" cy="46" r="5" fill="#D4956A" opacity=".6" /><line x1="45" y1="24" x2="45" y2="33" stroke="#D4956A" /><line x1="45" y1="59" x2="45" y2="68" stroke="#D4956A" /><line x1="23" y1="46" x2="32" y2="46" stroke="#D4956A" /><line x1="58" y1="46" x2="67" y2="46" stroke="#D4956A" /></svg>
-            </div>
-            <div className="pf-body">
-              <div>
-                <p className="pf-eye">— Projet 01 · Phare</p>
-                <h3 className="pf-title">Déploiement SIEM / XDR Wazuh</h3>
-                <p className="pf-co">Neemba Togo · 2023–2024</p>
-                <p className="pf-desc">Déploiement complet d'une solution SIEM/XDR Wazuh sur l'ensemble du parc. Détection d'intrusion, corrélation d'événements et dashboards temps réel.</p>
-                <div className="res-box"><div className="res-lbl">Résultat clé</div><div className="res-val">100 % des endpoints couverts · Détection proactive activée</div></div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div className="tags"><span className="tag tc">Wazuh</span><span className="tag tc">SIEM</span><span className="tag tc">XDR</span></div>
-                <span style={{ fontSize: '0.6875rem', letterSpacing: '0.0625em', textTransform: 'uppercase', color: '#1C1916', borderBottom: '0.0625rem solid #1C1916', paddingBottom: '0.0625rem', cursor: 'pointer' }}>Voir le détail →</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pj-grid">
-            <div className="pj-card" onClick={() => showDetail('moov')}>
-              <div className="pj-vis" style={{ background: '#2B3A4A' }}><div className="cat-b" style={{ background: 'rgba(123,191,208,.2)', color: '#7BBFD0' }}>Télécom</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><circle cx="30" cy="30" r="20" stroke="#7BBFD0" strokeWidth="1.5" fill="none" /><circle cx="30" cy="30" r="12" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="5" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="2" fill="#7BBFD0" /></svg></div>
-              <div className="pj-body"><h3 className="pj-title">Portabilité MOOV → Togocom</h3><p className="pj-co">Neemba Togo · 2024</p><p className="pj-desc">Migration complète réseau mobile avec supervision VSAT et zéro interruption.</p><div className="pj-foot"><div className="tags"><span className="tag tt">VSAT</span><span className="tag tt">Migration</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-            </div>
-            <div className="pj-card" onClick={() => showDetail('orabank')}>
-              <div className="pj-vis" style={{ background: '#3A2C1E' }}><div className="cat-b" style={{ background: 'rgba(200,168,90,.2)', color: '#C8A85A' }}>Réseau</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="20" y="8" width="20" height="12" rx="2" stroke="#C8A85A" strokeWidth="1.5" fill="none" /><rect x="8" y="34" width="16" height="10" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><rect x="36" y="34" width="16" height="10" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><line x1="30" y1="20" x2="30" y2="34" stroke="#C8A85A" /><line x1="16" y1="28" x2="44" y2="28" stroke="#C8A85A" /><line x1="16" y1="28" x2="16" y2="34" stroke="#C8A85A" /><line x1="44" y1="28" x2="44" y2="34" stroke="#C8A85A" /></svg></div>
-              <div className="pj-body"><h3 className="pj-title">Contrôleur de Domaine Orabank</h3><p className="pj-co">Orabank Togo · Stage 2022</p><p className="pj-desc">Windows Server AD, GPO et politiques de sécurité multi-agences.</p><div className="pj-foot"><div className="tags"><span className="tag tr">Windows Server</span><span className="tag tr">AD</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-            </div>
-            <div className="pj-card" onClick={() => showDetail('biasa')}>
-              <div className="pj-vis" style={{ background: '#2A3830' }}><div className="cat-b" style={{ background: 'rgba(125,196,160,.2)', color: '#7DC4A0' }}>Linux</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="10" y="16" width="40" height="8" rx="2" stroke="#7DC4A0" strokeWidth="1.5" fill="none" /><rect x="10" y="28" width="40" height="8" rx="2" stroke="#7DC4A0" strokeWidth="1" fill="none" /><circle cx="44" cy="20" r="2" fill="#7DC4A0" /><line x1="18" y1="40" x2="42" y2="40" stroke="#7DC4A0" /><line x1="30" y1="36" x2="30" y2="44" stroke="#7DC4A0" /></svg></div>
-              <div className="pj-body"><h3 className="pj-title">Services Réseau Linux · BIASA</h3><p className="pj-co">Clinique BIASA · Stage 2021</p><p className="pj-desc">DNS, DHCP, Apache, NAT sur Ubuntu Server — réseau créé from scratch.</p><div className="pj-foot"><div className="tags"><span className="tag tl2">Ubuntu</span><span className="tag tl2">DNS/DHCP</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '4rem', position: 'relative', zIndex: 1 }}>
-            <button className="kp-btn-dark" onClick={() => { setActivePage('all-projects'); window.scrollTo(0,0); }}>
-              Voir tous les projets
-            </button>
-          </div>
-        </section>
-
-        {/* MES RÉFÉRENCES */}
         <section className="sec" id="refs" style={{ background: '#EEEAE3' }}>
           <div className="sec-hdr">
             <span className="sec-num">07</span>
             <h2 className="sec-ttl">Mes références.</h2>
+            <span className="sec-sub">Références professionnelles disponibles sur demande.</span>
           </div>
           <div className="ref-grid">
             <div className="ref-card">
-              <div className="ref-av">MA</div>
-              <p className="ref-name">M. AGBAZAHOU K. Jean</p>
-              <p className="ref-org">Coris Bank International Togo</p>
-              <p className="ref-role">Directeur des Systèmes d'Information</p>
-              <p className="ref-contact">jagbazahou@corisbank.com</p>
+              <div className="ref-av">NT</div>
+              <p className="ref-name">Direction Générale</p>
+              <p className="ref-org">Neemba Togo</p>
+              <p className="ref-role">Employeur actuel</p>
+              <p className="ref-contact">Disponible sur demande</p>
             </div>
             <div className="ref-card">
-              <div className="ref-av">MT</div>
-              <p className="ref-name">M. TCHAKPIDE T. Ouro-Bawinay</p>
-              <p className="ref-org">Coris Bank International Togo</p>
-              <p className="ref-role">Responsable Système d'Informations</p>
-              <p className="ref-contact">+228 96 11 03 56</p>
+              <div className="ref-av">CP</div>
+              <p className="ref-name">Direction Académique</p>
+              <p className="ref-org">Collège de Paris Supérieur · Lomé</p>
+              <p className="ref-role">Formation Master II</p>
+              <p className="ref-contact">Disponible sur demande</p>
             </div>
           </div>
         </section>
 
         {/* ME CONTACTER */}
-        <section className="sec" id="contact">
-          <div className="sec-hdr">
-            <span className="sec-num">08</span>
-            <h2 className="sec-ttl">Me contacter.</h2>
-            <span className="sec-sub">Disponible pour toute opportunité en administration système, cybersécurité ou gestion IT.</span>
-          </div>
-          <div className="contact-wrap">
-            <div className="contact-info">
-              <h3>Parlons de votre<br />prochain projet.</h3>
-              <p>Disponible immédiatement pour des missions en administration système, cybersécurité ou gestion d'infrastructure IT — à Lomé ou en mobilité internationale.</p>
-              <div className="contact-items">
-                <div className="c-item"><div className="c-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></div><div><small>Email</small><p>eklu.kafuicharbel@gmail.com</p></div></div>
-                <div className="c-item"><div className="c-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div><small>Téléphone</small><p>+228 70 66 42 25</p></div></div>
-                <div className="c-item"><div className="c-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></div><div><small>LinkedIn</small><p>Kafui Charbel Eklu</p></div></div>
-                <div className="c-item"><div className="c-icon"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div><div><small>Localisation</small><p>Lomé, Togo · Mobilité internationale</p></div></div>
-              </div>
-            </div>
-            <div className="contact-form">
-              <div className="form-row">
-                <div className="form-group"><label>Nom complet</label><input type="text" placeholder="Votre nom" /></div>
-                <div className="form-group"><label>Email</label><input type="email" placeholder="votre@email.com" /></div>
-              </div>
-              <div className="form-full"><div className="form-group"><label>Sujet</label><input type="text" placeholder="Objet de votre message" /></div></div>
-              <div className="form-full"><div className="form-group"><label>Message</label><textarea placeholder="Décrivez votre projet ou opportunité..."></textarea></div></div>
-              <button className="btn-submit" onClick={() => { window.location.href = 'mailto:eklu.kafuicharbel@gmail.com?subject=Contact via Portfolio'; }}>Envoyer le message</button>
-            </div>
-          </div>
-        </section>
+        <Contact />
 
         {/* TOP OF PAGE BUTTON */}
         <BackToTop />
 
         {/* FOOTER */}
-        <footer className="footer">
-          <p>© 2026 Kafui Charbel EKLU. Tous droits réservés.</p>
-          <div className="footer-links">
-            <a href="https://www.linkedin.com/in/kafui-charbel-eklu" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="https://github.com/kafui-eklu" target="_blank" rel="noopener noreferrer">GitHub</a>
-          </div>
-        </footer>
+        <Footer onNavigate={scrollToSection} />
       </main>{/* end page-main */}
 
       {/* ====== DETAIL PAGES ====== */}
 
       {/* SIEM */}
       <div className={`page ${activePage === 'siem' ? 'active' : ''}`} id="page-siem">
-        <nav className="nav"><div className="nav-logo" onClick={backToMain}>K · E</div><div className="nav-back" onClick={backToMain}>← Retour aux projets</div><div className="nav-tag">Cybersécurité</div></nav>
+        <nav className="nav">
+          <button
+            type="button"
+            className="nav-logo nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            K · E
+          </button>
+          <button
+            type="button"
+            className="nav-back nav-control-btn"
+            onClick={backToMain}
+          >
+            ← Retour aux projets
+          </button>
+          <div className="nav-tag">Cybersécurité</div>
+        </nav>
         <div className="sec">
           <div className="det-hero">
             <div className="det-vis" style={{ background: '#2C3E2E' }}><div className="det-cat" style={{ background: 'rgba(212,149,106,.2)', color: '#D4956A' }}>Cybersécurité · Projet phare</div><svg width="100" height="100" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}><path d="M45 10L75 24L75 48C75 64 60 76 45 80C30 76 15 64 15 48L15 24Z" stroke="#D4956A" strokeWidth="2" fill="none" /><circle cx="45" cy="46" r="14" stroke="#D4956A" strokeWidth="1.5" fill="none" /><circle cx="45" cy="46" r="6" fill="#D4956A" opacity=".5" /><line x1="45" y1="22" x2="45" y2="32" stroke="#D4956A" /><line x1="45" y1="60" x2="45" y2="70" stroke="#D4956A" /><line x1="21" y1="46" x2="31" y2="46" stroke="#D4956A" /><line x1="59" y1="46" x2="69" y2="46" stroke="#D4956A" /></svg></div>
@@ -560,13 +278,51 @@ function App() {
               <div className="sb-blk"><div className="sb-lbl">Certification liée</div><p style={{ fontSize: '0.75rem', color: '#5A4F44', lineHeight: '1.6' }}>Wazuh Security Ambassador — Ambassadeur officiel reconnu pour l'expertise SIEM/XDR.</p></div>
             </div>
           </div>
-          <div className="rel"><h3 className="rel">Projets similaires</h3><div className="rel-grid" style={{ marginTop: '1rem' }}><div className="rel-card" onClick={() => showDetail('orabank')}><h4>Contrôleur de Domaine Orabank</h4><p>Orabank · Réseau entreprise</p></div><div className="rel-card" onClick={() => showDetail('moov')}><h4>Portabilité MOOV → Togocom</h4><p>Neemba Togo · Télécom</p></div></div></div>
+          <div className="rel">
+            <h3 className="rel">Projets similaires</h3>
+            <div className="rel-grid" style={{ marginTop: '1rem' }}>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('orabank')}
+                aria-label="Voir le projet Contrôleur de Domaine Orabank"
+              >
+                <h4>Contrôleur de Domaine Orabank</h4>
+                <p>Orabank · Réseau entreprise</p>
+              </button>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('moov')}
+                aria-label="Voir le projet Portabilité MOOV vers Togocom"
+              >
+                <h4>Portabilité MOOV → Togocom</h4>
+                <p>Neemba Togo · Télécom</p>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* MOOV */}
       <div className={`page ${activePage === 'moov' ? 'active' : ''}`} id="page-moov">
-        <nav className="nav"><div className="nav-logo" onClick={backToMain}>K · E</div><div className="nav-back" onClick={backToMain}>← Retour aux projets</div><div className="nav-tag">Télécom</div></nav>
+        <nav className="nav">
+          <button
+            type="button"
+            className="nav-logo nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            K · E
+          </button>
+          <button
+            type="button"
+            className="nav-back nav-control-btn"
+            onClick={backToMain}
+          >
+            ← Retour aux projets
+          </button>
+          <div className="nav-tag">Télécom</div>
+        </nav>
         <div className="sec">
           <div className="det-hero">
             <div className="det-vis" style={{ background: '#2B3A4A' }}><div className="det-cat" style={{ background: 'rgba(123,191,208,.2)', color: '#7BBFD0' }}>Infrastructure Télécom</div><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><circle cx="30" cy="30" r="22" stroke="#7BBFD0" strokeWidth="1.5" fill="none" /><circle cx="30" cy="30" r="15" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="8" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="3" fill="#7BBFD0" /></svg></div>
@@ -588,13 +344,51 @@ function App() {
               </div>
             </div>
           </div>
-          <div className="rel"><h3>Projets similaires</h3><div className="rel-grid" style={{ marginTop: '1rem' }}><div className="rel-card" onClick={() => showDetail('siem')}><h4>Déploiement SIEM/XDR Wazuh</h4><p>Neemba Togo · Cybersécurité</p></div><div className="rel-card" onClick={() => showDetail('biasa')}><h4>Services Réseau Linux · BIASA</h4><p>Clinique BIASA · Infrastructure</p></div></div></div>
+          <div className="rel">
+            <h3>Projets similaires</h3>
+            <div className="rel-grid" style={{ marginTop: '1rem' }}>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('siem')}
+                aria-label="Voir le projet Déploiement SIEM XDR Wazuh"
+              >
+                <h4>Déploiement SIEM/XDR Wazuh</h4>
+                <p>Neemba Togo · Cybersécurité</p>
+              </button>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('biasa')}
+                aria-label="Voir le projet Services Réseau Linux BIASA"
+              >
+                <h4>Services Réseau Linux · BIASA</h4>
+                <p>Clinique BIASA · Infrastructure</p>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ORABANK */}
       <div className={`page ${activePage === 'orabank' ? 'active' : ''}`} id="page-orabank">
-        <nav className="nav"><div className="nav-logo" onClick={backToMain}>K · E</div><div className="nav-back" onClick={backToMain}>← Retour aux projets</div><div className="nav-tag">Réseau Entreprise</div></nav>
+        <nav className="nav">
+          <button
+            type="button"
+            className="nav-logo nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            K · E
+          </button>
+          <button
+            type="button"
+            className="nav-back nav-control-btn"
+            onClick={backToMain}
+          >
+            ← Retour aux projets
+          </button>
+          <div className="nav-tag">Réseau Entreprise</div>
+        </nav>
         <div className="sec">
           <div className="det-hero">
             <div className="det-vis" style={{ background: '#3A2C1E' }}><div className="det-cat" style={{ background: 'rgba(200,168,90,.2)', color: '#C8A85A' }}>Réseau Entreprise</div><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="20" y="6" width="20" height="14" rx="2" stroke="#C8A85A" strokeWidth="1.5" fill="none" /><rect x="6" y="36" width="18" height="12" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><rect x="36" y="36" width="18" height="12" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><line x1="30" y1="20" x2="30" y2="36" stroke="#C8A85A" strokeWidth="1.2" /><line x1="15" y1="28" x2="45" y2="28" stroke="#C8A85A" /><line x1="15" y1="28" x2="15" y2="36" stroke="#C8A85A" /><line x1="45" y1="28" x2="45" y2="36" stroke="#C8A85A" /></svg></div>
@@ -616,13 +410,51 @@ function App() {
               </div>
             </div>
           </div>
-          <div className="rel"><h3>Projets similaires</h3><div className="rel-grid" style={{ marginTop: '1rem' }}><div className="rel-card" onClick={() => showDetail('siem')}><h4>Déploiement SIEM/XDR Wazuh</h4><p>Neemba Togo · Cybersécurité</p></div><div className="rel-card" onClick={() => showDetail('biasa')}><h4>Services Réseau Linux · BIASA</h4><p>Clinique BIASA · Infrastructure</p></div></div></div>
+          <div className="rel">
+            <h3>Projets similaires</h3>
+            <div className="rel-grid" style={{ marginTop: '1rem' }}>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('siem')}
+                aria-label="Voir le projet Déploiement SIEM XDR Wazuh"
+              >
+                <h4>Déploiement SIEM/XDR Wazuh</h4>
+                <p>Neemba Togo · Cybersécurité</p>
+              </button>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('biasa')}
+                aria-label="Voir le projet Services Réseau Linux BIASA"
+              >
+                <h4>Services Réseau Linux · BIASA</h4>
+                <p>Clinique BIASA · Infrastructure</p>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* BIASA */}
       <div className={`page ${activePage === 'biasa' ? 'active' : ''}`} id="page-biasa">
-        <nav className="nav"><div className="nav-logo" onClick={backToMain}>K · E</div><div className="nav-back" onClick={backToMain}>← Retour aux projets</div><div className="nav-tag">Linux · Infrastructure</div></nav>
+        <nav className="nav">
+          <button
+            type="button"
+            className="nav-logo nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            K · E
+          </button>
+          <button
+            type="button"
+            className="nav-back nav-control-btn"
+            onClick={backToMain}
+          >
+            ← Retour aux projets
+          </button>
+          <div className="nav-tag">Linux · Infrastructure</div>
+        </nav>
         <div className="sec">
           <div className="det-hero">
             <div className="det-vis" style={{ background: '#2A3830' }}><div className="det-cat" style={{ background: 'rgba(125,196,160,.2)', color: '#7DC4A0' }}>Infrastructure Linux</div><svg width="100" height="100" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="8" y="14" width="44" height="10" rx="2" stroke="#7DC4A0" strokeWidth="1.5" fill="none" /><rect x="8" y="28" width="44" height="10" rx="2" stroke="#7DC4A0" strokeWidth="1" fill="none" /><circle cx="46" cy="19" r="2.5" fill="#7DC4A0" /><line x1="30" y1="42" x2="30" y2="50" stroke="#7DC4A0" strokeWidth="1.2" /><line x1="18" y1="50" x2="42" y2="50" stroke="#7DC4A0" strokeWidth="1.2" /></svg></div>
@@ -644,23 +476,61 @@ function App() {
               </div>
             </div>
           </div>
-          <div className="rel"><h3>Projets similaires</h3><div className="rel-grid" style={{ marginTop: '1rem' }}><div className="rel-card" onClick={() => showDetail('orabank')}><h4>Contrôleur de Domaine Orabank</h4><p>Orabank · Réseau entreprise</p></div><div className="rel-card" onClick={() => showDetail('siem')}><h4>Déploiement SIEM/XDR Wazuh</h4><p>Neemba Togo · Cybersécurité</p></div></div></div>
+          <div className="rel">
+            <h3>Projets similaires</h3>
+            <div className="rel-grid" style={{ marginTop: '1rem' }}>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('orabank')}
+                aria-label="Voir le projet Contrôleur de Domaine Orabank"
+              >
+                <h4>Contrôleur de Domaine Orabank</h4>
+                <p>Orabank · Réseau entreprise</p>
+              </button>
+              <button
+                type="button"
+                className="rel-card card-action"
+                onClick={() => showDetail('siem')}
+                aria-label="Voir le projet Déploiement SIEM XDR Wazuh"
+              >
+                <h4>Déploiement SIEM/XDR Wazuh</h4>
+                <p>Neemba Togo · Cybersécurité</p>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* BIOGRAPHIE */}
       <div className={`page ${activePage === 'biography' ? 'active' : ''}`} id="page-biography">
-        <nav className="nav"><div className="nav-logo" onClick={backToMain}>K · E</div><div className="nav-back" onClick={backToMain}>← Retour à l'accueil</div><div className="nav-tag">Biographie</div></nav>
+        <nav className="nav">
+          <button
+            type="button"
+            className="nav-logo nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            K · E
+          </button>
+          <button
+            type="button"
+            className="nav-back nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            ← Retour à l'accueil
+          </button>
+          <div className="nav-tag">Biographie</div>
+        </nav>
 
         {/* Bio Hero — Photo + Identity */}
         <section className="bio-hero">
           <div className="bio-hero-photo">
-            <img src={withBase('_KSP4314.jpg')} alt="Kafui Charbel Eklu" />
+            <img src={withBase('_KSP4314.jpg')} alt="Kafui Charbel Eklu" loading="lazy" />
           </div>
           <div className="bio-hero-info">
             <p className="bio-hero-eyebrow">Biographie</p>
             <h1 className="bio-hero-name">EKLU Kafui<br />Charbel</h1>
-            <p className="bio-hero-role">Administrateur Système & Réseau</p>
+            <p className="bio-hero-role">Administrateur Digital Workplace & Infrastructure</p>
             <div className="bio-hero-location">
               <div className="dot-g"></div>
               <span>Lomé, Togo · Mobilité internationale</span>
@@ -696,10 +566,11 @@ function App() {
           </div>
           <div className="bio-story-grid">
             <div className="bio-story-main">
-              <p className="bio-story-lead">L'architecture complexe est mon terrain de jeu.</p>
-              <p>Je ne me contente pas de maintenir des systèmes ; je les sculpte. Mon métier est de transformer la complexité technique en infrastructures robustes, sécurisées et performantes.</p>
-              <p>Mon parcours est une quête constante de maîtrise : face à des contraintes matérielles sévères dès mes débuts, j'ai transformé la limitation en levier, apprenant à sculpter les systèmes, à optimiser Ubuntu Server en ligne de commande et à maximiser chaque ressource.</p>
-              <p>Mon immersion chez <strong>Orabank</strong> a été le catalyseur de mon expertise. Confronté à l'exigence d'un environnement bancaire critique, j'ai maîtrisé en un temps record l'architecture Windows Server (Active Directory, DFS, GPO, WDS). Ce qui était un défi est devenu une compétence socle, prouvant ma capacité à dompter la complexité sous pression.</p>
+              <p className="bio-story-lead">Professionnel togolais de l'IT, j'allie rigueur technique, innovation et créativité.</p>
+              <p>Spécialisé en <strong>Digital Workplace et optimisation des environnements numériques</strong>, j'ai développé une forte capacité à concevoir des solutions efficaces dans des environnements dynamiques, en combinant <strong>adaptabilité, rigueur technique et sens de l'innovation</strong>.</p>
+              <p>Mon immersion chez <strong>Orabank</strong> a été le catalyseur de mon expertise. Confronté à l'exigence d'un environnement bancaire critique, j'ai maîtrisé en un temps record l'architecture Windows Server (Active Directory, DFS, GPO, WDS). Ce qui était un défi est devenu une compétence socle.</p>
+              <p>Passionné par les technologies émergentes, je m'intéresse particulièrement à l'intersection entre <strong>cybersécurité et intelligence artificielle</strong>, avec l'ambition de développer des solutions intelligentes capables d'anticiper et de répondre aux menaces modernes.</p>
+              <p>Au-delà de mon expertise technique, je développe également une dimension créative à travers la <strong>musique Afrobeats</strong>, où j'explore des thématiques humaines et culturelles en français et en éwé — un profil rare qui allie analyse, créativité et sensibilité.</p>
             </div>
             <div className="bio-story-side">
               <div className="bio-milestone">
@@ -757,6 +628,13 @@ function App() {
               <h4>Amélioration continue</h4>
               <p>Je ne cesse d'apprendre et de me perfectionner. Élever son niveau au-dessus du défi, c'est ma signature professionnelle.</p>
             </div>
+            <div className="bio-philosophy-card">
+              <div className="bio-philosophy-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18V13a3 3 0 0 1 6 0v5" stroke="currentColor" strokeWidth="1.5" fill="none" /><path d="M5 21h14" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>
+              </div>
+              <h4>Tech + Créatif</h4>
+              <p>Mon profil hybride — technique et artistique — me permet d'apporter une vision unique, où rigueur et créativité se renforcent mutuellement.</p>
+            </div>
           </div>
         </section>
 
@@ -791,7 +669,7 @@ function App() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Télécharger mon CV
           </a>
-          <button className="kp-btn-line" onClick={() => scrollToSection('contact')}>Me contacter →</button>
+          <button type="button" className="kp-btn-line" onClick={() => scrollToSection('contact')}>Me contacter →</button>
         </section>
       </div>
 
@@ -799,11 +677,21 @@ function App() {
       {activePage === 'all-projects' && (
         <div className="page active" id="page-all-projects">
           <nav className="nav">
-            <div className="nav-logo" onClick={() => setActivePage('main')}>K · E</div>
-            <div className="nav-back" onClick={() => { setActivePage('main'); setTimeout(() => document.getElementById('projets')?.scrollIntoView(), 100); }}>
+            <button
+              type="button"
+              className="nav-logo nav-control-btn"
+              onClick={() => scrollToSection('hero')}
+            >
+              K · E
+            </button>
+            <button
+              type="button"
+              className="nav-back nav-control-btn"
+              onClick={backToMain}
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
               Retour à l'accueil
-            </div>
+            </button>
           </nav>
           <section className="sec" style={{ minHeight: '80vh', background: '#F5F1EC' }}>
             <div className="sec-hdr">
@@ -813,25 +701,45 @@ function App() {
             </div>
             <div className="pj-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(18.75rem, 1fr))', gap: '2rem' }}>
               
-              <div className="pj-card" onClick={() => showDetail('siem')}>
+              <button
+                type="button"
+                className="pj-card card-action"
+                onClick={() => showDetail('siem')}
+                aria-label="Voir le détail du projet Déploiement SIEM XDR Wazuh"
+              >
                 <div className="pj-vis" style={{ background: '#2C3E2E' }}><div className="cat-b" style={{ background: 'rgba(212,149,106,.2)', color: '#D4956A' }}>Cybersécurité</div><svg width="45" height="45" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}><path d="M45 10L75 24L75 48C75 64 60 76 45 80C30 76 15 64 15 48L15 24Z" stroke="#D4956A" strokeWidth="2" fill="none" /><circle cx="45" cy="46" r="13" stroke="#D4956A" strokeWidth="1.5" fill="none" /><circle cx="45" cy="46" r="5" fill="#D4956A" opacity=".6" /></svg></div>
                 <div className="pj-body"><h3 className="pj-title">Déploiement SIEM / XDR Wazuh</h3><p className="pj-co">Neemba Togo · 2023–2024</p><p className="pj-desc">Déploiement complet d'une solution SIEM/XDR Wazuh sur l'ensemble du parc.</p><div className="pj-foot"><div className="tags"><span className="tag tc">Wazuh</span><span className="tag tc">SIEM</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </div>
+              </button>
 
-              <div className="pj-card" onClick={() => showDetail('moov')}>
+              <button
+                type="button"
+                className="pj-card card-action"
+                onClick={() => showDetail('moov')}
+                aria-label="Voir le détail du projet Portabilité MOOV vers Togocom"
+              >
                 <div className="pj-vis" style={{ background: '#2B3A4A' }}><div className="cat-b" style={{ background: 'rgba(123,191,208,.2)', color: '#7BBFD0' }}>Télécom</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><circle cx="30" cy="30" r="20" stroke="#7BBFD0" strokeWidth="1.5" fill="none" /><circle cx="30" cy="30" r="12" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="5" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="2" fill="#7BBFD0" /></svg></div>
                 <div className="pj-body"><h3 className="pj-title">Portabilité MOOV → Togocom</h3><p className="pj-co">Neemba Togo · 2024</p><p className="pj-desc">Migration complète réseau mobile avec supervision VSAT et zéro interruption.</p><div className="pj-foot"><div className="tags"><span className="tag tt">VSAT</span><span className="tag tt">Migration</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </div>
+              </button>
 
-              <div className="pj-card" onClick={() => showDetail('orabank')}>
+              <button
+                type="button"
+                className="pj-card card-action"
+                onClick={() => showDetail('orabank')}
+                aria-label="Voir le détail du projet Contrôleur de Domaine Orabank"
+              >
                 <div className="pj-vis" style={{ background: '#3A2C1E' }}><div className="cat-b" style={{ background: 'rgba(200,168,90,.2)', color: '#C8A85A' }}>Réseau</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="20" y="8" width="20" height="12" rx="2" stroke="#C8A85A" strokeWidth="1.5" fill="none" /><rect x="8" y="34" width="16" height="10" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><rect x="36" y="34" width="16" height="10" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><line x1="30" y1="20" x2="30" y2="34" stroke="#C8A85A" /><line x1="16" y1="28" x2="44" y2="28" stroke="#C8A85A" /><line x1="16" y1="28" x2="16" y2="34" stroke="#C8A85A" /><line x1="44" y1="28" x2="44" y2="34" stroke="#C8A85A" /></svg></div>
                 <div className="pj-body"><h3 className="pj-title">Contrôleur de Domaine Orabank</h3><p className="pj-co">Orabank Togo · Stage 2022</p><p className="pj-desc">Windows Server AD, GPO et politiques de sécurité multi-agences.</p><div className="pj-foot"><div className="tags"><span className="tag tr">Windows Server</span><span className="tag tr">AD</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </div>
+              </button>
 
-              <div className="pj-card" onClick={() => showDetail('biasa')}>
+              <button
+                type="button"
+                className="pj-card card-action"
+                onClick={() => showDetail('biasa')}
+                aria-label="Voir le détail du projet Services Réseau Linux BIASA"
+              >
                 <div className="pj-vis" style={{ background: '#2A3830' }}><div className="cat-b" style={{ background: 'rgba(125,196,160,.2)', color: '#7DC4A0' }}>Linux</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="10" y="16" width="40" height="8" rx="2" stroke="#7DC4A0" strokeWidth="1.5" fill="none" /><rect x="10" y="28" width="40" height="8" rx="2" stroke="#7DC4A0" strokeWidth="1" fill="none" /><circle cx="44" cy="20" r="2" fill="#7DC4A0" /><line x1="18" y1="40" x2="42" y2="40" stroke="#7DC4A0" /><line x1="30" y1="36" x2="30" y2="44" stroke="#7DC4A0" /></svg></div>
                 <div className="pj-body"><h3 className="pj-title">Services Réseau Linux · BIASA</h3><p className="pj-co">Clinique BIASA · Stage 2021</p><p className="pj-desc">DNS, DHCP, Apache, NAT sur Ubuntu Server — réseau créé from scratch.</p><div className="pj-foot"><div className="tags"><span className="tag tl2">Ubuntu</span><span className="tag tl2">DNS/DHCP</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </div>
+              </button>
 
               <div className="pj-card" style={{ cursor: 'default' }}>
                 <div className="pj-vis" style={{ background: '#2D2A38' }}><div className="cat-b" style={{ background: 'rgba(155,130,195,.2)', color: '#9B82C3' }}>Cloud</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><path d="M15 35C15 25 30 20 30 30C30 20 45 25 45 35C50 35 50 45 45 45L15 45C10 45 10 35 15 35Z" stroke="#9B82C3" strokeWidth="1.5" fill="none" /></svg></div>

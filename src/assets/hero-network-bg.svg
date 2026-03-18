@@ -1,0 +1,57 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heroTrace" x1="112" y1="124" x2="1448" y2="752" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B84F22"/>
+      <stop offset="0.52" stop-color="#A07C28"/>
+      <stop offset="1" stop-color="#3D352B"/>
+    </linearGradient>
+    <linearGradient id="heroGlow" x1="1210" y1="180" x2="1210" y2="650" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D97040" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#D97040" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <g opacity="0.9">
+    <circle cx="240" cy="190" r="14" fill="#B84F22" fill-opacity="0.16"/>
+    <circle cx="410" cy="290" r="11" fill="#A07C28" fill-opacity="0.18"/>
+    <circle cx="620" cy="188" r="15" fill="#3D352B" fill-opacity="0.12"/>
+    <circle cx="780" cy="332" r="12" fill="#B84F22" fill-opacity="0.14"/>
+    <circle cx="1010" cy="248" r="16" fill="#A07C28" fill-opacity="0.16"/>
+    <circle cx="1178" cy="404" r="12" fill="#3D352B" fill-opacity="0.14"/>
+    <circle cx="1416" cy="286" r="14" fill="#B84F22" fill-opacity="0.18"/>
+    <circle cx="520" cy="556" r="12" fill="#3D352B" fill-opacity="0.14"/>
+    <circle cx="870" cy="610" r="16" fill="#A07C28" fill-opacity="0.16"/>
+    <circle cx="1256" cy="666" r="14" fill="#B84F22" fill-opacity="0.16"/>
+
+    <path d="M240 190L410 290L620 188L780 332L1010 248L1178 404L1416 286" stroke="url(#heroTrace)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.28"/>
+    <path d="M410 290L520 556L870 610L1256 666" stroke="url(#heroTrace)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.18"/>
+    <path d="M620 188L620 556L520 556" stroke="url(#heroTrace)" stroke-width="3" stroke-linecap="round" stroke-opacity="0.16"/>
+    <path d="M1010 248L1010 610L870 610" stroke="url(#heroTrace)" stroke-width="3" stroke-linecap="round" stroke-opacity="0.16"/>
+    <path d="M1178 404L1178 666L1256 666" stroke="url(#heroTrace)" stroke-width="3" stroke-linecap="round" stroke-opacity="0.16"/>
+
+    <g opacity="0.5">
+      <path d="M118 690H542" stroke="#A07C28" stroke-width="2" stroke-opacity="0.2"/>
+      <path d="M118 740H542" stroke="#A07C28" stroke-width="2" stroke-opacity="0.14"/>
+      <path d="M118 790H542" stroke="#A07C28" stroke-width="2" stroke-opacity="0.1"/>
+      <path d="M630 96V420" stroke="#3D352B" stroke-width="2" stroke-opacity="0.08"/>
+      <path d="M822 150V474" stroke="#3D352B" stroke-width="2" stroke-opacity="0.08"/>
+      <path d="M1018 96V510" stroke="#3D352B" stroke-width="2" stroke-opacity="0.08"/>
+    </g>
+
+    <g opacity="0.82">
+      <rect x="1118" y="150" width="184" height="430" rx="16" stroke="#3D352B" stroke-width="4" stroke-opacity="0.16"/>
+      <rect x="1148" y="198" width="124" height="56" rx="10" fill="url(#heroGlow)"/>
+      <rect x="1148" y="278" width="124" height="56" rx="10" fill="url(#heroGlow)"/>
+      <rect x="1148" y="358" width="124" height="56" rx="10" fill="url(#heroGlow)"/>
+      <rect x="1148" y="438" width="124" height="56" rx="10" fill="url(#heroGlow)"/>
+      <circle cx="1174" cy="226" r="6" fill="#B84F22" fill-opacity="0.34"/>
+      <circle cx="1174" cy="306" r="6" fill="#A07C28" fill-opacity="0.34"/>
+      <circle cx="1174" cy="386" r="6" fill="#B84F22" fill-opacity="0.34"/>
+      <circle cx="1174" cy="466" r="6" fill="#A07C28" fill-opacity="0.34"/>
+      <path d="M1200 226H1246" stroke="#3D352B" stroke-width="3" stroke-linecap="round" stroke-opacity="0.18"/>
+      <path d="M1200 306H1246" stroke="#3D352B" stroke-width="3" stroke-linecap="round" stroke-opacity="0.18"/>
+      <path d="M1200 386H1246" stroke="#3D352B" stroke-width="3" stroke-linecap="round" stroke-opacity="0.18"/>
+      <path d="M1200 466H1246" stroke="#3D352B" stroke-width="3" stroke-linecap="round" stroke-opacity="0.18"/>
+    </g>
+  </g>
+</svg>
