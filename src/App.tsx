@@ -8,14 +8,405 @@ import About from './components/sections/About';
 import Projects from './components/sections/Projects';
 import Contact from './components/sections/Contact';
 import Footer from './components/sections/Footer';
-import { skillsData, timelineData, formationData } from './data';
+import LanguageToggle from './components/LanguageToggle';
+import { getSkillsData, getTimelineData, getFormationData } from './data';
 import usePrefersReducedMotion from './hooks/usePrefersReducedMotion';
+import { Language, t } from './translations';
+
+type ReferenceContact = {
+  initials: string;
+  name: string;
+  organization: string;
+  role: string;
+  phoneDisplay: string;
+  phoneHref: string;
+};
+
+type ProjectFilterKey =
+  | 'all'
+  | 'cybersecurity'
+  | 'telecom'
+  | 'network'
+  | 'linux'
+  | 'cloud'
+  | 'infrastructure';
+
+type ProjectTag = {
+  label: string;
+  className: string;
+};
+
+type ProjectCardData = {
+  id: string;
+  title: Record<Language, string>;
+  companyLine: Record<Language, string>;
+  desc: Record<Language, string>;
+  category: Record<Language, string>;
+  categoryKey: Exclude<ProjectFilterKey, 'all'>;
+  tags: ProjectTag[];
+  background: string;
+  accent: string;
+  icon: 'shield' | 'signal' | 'domain' | 'server' | 'cloud' | 'grid';
+  detailPage: boolean;
+};
+
+const renderProjectIcon = (icon: ProjectCardData['icon'], accent: string) => {
+  switch (icon) {
+    case 'shield':
+      return (
+        <svg width="45" height="45" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}>
+          <path d="M45 10L75 24L75 48C75 64 60 76 45 80C30 76 15 64 15 48L15 24Z" stroke={accent} strokeWidth="2" fill="none" />
+          <circle cx="45" cy="46" r="13" stroke={accent} strokeWidth="1.5" fill="none" />
+          <circle cx="45" cy="46" r="5" fill={accent} opacity=".6" />
+        </svg>
+      );
+    case 'signal':
+      return (
+        <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
+          <circle cx="30" cy="30" r="20" stroke={accent} strokeWidth="1.5" fill="none" />
+          <circle cx="30" cy="30" r="12" stroke={accent} strokeWidth="1" fill="none" />
+          <circle cx="30" cy="30" r="5" stroke={accent} strokeWidth="1" fill="none" />
+          <circle cx="30" cy="30" r="2" fill={accent} />
+        </svg>
+      );
+    case 'domain':
+      return (
+        <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
+          <rect x="20" y="8" width="20" height="12" rx="2" stroke={accent} strokeWidth="1.5" fill="none" />
+          <rect x="8" y="34" width="16" height="10" rx="2" stroke={accent} strokeWidth="1" fill="none" />
+          <rect x="36" y="34" width="16" height="10" rx="2" stroke={accent} strokeWidth="1" fill="none" />
+          <line x1="30" y1="20" x2="30" y2="34" stroke={accent} />
+          <line x1="16" y1="28" x2="44" y2="28" stroke={accent} />
+          <line x1="16" y1="28" x2="16" y2="34" stroke={accent} />
+          <line x1="44" y1="28" x2="44" y2="34" stroke={accent} />
+        </svg>
+      );
+    case 'server':
+      return (
+        <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
+          <rect x="10" y="16" width="40" height="8" rx="2" stroke={accent} strokeWidth="1.5" fill="none" />
+          <rect x="10" y="28" width="40" height="8" rx="2" stroke={accent} strokeWidth="1" fill="none" />
+          <circle cx="44" cy="20" r="2" fill={accent} />
+          <line x1="18" y1="40" x2="42" y2="40" stroke={accent} />
+          <line x1="30" y1="36" x2="30" y2="44" stroke={accent} />
+        </svg>
+      );
+    case 'cloud':
+      return (
+        <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
+          <path d="M15 35C15 25 30 20 30 30C30 20 45 25 45 35C50 35 50 45 45 45L15 45C10 45 10 35 15 35Z" stroke={accent} strokeWidth="1.5" fill="none" />
+        </svg>
+      );
+    case 'grid':
+      return (
+        <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
+          <circle cx="30" cy="30" r="15" stroke={accent} strokeWidth="1.5" fill="none" />
+          <line x1="15" y1="30" x2="45" y2="30" stroke={accent} />
+          <line x1="30" y1="15" x2="30" y2="45" stroke={accent} />
+        </svg>
+      );
+  }
+};
+
+const projectCatalog: ProjectCardData[] = [
+  {
+    id: 'siem',
+    title: {
+      FR: 'Déploiement SIEM / XDR Wazuh',
+      EN: 'Wazuh SIEM / XDR Deployment',
+    },
+    companyLine: {
+      FR: 'Neemba Togo · 2023-2024',
+      EN: 'Neemba Togo · 2023-2024',
+    },
+    desc: {
+      FR: "Déploiement complet d'une solution Wazuh sur l'ensemble du parc avec supervision centralisée et détection proactive.",
+      EN: 'Complete Wazuh deployment across the environment with centralized monitoring and proactive detection.',
+    },
+    category: {
+      FR: 'Cybersécurité',
+      EN: 'Cybersecurity',
+    },
+    categoryKey: 'cybersecurity',
+    tags: [
+      { label: 'Wazuh', className: 'tc' },
+      { label: 'SIEM', className: 'tc' },
+      { label: 'XDR', className: 'tc' },
+    ],
+    background: '#2C3E2E',
+    accent: '#D4956A',
+    icon: 'shield',
+    detailPage: true,
+  },
+  {
+    id: 'moov',
+    title: {
+      FR: 'Portabilité MOOV → Togocom',
+      EN: 'MOOV → Togocom Portability',
+    },
+    companyLine: {
+      FR: 'Neemba Togo · 2024',
+      EN: 'Neemba Togo · 2024',
+    },
+    desc: {
+      FR: 'Migration complète du réseau mobile avec supervision VSAT et continuité de service.',
+      EN: 'Complete mobile network migration with VSAT monitoring and service continuity.',
+    },
+    category: {
+      FR: 'Télécom',
+      EN: 'Telecom',
+    },
+    categoryKey: 'telecom',
+    tags: [
+      { label: 'VSAT', className: 'tt' },
+      { label: 'Migration', className: 'tt' },
+    ],
+    background: '#2B3A4A',
+    accent: '#7BBFD0',
+    icon: 'signal',
+    detailPage: true,
+  },
+  {
+    id: 'orabank',
+    title: {
+      FR: 'Contrôleur de domaine Orabank',
+      EN: 'Orabank Domain Controller',
+    },
+    companyLine: {
+      FR: 'Orabank Togo · Stage 2022',
+      EN: 'Orabank Togo · Internship 2022',
+    },
+    desc: {
+      FR: 'Déploiement Windows Server AD, GPO et politiques de sécurité multi-agences.',
+      EN: 'Windows Server AD deployment, GPO, and multi-branch security policies.',
+    },
+    category: {
+      FR: 'Réseau',
+      EN: 'Network',
+    },
+    categoryKey: 'network',
+    tags: [
+      { label: 'Windows Server', className: 'tr' },
+      { label: 'AD', className: 'tr' },
+    ],
+    background: '#3A2C1E',
+    accent: '#C8A85A',
+    icon: 'domain',
+    detailPage: true,
+  },
+  {
+    id: 'biasa',
+    title: {
+      FR: 'Services réseau Linux · BIASA',
+      EN: 'Linux Network Services · BIASA',
+    },
+    companyLine: {
+      FR: 'Clinique BIASA · Stage 2021',
+      EN: 'BIASA Clinic · Internship 2021',
+    },
+    desc: {
+      FR: 'DNS, DHCP, Apache et NAT sur Ubuntu Server avec réseau construit from scratch.',
+      EN: 'DNS, DHCP, Apache, and NAT on Ubuntu Server with the network built from scratch.',
+    },
+    category: {
+      FR: 'Linux',
+      EN: 'Linux',
+    },
+    categoryKey: 'linux',
+    tags: [
+      { label: 'Ubuntu', className: 'tl2' },
+      { label: 'DNS/DHCP', className: 'tl2' },
+    ],
+    background: '#2A3830',
+    accent: '#7DC4A0',
+    icon: 'server',
+    detailPage: true,
+  },
+  {
+    id: 'azure-infra',
+    title: {
+      FR: 'Déploiement infra cloud Azure',
+      EN: 'Azure Cloud Infrastructure Deployment',
+    },
+    companyLine: {
+      FR: 'Neemba Togo · 2023',
+      EN: 'Neemba Togo · 2023',
+    },
+    desc: {
+      FR: "Mise en place d'une architecture hybride avec Azure AD et synchronisation locale.",
+      EN: 'Deployment of a hybrid architecture with Azure AD and local synchronization.',
+    },
+    category: {
+      FR: 'Cloud',
+      EN: 'Cloud',
+    },
+    categoryKey: 'cloud',
+    tags: [
+      { label: 'Azure', className: 'tb' },
+      { label: 'M365', className: 'tb' },
+    ],
+    background: '#2D2A38',
+    accent: '#9B82C3',
+    icon: 'cloud',
+    detailPage: false,
+  },
+  {
+    id: 'lan-wan',
+    title: {
+      FR: 'Refonte réseau LAN/WAN',
+      EN: 'LAN/WAN Network Redesign',
+    },
+    companyLine: {
+      FR: 'Projet académique · 2022',
+      EN: 'Academic project · 2022',
+    },
+    desc: {
+      FR: "Conception et simulation d'une architecture réseau d'entreprise multi-sites sous GNS3.",
+      EN: 'Design and simulation of a multi-site enterprise network architecture in GNS3.',
+    },
+    category: {
+      FR: 'Infrastructure',
+      EN: 'Infrastructure',
+    },
+    categoryKey: 'infrastructure',
+    tags: [
+      { label: 'Cisco', className: 'ts' },
+      { label: 'GNS3', className: 'ts' },
+    ],
+    background: '#382A2A',
+    accent: '#C38282',
+    icon: 'grid',
+    detailPage: false,
+  },
+];
 
 function App() {
   const [activePage, setActivePage] = useState('main');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const [projectSearch, setProjectSearch] = useState('');
+  const [projectFilter, setProjectFilter] = useState<ProjectFilterKey>('all');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window === 'undefined') {
+      return 'FR';
+    }
+
+    const savedLang = window.localStorage.getItem('portfolio_lang');
+    if (savedLang === 'FR' || savedLang === 'EN') {
+      return savedLang;
+    }
+
+    return window.navigator.language.toLowerCase().startsWith('fr') ? 'FR' : 'EN';
+  });
   const prefersReducedMotion = usePrefersReducedMotion();
+  const v = t[lang];
+  const skillsData = getSkillsData(lang);
+  const timelineData = getTimelineData(lang);
+  const formationData = getFormationData(lang);
+  const educationSection =
+    (v as any).education ??
+    (lang === 'FR'
+      ? {
+          num: '05',
+          title: 'Ma formation',
+          subtitle:
+            'Diplômes obtenus avec distinction dans les meilleures institutions de Lomé.',
+        }
+      : {
+          num: '05',
+          title: 'My Education',
+          subtitle:
+            'Degrees earned with distinction from leading institutions in Lomé.',
+        });
+  const referencesSection =
+    (v as any).references ??
+    (lang === 'FR'
+      ? {
+          num: '07',
+          title: 'Mes références',
+          subtitle: 'Références professionnelles disponibles sur demande.',
+        }
+      : {
+          num: '07',
+          title: 'My References',
+          subtitle: 'Professional references and recommendation contacts.',
+        });
+
+  const referencesData: ReferenceContact[] = [
+    {
+      initials: 'YN',
+      name: 'Yan NYAKU',
+      organization: 'CFAO Mobility Togo',
+      role: 'DSI',
+      phoneDisplay: '+228 93 23 24 65',
+      phoneHref: 'tel:+22893232465',
+    },
+    {
+      initials: 'JK',
+      name: 'Jerome KPETO',
+      organization: 'CORIS BANK INTERNATIONAL TOGO',
+      role: 'RSI',
+      phoneDisplay: '+228 96 11 03 56',
+      phoneHref: 'tel:+22896110356',
+    },
+    {
+      initials: 'AK',
+      name: 'Ange KOBLAN',
+      organization: 'FINANCE AFRIQUE / Hub Abidjan',
+      role: 'Responsable Regional Support IT',
+      phoneDisplay: '+225 07 07 79 90 81',
+      phoneHref: 'tel:+2250707799081',
+    },
+    {
+      initials: 'ED',
+      name: 'El Djiba Kolon DIALLO',
+      organization: 'DSI - Support & Operations',
+      role: 'Chef de projet / Administrateur Systemes et Reseaux',
+      phoneDisplay: '+224 621 08 86 97',
+      phoneHref: 'tel:+224621088697',
+    },
+    {
+      initials: 'AD',
+      name: 'Alfred Noel DEGBE',
+      organization: 'Groupe Orabank',
+      role: 'Ingenieur support informatique',
+      phoneDisplay: '+228 90 54 13 91',
+      phoneHref: 'tel:+22890541391',
+    },
+  ];
+  const projectFilters = [
+    { key: 'all' as const, label: lang === 'FR' ? 'Tous' : 'All' },
+    {
+      key: 'cybersecurity' as const,
+      label: lang === 'FR' ? 'Cybersécurité' : 'Cybersecurity',
+    },
+    { key: 'telecom' as const, label: lang === 'FR' ? 'Télécom' : 'Telecom' },
+    { key: 'network' as const, label: lang === 'FR' ? 'Réseau' : 'Network' },
+    { key: 'linux' as const, label: 'Linux' },
+    { key: 'cloud' as const, label: 'Cloud' },
+    {
+      key: 'infrastructure' as const,
+      label: lang === 'FR' ? 'Infrastructure' : 'Infrastructure',
+    },
+  ];
+  const normalizedProjectSearch = projectSearch.trim().toLowerCase();
+  const filteredProjects = projectCatalog.filter((project) => {
+    const matchesFilter =
+      projectFilter === 'all' || project.categoryKey === projectFilter;
+    const searchableContent = [
+      project.title[lang],
+      project.companyLine[lang],
+      project.desc[lang],
+      project.category[lang],
+      ...project.tags.map((tag) => tag.label),
+    ]
+      .join(' ')
+      .toLowerCase();
+    const matchesSearch =
+      !normalizedProjectSearch || searchableContent.includes(normalizedProjectSearch);
+
+    return matchesFilter && matchesSearch;
+  });
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const withBase = (assetPath: string) =>
@@ -55,6 +446,12 @@ function App() {
 
     return () => observer.disconnect();
   }, [activePage]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('portfolio_lang', lang);
+    }
+  }, [lang]);
 
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
@@ -101,46 +498,46 @@ function App() {
             onClick={toggleMobileMenu}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
-            aria-label="Ouvrir le menu"
+            aria-label={lang === 'FR' ? 'Ouvrir le menu' : 'Open menu'}
           >
             <span></span>
             <span></span>
             <span></span>
           </button>
           <ul className="nav-links">
-            <li><a href="#about" className={activeSection === 'about' ? 'active' : ''} aria-current={activeSection === 'about' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>À propos</a></li>
-            <li><a href="#skills" className={activeSection === 'skills' ? 'active' : ''} aria-current={activeSection === 'skills' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('skills'); }}>Compétences</a></li>
-            <li><a href="#parcours" className={activeSection === 'parcours' ? 'active' : ''} aria-current={activeSection === 'parcours' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('parcours'); }}>Expérience</a></li>
-            <li><a href="#formation" className={activeSection === 'formation' ? 'active' : ''} aria-current={activeSection === 'formation' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('formation'); }}>Formation</a></li>
-            <li><a href="#projets" className={activeSection === 'projets' ? 'active' : ''} aria-current={activeSection === 'projets' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('projets'); }}>Projets</a></li>
-            <li><a href="#refs" className={activeSection === 'refs' ? 'active' : ''} aria-current={activeSection === 'refs' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('refs'); }}>Références</a></li>
-            <li><a href="#contact" className={activeSection === 'contact' ? 'active' : ''} aria-current={activeSection === 'contact' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a></li>
+            <li><a href="#about" className={activeSection === 'about' ? 'active' : ''} aria-current={activeSection === 'about' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>{v.nav.about}</a></li>
+            <li><a href="#skills" className={activeSection === 'skills' ? 'active' : ''} aria-current={activeSection === 'skills' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('skills'); }}>{v.nav.skills}</a></li>
+            <li><a href="#parcours" className={activeSection === 'parcours' ? 'active' : ''} aria-current={activeSection === 'parcours' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('parcours'); }}>{v.nav.experience}</a></li>
+            <li><a href="#formation" className={activeSection === 'formation' ? 'active' : ''} aria-current={activeSection === 'formation' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('formation'); }}>{v.nav.education}</a></li>
+            <li><a href="#projets" className={activeSection === 'projets' ? 'active' : ''} aria-current={activeSection === 'projets' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('projets'); }}>{v.nav.projects}</a></li>
+            <li><a href="#refs" className={activeSection === 'refs' ? 'active' : ''} aria-current={activeSection === 'refs' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('refs'); }}>{v.nav.references}</a></li>
+            <li><a href="#contact" className={activeSection === 'contact' ? 'active' : ''} aria-current={activeSection === 'contact' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>{v.nav.contact}</a></li>
           </ul>
-          <div className="nav-tag">Lomé, Togo</div>
+          <div className="nav-tag">{lang === 'FR' ? 'Lomé, Togo' : 'Lome, Togo'}</div>
         </nav>
-        <MobileNav 
+        <MobileNav lang={lang} 
           isMobileMenuOpen={isMobileMenuOpen} 
           activeSection={activeSection} 
           toggleMobileMenu={toggleMobileMenu} 
           scrollToSection={scrollToSection} 
         />
 
-        <Hero 
+        <Hero lang={lang} 
           onDiscoverProfile={handleDiscoverProfile} 
           onViewProjects={handleViewProjects} 
         />
 
-        <About onReadMore={() => showDetail('biography')} />
+        <About lang={lang} onReadMore={() => showDetail('biography')} />
 
         {/* CE QUE JE MAÎTRISE */}
         <section className="sec" id="skills" style={{ background: '#EEEAE3' }}>
           <div className="sec-hdr">
-            <span className="sec-num">03</span>
-            <h2 className="sec-ttl">Ce que je maîtrise.</h2>
-            <span className="sec-sub">15+ technologies au service de l'infrastructure et de la sécurité.</span>
+            <span className="sec-num">{v.skills.num}</span>
+            <h2 className="sec-ttl">{v.skills.title}.</h2>
+            <span className="sec-sub">{(v.skills as any).subtitle ?? v.skills.sub}</span>
           </div>
           <div className="skills-grid">
-            {skillsData.map((skill, i) => (
+            {getSkillsData(lang).map((skill, i) => (
               <div className="skill-card" key={i}>
                 <div className="skill-icon" style={{ background: skill.bg }}>
                   {skill.icon}
@@ -155,12 +552,12 @@ function App() {
         {/* MON PARCOURS */}
         <section className="sec" id="parcours">
           <div className="sec-hdr">
-            <span className="sec-num">04</span>
-            <h2 className="sec-ttl">Mon parcours.</h2>
-            <span className="sec-sub">Expériences professionnelles forgeant mon expertise technique.</span>
+            <span className="sec-num">{v.experience.num}</span>
+            <h2 className="sec-ttl">{v.experience.title}.</h2>
+            <span className="sec-sub">{(v.experience as any).subtitle ?? v.experience.sub}</span>
           </div>
           <div className="timeline">
-            {timelineData.map((item, i) => (
+            {getTimelineData(lang).map((item, i) => (
               <div className={`tl-item ${item.isCurrent ? 'current' : ''}`} key={i}>
                 <p className="tl-date">{item.date}</p>
                 <h3 className="tl-title">{item.title}</h3>
@@ -174,12 +571,12 @@ function App() {
         {/* MA FORMATION */}
         <section className="sec" id="formation" style={{ background: '#EEEAE3' }}>
           <div className="sec-hdr">
-            <span className="sec-num">05</span>
-            <h2 className="sec-ttl">Ma formation.</h2>
-            <span className="sec-sub">Diplômes obtenus avec distinction dans les meilleures institutions de Lomé.</span>
+            <span className="sec-num">{educationSection.num}</span>
+            <h2 className="sec-ttl">{educationSection.title}.</h2>
+            <span className="sec-sub">{educationSection.subtitle}</span>
           </div>
           <div className="edu-grid">
-            {formationData.map((item, i) => (
+            {getFormationData(lang).map((item, i) => (
               <div className="edu-card" key={i}>
                 <p className="edu-year">{item.year}</p>
                 <h3 className="edu-title">{item.title}</h3>
@@ -191,7 +588,7 @@ function App() {
         </section>
 
         {/* MES RÉALISATIONS */}
-        <Projects
+        <Projects lang={lang}
           onProjectClick={showDetail}
           onViewAll={() => {
             setActivePage('all-projects');
@@ -201,36 +598,35 @@ function App() {
 
         <section className="sec" id="refs" style={{ background: '#EEEAE3' }}>
           <div className="sec-hdr">
-            <span className="sec-num">07</span>
-            <h2 className="sec-ttl">Mes références.</h2>
-            <span className="sec-sub">Références professionnelles disponibles sur demande.</span>
+            <span className="sec-num">{referencesSection.num}</span>
+            <h2 className="sec-ttl">{referencesSection.title}.</h2>
+            <span className="sec-sub">{referencesSection.subtitle}</span>
           </div>
           <div className="ref-grid">
-            <div className="ref-card">
-              <div className="ref-av">NT</div>
-              <p className="ref-name">Direction Générale</p>
-              <p className="ref-org">Neemba Togo</p>
-              <p className="ref-role">Employeur actuel</p>
-              <p className="ref-contact">Disponible sur demande</p>
-            </div>
-            <div className="ref-card">
-              <div className="ref-av">CP</div>
-              <p className="ref-name">Direction Académique</p>
-              <p className="ref-org">Collège de Paris Supérieur · Lomé</p>
-              <p className="ref-role">Formation Master II</p>
-              <p className="ref-contact">Disponible sur demande</p>
-            </div>
+            {referencesData.map((reference) => (
+              <div className="ref-card" key={reference.phoneHref}>
+                <div className="ref-av">{reference.initials}</div>
+                <p className="ref-name">{reference.name}</p>
+                <p className="ref-org">{reference.organization}</p>
+                <p className="ref-role">{reference.role}</p>
+                <p className="ref-contact">
+                  <a className="ref-contact-link" href={reference.phoneHref}>
+                    {reference.phoneDisplay}
+                  </a>
+                </p>
+              </div>
+            ))}
           </div>
         </section>
 
         {/* ME CONTACTER */}
-        <Contact />
+        <Contact lang={lang} />
 
         {/* TOP OF PAGE BUTTON */}
         <BackToTop />
 
         {/* FOOTER */}
-        <Footer onNavigate={scrollToSection} />
+        <Footer lang={lang} onNavigate={scrollToSection} />
       </main>{/* end page-main */}
 
       {/* ====== DETAIL PAGES ====== */}
@@ -645,7 +1041,7 @@ function App() {
             <h2 className="sec-ttl">Expertises clés.</h2>
           </div>
           <div className="bio-expertise-wrap">
-            <a href="https://wazuh.com/ambassador/" target="_blank" rel="noopener noreferrer" className="bio-tag-link tag tc">
+            <a href="https://wazuh.com/ambassadors/kafui-charbel-eklu/" target="_blank" rel="noopener noreferrer" className="bio-tag-link tag tc">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16 20 12 22C8 20 4 17 4 12V6L12 2Z" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>
               Wazuh Security Ambassador
             </a>
@@ -693,6 +1089,164 @@ function App() {
               Retour à l'accueil
             </button>
           </nav>
+          <section className="sec projects-page" style={{ minHeight: '80vh', background: '#F5F1EC' }}>
+            <div className="sec-hdr">
+              <span className="sec-num">{v.projects.num}</span>
+              <h2 className="sec-ttl">
+                {lang === 'FR' ? 'Tous mes projets.' : 'All my projects.'}
+              </h2>
+              <span className="sec-sub">
+                {lang === 'FR'
+                  ? 'Explore mes réalisations par mot-clé, domaine ou environnement technique.'
+                  : 'Explore my work by keyword, domain, or technical environment.'}
+              </span>
+            </div>
+
+            <div className="projects-tools">
+              <label className="projects-search">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m20 20-3.5-3.5"></path>
+                </svg>
+                <input
+                  type="search"
+                  value={projectSearch}
+                  onChange={(event) => setProjectSearch(event.target.value)}
+                  placeholder={
+                    lang === 'FR'
+                      ? 'Rechercher un projet, une techno, un client...'
+                      : 'Search by project, stack, client...'
+                  }
+                  aria-label={
+                    lang === 'FR' ? 'Rechercher dans les projets' : 'Search projects'
+                  }
+                />
+              </label>
+
+              <div
+                className="project-filter-bar"
+                role="group"
+                aria-label={lang === 'FR' ? 'Filtres de projet' : 'Project filters'}
+              >
+                {projectFilters.map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    className={`project-filter-btn ${projectFilter === filter.key ? 'active' : ''}`}
+                    onClick={() => setProjectFilter(filter.key)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              <p className="projects-results">
+                {lang === 'FR'
+                  ? `${filteredProjects.length} projet${filteredProjects.length > 1 ? 's' : ''} affiché${filteredProjects.length > 1 ? 's' : ''}`
+                  : `${filteredProjects.length} project${filteredProjects.length > 1 ? 's' : ''} shown`}
+              </p>
+            </div>
+
+            {filteredProjects.length > 0 ? (
+              <div className="pj-grid pj-grid-all">
+                {filteredProjects.map((project) =>
+                  project.detailPage ? (
+                    <button
+                      key={project.id}
+                      type="button"
+                      className="pj-card card-action"
+                      onClick={() => showDetail(project.id)}
+                      aria-label={
+                        lang === 'FR'
+                          ? `Voir le détail du projet ${project.title.FR}`
+                          : `View details of the ${project.title.EN} project`
+                      }
+                    >
+                      <div className="pj-vis" style={{ background: project.background }}>
+                        <div
+                          className="cat-b"
+                          style={{
+                            background: `${project.accent}33`,
+                            color: project.accent,
+                          }}
+                        >
+                          {project.category[lang]}
+                        </div>
+                        {renderProjectIcon(project.icon, project.accent)}
+                      </div>
+                      <div className="pj-body">
+                        <h3 className="pj-title">{project.title[lang]}</h3>
+                        <p className="pj-co">{project.companyLine[lang]}</p>
+                        <p className="pj-desc">{project.desc[lang]}</p>
+                        <div className="pj-foot">
+                          <div className="tags">
+                            {project.tags.map((tag) => (
+                              <span key={`${project.id}-${tag.label}`} className={`tag ${tag.className}`}>
+                                {tag.label}
+                              </span>
+                            ))}
+                          </div>
+                          <span className="pj-arrow">→</span>
+                        </div>
+                      </div>
+                    </button>
+                  ) : (
+                    <article key={project.id} className="pj-card project-card-static">
+                      <div className="pj-vis" style={{ background: project.background }}>
+                        <div
+                          className="cat-b"
+                          style={{
+                            background: `${project.accent}33`,
+                            color: project.accent,
+                          }}
+                        >
+                          {project.category[lang]}
+                        </div>
+                        {renderProjectIcon(project.icon, project.accent)}
+                      </div>
+                      <div className="pj-body">
+                        <h3 className="pj-title">{project.title[lang]}</h3>
+                        <p className="pj-co">{project.companyLine[lang]}</p>
+                        <p className="pj-desc">{project.desc[lang]}</p>
+                        <div className="pj-foot">
+                          <div className="tags">
+                            {project.tags.map((tag) => (
+                              <span key={`${project.id}-${tag.label}`} className={`tag ${tag.className}`}>
+                                {tag.label}
+                              </span>
+                            ))}
+                          </div>
+                          <span className="project-card-note">
+                            {lang === 'FR' ? 'Aperçu' : 'Preview'}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="projects-empty">
+                <h3>{lang === 'FR' ? 'Aucun projet trouvé.' : 'No matching project found.'}</h3>
+                <p>
+                  {lang === 'FR'
+                    ? 'Essaie un autre mot-clé ou retire un filtre pour élargir la liste.'
+                    : 'Try another keyword or remove a filter to broaden the list.'}
+                </p>
+              </div>
+            )}
+          </section>
+          {false && (
           <section className="sec" style={{ minHeight: '80vh', background: '#F5F1EC' }}>
             <div className="sec-hdr">
               <span className="sec-num">06</span>
@@ -753,9 +1307,11 @@ function App() {
 
             </div>
           </section>
+          )}
         </div>
       )}
 
+      <LanguageToggle lang={lang} onToggle={setLang} />
       <ChatbotButton />
     </div>
   );

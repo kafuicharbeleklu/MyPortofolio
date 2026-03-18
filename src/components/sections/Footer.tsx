@@ -1,91 +1,66 @@
 import React from 'react';
+import { t, Language } from '../../translations';
 
 interface FooterProps {
+  lang: Language;
   onNavigate: (section: string) => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
+  const v = t[lang];
+
   return (
     <footer className="site-footer">
       <div className="footer-inner">
         <div className="footer-top">
           <div className="footer-brand">
-            <button
-              type="button"
-              className="footer-logo"
-              onClick={() => onNavigate('hero')}
-            >
+            <button type="button" className="footer-logo" onClick={() => onNavigate('hero')}>
               K · E
             </button>
-            <p className="footer-tagline">
-              Ingénieur réseaux &amp; systèmes, je conçois, déploie et sécurise
-              les infrastructures IT avec la rigueur d&apos;un architecte.
-            </p>
+            <p className="footer-tagline">{v.footer.tagline}</p>
           </div>
 
           <div className="footer-col">
-            <h4 className="footer-col-title">Navigation</h4>
+            <h4 className="footer-col-title">{v.footer.navTitle}</h4>
             <ul className="footer-nav">
               <li>
-                <button
-                  type="button"
-                  className="footer-link-button"
-                  onClick={() => onNavigate('about')}
-                >
-                  À propos
+                <button type="button" className="footer-link-button" onClick={() => onNavigate('about')}>
+                  {v.nav.about}
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
-                  className="footer-link-button"
-                  onClick={() => onNavigate('skills')}
-                >
-                  Compétences
+                <button type="button" className="footer-link-button" onClick={() => onNavigate('skills')}>
+                  {v.nav.skills}
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
-                  className="footer-link-button"
-                  onClick={() => onNavigate('parcours')}
-                >
-                  Expérience
+                <button type="button" className="footer-link-button" onClick={() => onNavigate('parcours')}>
+                  {v.nav.experience}
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
-                  className="footer-link-button"
-                  onClick={() => onNavigate('projets')}
-                >
-                  Projets
+                <button type="button" className="footer-link-button" onClick={() => onNavigate('projets')}>
+                  {v.nav.projects}
                 </button>
               </li>
               <li>
-                <button
-                  type="button"
-                  className="footer-link-button"
-                  onClick={() => onNavigate('contact')}
-                >
-                  Contact
+                <button type="button" className="footer-link-button" onClick={() => onNavigate('contact')}>
+                  {v.nav.contact}
                 </button>
               </li>
             </ul>
           </div>
 
           <div className="footer-col">
-            <h4 className="footer-col-title">Contact</h4>
+            <h4 className="footer-col-title">{v.footer.contactTitle}</h4>
             <ul className="footer-nav">
               <li>
-                <a href="mailto:charbelkafuieklu@gmail.com">
-                  charbelkafuieklu@gmail.com
-                </a>
+                <a href="mailto:charbelkafuieklu@gmail.com">charbelkafuieklu@gmail.com</a>
               </li>
               <li>
                 <a href="tel:+22870664225">+228 70 66 42 25</a>
               </li>
-              <li>Lomé, Togo</li>
+              <li>{lang === 'FR' ? 'Lomé, Togo' : 'Lome, Togo'}</li>
             </ul>
           </div>
         </div>
@@ -115,7 +90,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </svg>
             </a>
           </div>
-          <p className="footer-copy">© 2026 Kafui Charbel EKLU. Tous droits réservés.</p>
+          <p className="footer-copy">© 2026 Kafui Charbel EKLU. {v.footer.rights}</p>
         </div>
       </div>
     </footer>

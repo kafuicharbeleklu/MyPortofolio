@@ -11,8 +11,10 @@ const geminiApiKey = (
 
 const assistantGreeting =
   "Bonjour ! Je suis l'assistant virtuel de Kafui. Comment puis-je vous aider aujourd'hui ?";
-const missingKeyMessage =
-  "Le chatbot n'est pas configuré. Ajoutez VITE_GEMINI_API_KEY ou GEMINI_API_KEY dans .env.local, puis redémarrez npm run dev.";
+const localMissingKeyMessage =
+  "Le chatbot n'est pas configure. Ajoutez VITE_GEMINI_API_KEY dans .env.local, puis redemarrez l'application.";
+const githubPagesMissingKeyMessage =
+  "Le chatbot IA n'est pas disponible sur cette version GitHub Pages. Utilisez plutot l'email ou LinkedIn pour me contacter.";
 const chatbotPanelId = 'chatbot-panel';
 const chatbotTitleId = 'chatbot-title';
 
@@ -22,6 +24,11 @@ type ChatMessage = {
 };
 
 const ChatbotButton: React.FC = () => {
+  const isGitHubPagesHost =
+    typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+  const missingKeyMessage = isGitHubPagesHost
+    ? githubPagesMissingKeyMessage
+    : localMissingKeyMessage;
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { text: geminiApiKey ? assistantGreeting : missingKeyMessage, isUser: false },
@@ -82,7 +89,7 @@ const ChatbotButton: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
-          text: response.text || "Désolé, je n'ai pas pu générer de réponse.",
+          text: response.text || "Desole, je n'ai pas pu generer de reponse.",
           isUser: false,
         },
       ]);
@@ -91,7 +98,7 @@ const ChatbotButton: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
-          text: 'Une erreur est survenue. Vérifiez la clé Gemini et réessayez.',
+          text: 'Une erreur est survenue. Verifiez la configuration Gemini puis reessayez.',
           isUser: false,
         },
       ]);
@@ -147,31 +154,50 @@ const ChatbotButton: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="chat-input-area">
-            <input
-              type="text"
-              className="chat-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={
-                geminiApiKey
-                  ? 'Écrivez un message...'
-                  : 'Configurez la clé Gemini dans .env.local'
-              }
-              disabled={!geminiApiKey || isLoading}
-              aria-label="Message à envoyer"
-            />
-            <button
-              type="button"
-              className="chat-send-btn"
-              onClick={handleSend}
-              disabled={!geminiApiKey || isLoading}
-              aria-label="Envoyer le message"
-            >
-              <Send size={18} />
-            </button>
-          </div>
+          {geminiApiKey ? (
+            <div className="chat-input-area">
+              <input
+                type="text"
+                className="chat-input"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Ecrivez un message..."
+                disabled={isLoading}
+                aria-label="Message a envoyer"
+              />
+              <button
+                type="button"
+                className="chat-send-btn"
+                onClick={handleSend}
+                disabled={isLoading}
+                aria-label="Envoyer le message"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+          ) : (
+            <div className="chat-unavailable">
+              <p className="chat-unavailable-copy">
+                {isGitHubPagesHost
+                  ? "Pour un contact rapide, utilisez les liens ci-dessous."
+                  : "Ajoutez une cle Gemini locale pour activer l'assistant."}
+              </p>
+              <div className="chat-help-links">
+                <a className="chat-help-link" href="mailto:charbelkafuieklu@gmail.com">
+                  Email
+                </a>
+                <a
+                  className="chat-help-link"
+                  href="https://www.linkedin.com/in/kafui-charbel-eklu"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  LinkedIn
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

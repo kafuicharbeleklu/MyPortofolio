@@ -1,0 +1,148 @@
+export type Language = 'FR' | 'EN';
+
+export const t = {
+  FR: {
+    language: {
+      label: 'Langue',
+      french: 'Français',
+      english: 'Anglais',
+    },
+    nav: {
+      about: 'À propos',
+      skills: 'Compétences',
+      experience: 'Expérience',
+      education: 'Formation',
+      projects: 'Projets',
+      references: 'Références',
+      contact: 'Contact',
+    },
+    hero: {
+      eyebrow: 'Portfolio',
+      role: 'Administrateur Digital Workplace & Infrastructure',
+      location: 'Lomé, Togo · Mobilité internationale',
+      btnPrimary: 'Découvrir mon profil',
+      btnSecondary: 'Voir mes projets',
+    },
+    about: {
+      num: '01',
+      title: 'À propos de moi',
+      sub: 'Mon parcours, ma philosophie et ce qui me motive au quotidien.',
+      resumeBtn: 'Consulter mon CV complet',
+    },
+    skills: {
+      num: '02',
+      title: 'Compétences & expertise',
+      sub: 'Les domaines dans lesquels j’apporte une vraie valeur technique et opérationnelle.',
+      stripItems: ['Réseaux', 'Systèmes', 'Cybersécurité', 'Cloud', 'Automatisation', 'Support IT'],
+    },
+    experience: {
+      num: '03',
+      title: 'Parcours & expérience',
+      sub: 'Mon évolution académique et professionnelle sur des environnements exigeants.',
+    },
+    education: {
+      num: '04',
+      title: 'Ma formation',
+      subtitle: 'Un parcours construit autour des réseaux, des systèmes et de l’administration d’infrastructure.',
+    },
+    projects: {
+      num: '05',
+      title: 'Mes réalisations',
+      sub: 'Des projets concrets, livrés en environnement réel, avec un impact mesurable.',
+      allProjectsTitle: 'Voir tous les projets',
+    },
+    references: {
+      num: '06',
+      title: 'Mes références',
+      subtitle: 'Des contacts professionnels capables de témoigner de mon sérieux, de ma rigueur et de ma fiabilité.',
+    },
+    contact: {
+      num: '07',
+      title: 'Me contacter',
+      sub: 'Disponible pour des opportunités en administration systèmes, cybersécurité, support avancé et gestion d’infrastructure.',
+      formName: 'Nom complet',
+      formEmail: 'Adresse email',
+      formSubject: 'Sujet',
+      formMessage: 'Message',
+      formSubmit: 'Envoyer le message',
+    },
+    footer: {
+      tagline: 'Ingénieur réseaux & systèmes, je conçois, déploie et sécurise des infrastructures IT robustes, lisibles et durables.',
+      navTitle: 'Navigation',
+      contactTitle: 'Contact',
+      rights: 'Tous droits réservés.',
+    },
+  },
+  EN: {
+    language: {
+      label: 'Language',
+      french: 'French',
+      english: 'English',
+    },
+    nav: {
+      about: 'About',
+      skills: 'Skills',
+      experience: 'Experience',
+      education: 'Education',
+      projects: 'Projects',
+      references: 'References',
+      contact: 'Contact',
+    },
+    hero: {
+      eyebrow: 'Portfolio',
+      role: 'Digital Workplace & Infrastructure Administrator',
+      location: 'Lome, Togo · International mobility',
+      btnPrimary: 'Explore my profile',
+      btnSecondary: 'View my projects',
+    },
+    about: {
+      num: '01',
+      title: 'About me',
+      sub: 'My background, my working philosophy, and what drives me every day.',
+      resumeBtn: 'View my full resume',
+    },
+    skills: {
+      num: '02',
+      title: 'Skills & expertise',
+      sub: 'The areas where I deliver strong technical and operational value.',
+      stripItems: ['Networks', 'Systems', 'Cybersecurity', 'Cloud', 'Automation', 'IT Support'],
+    },
+    experience: {
+      num: '03',
+      title: 'Journey & experience',
+      sub: 'My academic path and professional growth across demanding environments.',
+    },
+    education: {
+      num: '04',
+      title: 'My education',
+      subtitle: 'A background built around networks, systems, and infrastructure administration.',
+    },
+    projects: {
+      num: '05',
+      title: 'Selected work',
+      sub: 'Concrete projects delivered in real environments with measurable impact.',
+      allProjectsTitle: 'View all projects',
+    },
+    references: {
+      num: '06',
+      title: 'References',
+      subtitle: 'Professional contacts who can speak to my rigor, reliability, and delivery quality.',
+    },
+    contact: {
+      num: '07',
+      title: 'Contact me',
+      sub: 'Available for opportunities in systems administration, cybersecurity, advanced support, and infrastructure management.',
+      formName: 'Full name',
+      formEmail: 'Email address',
+      formSubject: 'Subject',
+      formMessage: 'Message',
+      formSubmit: 'Send message',
+    },
+    footer: {
+      tagline: 'Network & systems engineer focused on designing, deploying, and securing resilient IT infrastructures.',
+      navTitle: 'Navigation',
+      contactTitle: 'Contact',
+      rights: 'All rights reserved.',
+    },
+  },
+} as const;

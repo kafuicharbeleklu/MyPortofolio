@@ -1,18 +1,24 @@
 import React from 'react';
+import { t, Language } from '../../translations';
 
 interface ProjectsProps {
+  lang: Language;
   onProjectClick: (id: string) => void;
   onViewAll: () => void;
 }
 
-const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
+const Projects: React.FC<ProjectsProps> = ({ lang, onProjectClick, onViewAll }) => {
+  const v = t[lang];
+
   return (
     <section className="sec" id="projets">
       <div className="sec-hdr">
-        <span className="sec-num">06</span>
-        <h2 className="sec-ttl">Mes réalisations.</h2>
+        <span className="sec-num">{v.projects.num}</span>
+        <h2 className="sec-ttl">{lang === 'FR' ? 'Mes réalisations.' : 'Selected work.'}</h2>
         <span className="sec-sub">
-          6 projets techniques livrés, chacun résolvant un problème réel.
+          {lang === 'FR'
+            ? 'Six projets techniques livrés, chacun répondant à un besoin concret.'
+            : 'Six technical projects delivered, each solving a concrete operational need.'}
         </span>
       </div>
 
@@ -20,14 +26,18 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
         type="button"
         className="proj-feat card-action"
         onClick={() => onProjectClick('siem')}
-        aria-label="Voir le détail du projet Déploiement SIEM XDR Wazuh"
+        aria-label={
+          lang === 'FR'
+            ? 'Voir le détail du projet de déploiement Wazuh SIEM XDR'
+            : 'View details of the Wazuh SIEM XDR deployment project'
+        }
       >
         <div className="pf-vis" style={{ background: '#2C3E2E' }}>
           <div
             className="cat-b"
             style={{ background: 'rgba(212,149,106,.2)', color: '#D4956A' }}
           >
-            Cybersécurité · Projet phare
+            {lang === 'FR' ? 'Cybersécurité · Projet phare' : 'Cybersecurity · Featured project'}
           </div>
           <svg width="80" height="80" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}>
             <path
@@ -46,17 +56,20 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
         </div>
         <div className="pf-body">
           <div>
-            <p className="pf-eye">- Projet 01 · Phare</p>
-            <h3 className="pf-title">Déploiement SIEM / XDR Wazuh</h3>
+            <p className="pf-eye">{lang === 'FR' ? 'Projet 01 · Phare' : 'Project 01 · Featured'}</p>
+            <h3 className="pf-title">{lang === 'FR' ? 'Déploiement SIEM / XDR Wazuh' : 'Wazuh SIEM / XDR deployment'}</h3>
             <p className="pf-co">Neemba Togo · 2023-2024</p>
             <p className="pf-desc">
-              Déploiement complet d&apos;une solution SIEM/XDR Wazuh sur l&apos;ensemble du parc.
-              Détection d&apos;intrusion, corrélation d&apos;événements et dashboards temps réel.
+              {lang === 'FR'
+                ? "Déploiement complet d'une solution Wazuh sur l'ensemble du parc, avec corrélation d'événements, supervision centralisée et tableaux de bord temps réel."
+                : 'End-to-end Wazuh deployment across the environment with event correlation, centralized monitoring, and real-time dashboards.'}
             </p>
             <div className="res-box">
-              <div className="res-lbl">Résultat clé</div>
+              <div className="res-lbl">{lang === 'FR' ? 'Résultat clé' : 'Key result'}</div>
               <div className="res-val">
-                100 % des endpoints couverts · Détection proactive activée
+                {lang === 'FR'
+                  ? '100 % des endpoints couverts · Détection proactive activée'
+                  : '100% of endpoints covered · Proactive detection enabled'}
               </div>
             </div>
           </div>
@@ -66,7 +79,7 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
               <span className="tag tc">SIEM</span>
               <span className="tag tc">XDR</span>
             </div>
-            <span className="detail-link">Voir le détail →</span>
+            <span className="detail-link">{lang === 'FR' ? 'Voir le détail' : 'View details'} →</span>
           </div>
         </div>
       </button>
@@ -76,14 +89,15 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
           type="button"
           className="pj-card card-action"
           onClick={() => onProjectClick('moov')}
-          aria-label="Voir le détail du projet Portabilité MOOV vers Togocom"
+          aria-label={
+            lang === 'FR'
+              ? 'Voir le détail du projet de portabilité MOOV vers Togocom'
+              : 'View details of the MOOV to Togocom portability project'
+          }
         >
           <div className="pj-vis" style={{ background: '#2B3A4A' }}>
-            <div
-              className="cat-b"
-              style={{ background: 'rgba(123,191,208,.2)', color: '#7BBFD0' }}
-            >
-              Télécom
+            <div className="cat-b" style={{ background: 'rgba(123,191,208,.2)', color: '#7BBFD0' }}>
+              {lang === 'FR' ? 'Télécom' : 'Telecom'}
             </div>
             <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
               <circle cx="30" cy="30" r="20" stroke="#7BBFD0" strokeWidth="1.5" fill="none" />
@@ -93,10 +107,12 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
             </svg>
           </div>
           <div className="pj-body">
-            <h3 className="pj-title">Portabilité MOOV → Togocom</h3>
+            <h3 className="pj-title">{lang === 'FR' ? 'Portabilité MOOV → Togocom' : 'MOOV → Togocom portability'}</h3>
             <p className="pj-co">Neemba Togo · 2024</p>
             <p className="pj-desc">
-              Migration complète réseau mobile avec supervision VSAT et zéro interruption.
+              {lang === 'FR'
+                ? 'Migration complète du réseau mobile avec supervision VSAT et continuité de service.'
+                : 'Complete mobile network migration with VSAT monitoring and service continuity.'}
             </p>
             <div className="pj-foot">
               <div className="tags">
@@ -107,18 +123,20 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
             </div>
           </div>
         </button>
+
         <button
           type="button"
           className="pj-card card-action"
           onClick={() => onProjectClick('orabank')}
-          aria-label="Voir le détail du projet Contrôleur de domaine Orabank"
+          aria-label={
+            lang === 'FR'
+              ? 'Voir le détail du projet contrôleur de domaine Orabank'
+              : 'View details of the Orabank domain controller project'
+          }
         >
           <div className="pj-vis" style={{ background: '#3A2C1E' }}>
-            <div
-              className="cat-b"
-              style={{ background: 'rgba(200,168,90,.2)', color: '#C8A85A' }}
-            >
-              Réseau
+            <div className="cat-b" style={{ background: 'rgba(200,168,90,.2)', color: '#C8A85A' }}>
+              {lang === 'FR' ? 'Réseau' : 'Network'}
             </div>
             <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
               <rect x="20" y="8" width="20" height="12" rx="2" stroke="#C8A85A" strokeWidth="1.5" fill="none" />
@@ -131,10 +149,12 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
             </svg>
           </div>
           <div className="pj-body">
-            <h3 className="pj-title">Contrôleur de Domaine Orabank</h3>
+            <h3 className="pj-title">{lang === 'FR' ? 'Contrôleur de domaine Orabank' : 'Orabank domain controller'}</h3>
             <p className="pj-co">Orabank Togo · Stage 2022</p>
             <p className="pj-desc">
-              Windows Server AD, GPO et politiques de sécurité multi-agences.
+              {lang === 'FR'
+                ? 'Déploiement Windows Server AD, GPO et politiques de sécurité multi-agences.'
+                : 'Windows Server AD deployment, GPO, and multi-branch security policies.'}
             </p>
             <div className="pj-foot">
               <div className="tags">
@@ -145,17 +165,19 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
             </div>
           </div>
         </button>
+
         <button
           type="button"
           className="pj-card card-action"
           onClick={() => onProjectClick('biasa')}
-          aria-label="Voir le détail du projet Services réseau Linux BIASA"
+          aria-label={
+            lang === 'FR'
+              ? 'Voir le détail du projet services réseau Linux BIASA'
+              : 'View details of the Linux network services BIASA project'
+          }
         >
           <div className="pj-vis" style={{ background: '#2A3830' }}>
-            <div
-              className="cat-b"
-              style={{ background: 'rgba(125,196,160,.2)', color: '#7DC4A0' }}
-            >
+            <div className="cat-b" style={{ background: 'rgba(125,196,160,.2)', color: '#7DC4A0' }}>
               Linux
             </div>
             <svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}>
@@ -167,10 +189,12 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
             </svg>
           </div>
           <div className="pj-body">
-            <h3 className="pj-title">Services Réseau Linux · BIASA</h3>
+            <h3 className="pj-title">{lang === 'FR' ? 'Services réseau Linux · BIASA' : 'Linux network services · BIASA'}</h3>
             <p className="pj-co">Clinique BIASA · Stage 2021</p>
             <p className="pj-desc">
-              DNS, DHCP, Apache, NAT sur Ubuntu Server - réseau créé from scratch.
+              {lang === 'FR'
+                ? 'DNS, DHCP, Apache et NAT sur Ubuntu Server, avec réseau mis en place from scratch.'
+                : 'DNS, DHCP, Apache, and NAT on Ubuntu Server, with the network built from scratch.'}
             </p>
             <div className="pj-foot">
               <div className="tags">
@@ -185,7 +209,7 @@ const Projects: React.FC<ProjectsProps> = ({ onProjectClick, onViewAll }) => {
 
       <div className="btn-center">
         <button type="button" className="kp-btn-dark" onClick={onViewAll}>
-          Voir tous les projets
+          {v.projects.allProjectsTitle}
         </button>
       </div>
     </section>

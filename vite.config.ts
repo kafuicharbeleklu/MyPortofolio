@@ -2,9 +2,11 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
+import { fileURLToPath } from 'url';
 
 export default defineConfig(({mode}) => {
-  const projectRoot = process.cwd();
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const projectRoot = __dirname;
   const env = loadEnv(mode, projectRoot, '');
   const geminiApiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || '';
   const base = env.VITE_BASE_PATH || (mode === 'production' ? '/MyPortofolio/' : '/');
@@ -19,7 +21,6 @@ export default defineConfig(({mode}) => {
       'process.env.GEMINI_API_KEY': JSON.stringify(geminiApiKey),
     },
     optimizeDeps: {
-      entries: ['src/main.tsx'],
     },
     resolve: {
       alias: {

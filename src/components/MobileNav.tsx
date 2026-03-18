@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { t, Language } from '../translations';
 
 interface MobileNavProps {
+  lang: Language;
   isMobileMenuOpen: boolean;
   activeSection: string;
   toggleMobileMenu: () => void;
@@ -9,11 +11,14 @@ interface MobileNavProps {
 }
 
 const MobileNav: React.FC<MobileNavProps> = ({
+  lang,
   isMobileMenuOpen,
   activeSection,
   toggleMobileMenu,
   scrollToSection,
 }) => {
+  const v = t[lang];
+
   return (
     <AnimatePresence>
       {isMobileMenuOpen && (
@@ -23,15 +28,15 @@ const MobileNav: React.FC<MobileNavProps> = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           className="mobile-nav"
-          aria-label="Navigation mobile"
+          aria-label={lang === 'FR' ? 'Navigation mobile' : 'Mobile navigation'}
         >
           <button
             type="button"
             className="close-btn"
             onClick={toggleMobileMenu}
-            aria-label="Fermer le menu"
+            aria-label={lang === 'FR' ? 'Fermer le menu' : 'Close menu'}
           >
-            ✕
+            ×
           </button>
           <ul className="mobile-nav-links">
             <li>
@@ -44,7 +49,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
                   scrollToSection('about');
                 }}
               >
-                À propos
+                {v.nav.about}
               </a>
             </li>
             <li>
@@ -57,7 +62,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
                   scrollToSection('skills');
                 }}
               >
-                Compétences
+                {v.nav.skills}
               </a>
             </li>
             <li>
@@ -70,7 +75,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
                   scrollToSection('parcours');
                 }}
               >
-                Expérience
+                {v.nav.experience}
               </a>
             </li>
             <li>
@@ -83,7 +88,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
                   scrollToSection('formation');
                 }}
               >
-                Formation
+                {v.nav.education}
               </a>
             </li>
             <li>
@@ -96,7 +101,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
                   scrollToSection('projets');
                 }}
               >
-                Projets
+                {v.nav.projects}
               </a>
             </li>
             <li>
@@ -109,7 +114,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
                   scrollToSection('refs');
                 }}
               >
-                Références
+                {v.nav.references}
               </a>
             </li>
             <li>
@@ -122,7 +127,7 @@ const MobileNav: React.FC<MobileNavProps> = ({
                   scrollToSection('contact');
                 }}
               >
-                Contact
+                {v.nav.contact}
               </a>
             </li>
           </ul>

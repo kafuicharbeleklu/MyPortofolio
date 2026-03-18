@@ -1,10 +1,7 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
-import usePrefersReducedMotion from "../hooks/usePrefersReducedMotion";
 
 const BackToTop: React.FC = () => {
-  const prefersReducedMotion = usePrefersReducedMotion();
-
   useEffect(() => {
     let busy = false,
       aid: number | null = null;
@@ -33,6 +30,10 @@ const BackToTop: React.FC = () => {
     let scrollStart = 0,
       scrollTarget = 0;
     let flightCeiling = 26;
+    let flightDuration = 1980;
+    let wobbleAmplitude = 0.8;
+    let wobbleCycles = 2.1;
+    let bankSensitivity = 17;
 
     function initCanvas() {
       cv = document.getElementById("bttCanvas") as HTMLCanvasElement;
@@ -239,7 +240,7 @@ const BackToTop: React.FC = () => {
       /* Phase 2 : vol + scroll synchronisés */
       if (flying) {
         if (!startTs) startTs = ts;
-        const prog = Math.min((ts - startTs) / 1980, 1);
+        const prog = Math.min((ts - startTs) / flightDuration, 1);
         /* ease-in-out cubic — même courbe pour avion ET scroll */
         const e =
           prog < 0.5
@@ -251,7 +252,7 @@ const BackToTop: React.FC = () => {
 
         const pos = bzPt(e);
         const tan = bzTan(e);
-        pos.y += Math.sin(prog * Math.PI * 2.8) * 1.6;
+        pos.y += Math.sin(prog * Math.PI * wobbleCycles) * wobbleAmplitude;
         plX = pos.x;
         plY = pos.y;
         plA = Math.atan2(tan.y, tan.x);
@@ -262,9 +263,10 @@ const BackToTop: React.FC = () => {
           while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
           while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
         }
-        bankV += (angleDiff * 22 - bankAngle) * 0.28 - bankV * 0.35;
+        bankV +=
+          (angleDiff * bankSensitivity - bankAngle) * 0.24 - bankV * 0.38;
         bankAngle += bankV;
-        bankAngle = Math.max(-0.9, Math.min(0.9, bankAngle));
+        bankAngle = Math.max(-0.65, Math.min(0.65, bankAngle));
         prevA = plA;
 
         plAlpha = prog > 0.7 ? 1 - (prog - 0.7) / 0.3 : 1;
@@ -322,10 +324,6 @@ const BackToTop: React.FC = () => {
 
     (window as any).bttLaunch = function () {
       if (busy) return;
-      if (prefersReducedMotion) {
-        window.scrollTo({ top: 0, behavior: "auto" });
-        return;
-      }
       busy = true;
       const btn = document.getElementById("backToTopBtn");
       if (!btn) return;
@@ -346,6 +344,22 @@ const BackToTop: React.FC = () => {
         const br = btn.getBoundingClientRect();
         const nav = document.querySelector(".nav") as HTMLElement | null;
         const navRect = nav?.getBoundingClientRect();
+        const isMobile = W <= 768;
+        const firstDrift = Math.min(
+          isMobile ? W * 0.1 : W * 0.15,
+          isMobile ? 42 : 128,
+        );
+        const secondDrift = Math.min(
+          isMobile ? W * 0.025 : W * 0.045,
+          isMobile ? 12 : 34,
+        );
+        const firstLift = isMobile ? 0.17 : 0.22;
+        const secondLift = isMobile ? 0.42 : 0.5;
+
+        flightDuration = isMobile ? 1860 : 1980;
+        wobbleAmplitude = isMobile ? 0.45 : 0.8;
+        wobbleCycles = isMobile ? 1.8 : 2.1;
+        bankSensitivity = isMobile ? 12 : 17;
         flightCeiling = Math.max(26, (navRect?.bottom ?? 0) + 64);
         /* Position de l'avion = position visuelle du bouton sur l'écran */
         const sx = br.left + br.width / 2;
@@ -353,14 +367,17 @@ const BackToTop: React.FC = () => {
 
         P0 = { x: sx, y: sy };
         P1 = {
-          x: sx - W * 0.2,
-          y: sy - H * 0.24,
+          x: sx - firstDrift,
+          y: sy - H * firstLift,
         };
         P2 = {
-          x: sx + W * 0.12,
-          y: Math.max(flightCeiling + 52, sy - H * 0.5),
+          x: sx - secondDrift,
+          y: Math.max(
+            flightCeiling + (isMobile ? 58 : 54),
+            sy - H * secondLift,
+          ),
         };
-        P3 = { x: sx + W * 0.01, y: flightCeiling + 22 };
+        P3 = { x: sx + (isMobile ? 0 : W * 0.01), y: flightCeiling + 22 };
 
         plX = sx;
         plY = sy;
@@ -384,7 +401,7 @@ const BackToTop: React.FC = () => {
       window.removeEventListener("resize", initCanvas);
       if (aid) cancelAnimationFrame(aid);
     };
-  }, [prefersReducedMotion]);
+  }, []);
 
   return (
     <>

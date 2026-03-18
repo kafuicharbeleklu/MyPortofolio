@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
+import { t, Language } from '../../translations';
 
 const contactEmail = 'charbelkafuieklu@gmail.com';
 const contactPhone = '+228 70 66 42 25';
 const contactPhoneHref = '+22870664225';
 const linkedInUrl = 'https://www.linkedin.com/in/kafui-charbel-eklu';
 
-const Contact: React.FC = () => {
+interface ContactProps {
+  lang: Language;
+}
+
+const Contact: React.FC<ContactProps> = ({ lang }) => {
+  const v = t[lang];
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,9 +21,7 @@ const Contact: React.FC = () => {
 
   const handleChange =
     (field: keyof typeof formData) =>
-    (
-      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormData((prev) => ({
         ...prev,
         [field]: event.target.value,
@@ -28,11 +32,12 @@ const Contact: React.FC = () => {
     event.preventDefault();
 
     const subject = encodeURIComponent(
-      formData.subject.trim() || `Contact portfolio - ${formData.name.trim()}`
+      formData.subject.trim() ||
+        `${lang === 'FR' ? 'Contact portfolio' : 'Portfolio contact'} - ${formData.name.trim()}`
     );
     const body = encodeURIComponent(
       [
-        `Nom: ${formData.name.trim()}`,
+        `${lang === 'FR' ? 'Nom' : 'Name'}: ${formData.name.trim()}`,
         `Email: ${formData.email.trim()}`,
         '',
         formData.message.trim(),
@@ -45,24 +50,31 @@ const Contact: React.FC = () => {
   return (
     <section className="sec" id="contact">
       <div className="sec-hdr">
-        <span className="sec-num">08</span>
-        <h2 className="sec-ttl">Me contacter.</h2>
-        <span className="sec-sub">
-          Disponible pour toute opportunité en administration système,
-          cybersécurité ou gestion IT.
-        </span>
+        <span className="sec-num">{v.contact.num}</span>
+        <h2 className="sec-ttl">{v.contact.title}.</h2>
+        <span className="sec-sub">{v.contact.sub}</span>
       </div>
       <div className="contact-wrap">
         <div className="contact-info">
           <h3>
-            Parlons de votre
-            <br />
-            prochain projet.
+            {lang === 'FR' ? (
+              <>
+                Parlons de votre
+                <br />
+                prochain projet.
+              </>
+            ) : (
+              <>
+                Let&apos;s talk about
+                <br />
+                your next project.
+              </>
+            )}
           </h3>
           <p>
-            Disponible immédiatement pour des missions en administration
-            système, cybersécurité ou gestion d&apos;infrastructure IT, à Lomé
-            ou en mobilité internationale.
+            {lang === 'FR'
+              ? "Disponible immédiatement pour des missions en administration systèmes, cybersécurité, support avancé ou gestion d'infrastructure IT, à Lomé comme à l'international."
+              : 'Available immediately for opportunities in systems administration, cybersecurity, advanced support, or IT infrastructure management, both in Lome and internationally.'}
           </p>
           <div className="contact-items">
             <a className="c-item c-item-link" href={`mailto:${contactEmail}`}>
@@ -104,7 +116,7 @@ const Contact: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <small>Téléphone</small>
+                <small>{lang === 'FR' ? 'Téléphone' : 'Phone'}</small>
                 <p>{contactPhone}</p>
               </div>
             </a>
@@ -154,8 +166,8 @@ const Contact: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <small>Localisation</small>
-                <p>Lomé, Togo · Mobilité internationale</p>
+                <small>{lang === 'FR' ? 'Localisation' : 'Location'}</small>
+                <p>{lang === 'FR' ? 'Lomé, Togo · Mobilité internationale' : 'Lome, Togo · International mobility'}</p>
               </div>
             </div>
           </div>
@@ -163,22 +175,22 @@ const Contact: React.FC = () => {
         <form className="contact-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="contact-name">Nom complet</label>
+              <label htmlFor="contact-name">{v.contact.formName}</label>
               <input
                 id="contact-name"
                 type="text"
-                placeholder="Votre nom"
+                placeholder={lang === 'FR' ? 'Votre nom' : 'Your name'}
                 value={formData.name}
                 onChange={handleChange('name')}
                 required
               />
             </div>
             <div className="form-group">
-              <label htmlFor="contact-email">Email</label>
+              <label htmlFor="contact-email">{v.contact.formEmail}</label>
               <input
                 id="contact-email"
                 type="email"
-                placeholder="votre@email.com"
+                placeholder={lang === 'FR' ? 'votre@email.com' : 'your@email.com'}
                 value={formData.email}
                 onChange={handleChange('email')}
                 required
@@ -187,11 +199,11 @@ const Contact: React.FC = () => {
           </div>
           <div className="form-full">
             <div className="form-group">
-              <label htmlFor="contact-subject">Sujet</label>
+              <label htmlFor="contact-subject">{v.contact.formSubject}</label>
               <input
                 id="contact-subject"
                 type="text"
-                placeholder="Objet de votre message"
+                placeholder={lang === 'FR' ? 'Objet de votre message' : 'Message subject'}
                 value={formData.subject}
                 onChange={handleChange('subject')}
               />
@@ -199,10 +211,14 @@ const Contact: React.FC = () => {
           </div>
           <div className="form-full">
             <div className="form-group">
-              <label htmlFor="contact-message">Message</label>
+              <label htmlFor="contact-message">{v.contact.formMessage}</label>
               <textarea
                 id="contact-message"
-                placeholder="Décrivez votre projet ou opportunité..."
+                placeholder={
+                  lang === 'FR'
+                    ? 'Décrivez votre projet ou votre opportunité...'
+                    : 'Describe your project or opportunity...'
+                }
                 value={formData.message}
                 onChange={handleChange('message')}
                 required
@@ -210,7 +226,7 @@ const Contact: React.FC = () => {
             </div>
           </div>
           <button type="submit" className="btn-submit">
-            Envoyer le message
+            {v.contact.formSubmit}
           </button>
         </form>
       </div>
