@@ -10,6 +10,16 @@ type ChatRequestBody = {
 
 type WorkerEnv = {
   GEMINI_API_KEY: string;
+  RATE_LIMIT_KV?: {
+    get(key: string): Promise<string | null>;
+    put(
+      key: string,
+      value: string,
+      options?: {
+        expirationTtl?: number;
+      }
+    ): Promise<void>;
+  };
 };
 
 const ALLOWED_ORIGINS = new Set([
@@ -22,6 +32,10 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const SYSTEM_PROMPT =
   "Tu es l'assistant virtuel de Kafui Charbel Eklu, Administrateur Systeme, Reseaux et Digital Workplace. Reponds de maniere professionnelle, concise, utile et prioritairement en francais.";
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_MESSAGE = 'Limite de messages atteinte, réessayez plus tard.';
+const memoryRateLimit = new Map<string, { count: number; expiresAt: number }>();
 
 const jsonResponse = (
   payload: Record<string, unknown>,
@@ -66,6 +80,56 @@ const toGeminiContents = (history: ChatHistoryItem[], message: string) => [
   },
 ];
 
+const getClientIp = (request: Request) => {
+  const cfIp = request.headers.get('CF-Connecting-IP')?.trim();
+  if (cfIp) {
+    return cfIp;
+  }
+
+  const forwarded = request.headers.get('X-Forwarded-For');
+  if (forwarded) {
+    return forwarded.split(',')[0]?.trim() || 'anonymous';
+  }
+
+  return 'anonymous';
+};
+
+const getRateLimitKey = (ip: string, now: number) =>
+  `chat-rate:${ip}:${Math.floor(now / (RATE_LIMIT_WINDOW_SECONDS * 1000))}`;
+
+const incrementRateLimit = async (env: WorkerEnv, request: Request) => {
+  const now = Date.now();
+  const key = getRateLimitKey(getClientIp(request), now);
+
+  if (env.RATE_LIMIT_KV) {
+    const current = Number((await env.RATE_LIMIT_KV.get(key)) || '0');
+    if (current >= RATE_LIMIT_MAX_REQUESTS) {
+      return false;
+    }
+
+    await env.RATE_LIMIT_KV.put(key, String(current + 1), {
+      expirationTtl: RATE_LIMIT_WINDOW_SECONDS + 60,
+    });
+    return true;
+  }
+
+  const current = memoryRateLimit.get(key);
+  if (!current || current.expiresAt <= now) {
+    memoryRateLimit.set(key, {
+      count: 1,
+      expiresAt: now + RATE_LIMIT_WINDOW_SECONDS * 1000,
+    });
+    return true;
+  }
+
+  if (current.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+
+  current.count += 1;
+  return true;
+};
+
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
     const origin = request.headers.get('Origin');
@@ -89,6 +153,11 @@ export default {
 
     if (!env.GEMINI_API_KEY) {
       return jsonResponse({ error: 'Missing GEMINI_API_KEY secret.' }, 500, origin);
+    }
+
+    const isWithinLimit = await incrementRateLimit(env, request);
+    if (!isWithinLimit) {
+      return jsonResponse({ error: RATE_LIMIT_MESSAGE }, 429, origin);
     }
 
     let body: ChatRequestBody;

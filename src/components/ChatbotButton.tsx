@@ -1,23 +1,83 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
-import { motion } from 'motion/react';
 
 const apiUrl = import.meta.env.VITE_CHATBOT_API_URL;
 console.log('[Chatbot] API URL au démarrage:', apiUrl);
-const chatbotApiUrl = (apiUrl || '').trim();
+
+const normalizeChatbotApiUrl = (value: string | undefined) => {
+  const trimmed = (value || '').trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  const normalized = trimmed.replace(/\/+$/, '');
+  return normalized.endsWith('/api/chat') ? normalized : `${normalized}/api/chat`;
+};
+
+const chatbotApiUrl = normalizeChatbotApiUrl(apiUrl);
 
 const assistantGreeting =
   "Bonjour ! Je suis l'assistant virtuel de Kafui. Comment puis-je vous aider aujourd'hui ?";
 const localMissingKeyMessage =
-  "Le chatbot n'est pas configure. Ajoutez VITE_CHATBOT_API_URL dans .env.local, puis redemarrez l'application.";
+  "Le chatbot n'est pas configuré. Ajoutez VITE_CHATBOT_API_URL dans .env.local, puis redémarrez l'application.";
 const githubPagesMissingKeyMessage =
-  "Le chatbot IA n'est pas disponible sur cette version GitHub Pages. Utilisez plutot l'email ou LinkedIn pour me contacter.";
+  "Le chatbot IA n'est pas disponible sur cette version GitHub Pages. Utilisez plutôt l'email ou LinkedIn pour me contacter.";
 const chatbotPanelId = 'chatbot-panel';
 const chatbotTitleId = 'chatbot-title';
+const rateLimitMessage = 'Limite de messages atteinte, réessayez plus tard.';
+const genericFailureMessage =
+  "Une erreur réseau est survenue. Vérifiez l'URL du worker Cloudflare puis réessayez.";
+const temporaryServiceMessage =
+  "Le service IA est en cours de mise à jour. Réessayez dans quelques instants.";
 
 type ChatMessage = {
   text: string;
   isUser: boolean;
+};
+
+type ChatbotResponsePayload = {
+  reply?: string;
+  error?:
+    | string
+    | {
+        message?: string;
+      };
+};
+
+const extractErrorMessage = (payload: ChatbotResponsePayload | null) => {
+  if (!payload?.error) {
+    return '';
+  }
+
+  if (typeof payload.error === 'string') {
+    return payload.error;
+  }
+
+  return payload.error.message || '';
+};
+
+const toUserFacingError = (message: string) => {
+  if (!message) {
+    return genericFailureMessage;
+  }
+
+  if (message.includes('Limite de messages atteinte')) {
+    return rateLimitMessage;
+  }
+
+  if (
+    message.includes('models/') ||
+    message.includes('NOT_FOUND') ||
+    message.includes('not supported for generateContent')
+  ) {
+    return temporaryServiceMessage;
+  }
+
+  if (message.includes('Missing GEMINI_API_KEY')) {
+    return "Le service IA n'est pas configuré correctement pour le moment.";
+  }
+
+  return message;
 };
 
 const ChatbotButton: React.FC = () => {
@@ -73,34 +133,28 @@ const ChatbotButton: React.FC = () => {
         }),
       });
 
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            reply?: string;
-            error?: string;
-          }
-        | null;
+      const payload = (await response.json().catch(() => null)) as ChatbotResponsePayload | null;
+      const workerError = extractErrorMessage(payload);
 
-      if (!response.ok) {
-        throw new Error(payload?.error || 'La requete du chatbot a echoue.');
+      if (response.status === 429) {
+        throw new Error(workerError || rateLimitMessage);
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: payload?.reply || "Desole, je n'ai pas pu generer de reponse.",
-          isUser: false,
-        },
-      ]);
+      if (!response.ok) {
+        throw new Error(workerError || 'La requête du chatbot a échoué.');
+      }
+
+      const reply = payload?.reply?.trim() || '';
+      if (!reply) {
+        throw new Error(workerError || temporaryServiceMessage);
+      }
+
+      setMessages((prev) => [...prev, { text: reply, isUser: false }]);
     } catch (error) {
       console.error('Erreur chatbot:', error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          text:
-            "Une erreur reseau est survenue. Verifiez l'URL du worker Cloudflare puis reessayez.",
-          isUser: false,
-        },
-      ]);
+      const message =
+        error instanceof Error ? toUserFacingError(error.message) : genericFailureMessage;
+      setMessages((prev) => [...prev, { text: message, isUser: false }]);
     } finally {
       setIsLoading(false);
     }
@@ -137,21 +191,18 @@ const ChatbotButton: React.FC = () => {
 
           <div className="chat-messages" aria-live="polite" aria-busy={isLoading}>
             {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`chat-bubble ${msg.isUser ? 'user' : 'bot'}`}
-              >
+              <div key={idx} className={`chat-bubble ${msg.isUser ? 'user' : 'bot'}`}>
                 {msg.text}
               </div>
             ))}
             {isLoading && (
-              <div className="chat-loading">
-                <motion.span
-                  animate={{ opacity: [0, 1, 0] }}
-                  transition={{ repeat: Infinity, duration: 1, delay: 0 }}
-                >
-                  ...
-                </motion.span>
+              <div className="chat-loading" role="status" aria-live="polite">
+                <span className="chat-loading-label">Kafui réfléchit</span>
+                <span className="chat-loading-dots" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -165,9 +216,9 @@ const ChatbotButton: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ecrivez un message..."
+                placeholder="Écrivez un message..."
                 disabled={isLoading}
-                aria-label="Message a envoyer"
+                aria-label="Message à envoyer"
               />
               <button
                 type="button"
@@ -183,7 +234,7 @@ const ChatbotButton: React.FC = () => {
             <div className="chat-unavailable">
               <p className="chat-unavailable-copy">
                 {isGitHubPagesHost
-                  ? "Le chatbot IA n'est pas disponible tant que le worker Cloudflare n'est pas configure."
+                  ? "Le chatbot IA n'est pas disponible tant que le worker Cloudflare n'est pas configuré."
                   : "Ajoutez une URL de worker Cloudflare pour activer l'assistant."}
               </p>
             </div>
