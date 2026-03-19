@@ -560,6 +560,15 @@ function App() {
   const detailCarouselRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const projectFilterMenuRef = useRef<HTMLDivElement | null>(null);
   const carouselTouchStartX = useRef<Record<string, number | null>>({});
+  const projectLightboxScrollY = useRef(0);
+  const projectLightboxBodyStyles = useRef<{
+    overflow: string;
+    position: string;
+    width: string;
+    top: string;
+    left: string;
+    right: string;
+  } | null>(null);
   const [lang, setLang] = useState<Language>(() => {
     if (typeof window === 'undefined') {
       return 'FR';
@@ -1240,6 +1249,60 @@ function App() {
     );
   }, [desktopReferencePages.length]);
 
+  useEffect(() => {
+    if (!projectImageLightbox || typeof window === 'undefined') {
+      return;
+    }
+
+    const { body } = document;
+    projectLightboxScrollY.current = window.scrollY;
+    projectLightboxBodyStyles.current = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      width: body.style.width,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+    };
+
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.width = '100%';
+    body.style.top = `-${projectLightboxScrollY.current}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setProjectImageLightbox(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+
+      if (projectLightboxBodyStyles.current) {
+        body.style.overflow = projectLightboxBodyStyles.current.overflow;
+        body.style.position = projectLightboxBodyStyles.current.position;
+        body.style.width = projectLightboxBodyStyles.current.width;
+        body.style.top = projectLightboxBodyStyles.current.top;
+        body.style.left = projectLightboxBodyStyles.current.left;
+        body.style.right = projectLightboxBodyStyles.current.right;
+      } else {
+        body.style.overflow = '';
+        body.style.position = '';
+        body.style.width = '';
+        body.style.top = '';
+        body.style.left = '';
+        body.style.right = '';
+      }
+
+      window.scrollTo(0, projectLightboxScrollY.current);
+    };
+  }, [projectImageLightbox]);
+
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
     if (activePage !== 'main') {
@@ -1392,6 +1455,10 @@ function App() {
     }));
   };
 
+  const closeProjectImageLightbox = () => {
+    setProjectImageLightbox(null);
+  };
+
   const renderStructuredProjectPage = (projectId: string) => {
     const project = projectById[projectId];
     const config = structuredProjectConfigs[projectId];
@@ -1448,6 +1515,11 @@ function App() {
     const allLinkItems = [...linkItems, ...resourceLinks];
     const screenshotItems = getStructuredScreenshotItems(project, detail);
     const activeScreenshotIndex = detailCarouselIndex[projectId] ?? 0;
+    const screenshotPages = chunkItems(screenshotItems, 4);
+    const activeScreenshotPage = Math.min(
+      Math.floor(activeScreenshotIndex / 4),
+      Math.max(screenshotPages.length - 1, 0)
+    );
     const metaItems = [
       {
         label: lang === 'FR' ? 'Categorie' : 'Category',
@@ -1571,8 +1643,50 @@ function App() {
               {screenshotItems.length ? (
                 <div className="blk">
                   <h3 className="blk-ttl">{lang === 'FR' ? 'Captures projet' : 'Project screenshots'}</h3>
+                  <div className="detail-shot-desktop-carousel">
+                    <div
+                      className="detail-shot-desktop-track"
+                      style={{ transform: `translateX(-${activeScreenshotPage * 100}%)` }}
+                    >
+                      {screenshotPages.map((page, pageIndex) => (
+                        <div className="detail-shot-desktop-page" key={`${projectId}-shot-page-${pageIndex + 1}`}>
+                          <div className="detail-shot-grid detail-shot-grid-desktop">
+                            {page.map((shot, index) => {
+                              const absoluteIndex = pageIndex * 4 + index;
+
+                              return (
+                                <button
+                                  key={`${projectId}-shot-desktop-${absoluteIndex + 1}`}
+                                  type="button"
+                                  className="detail-shot-card"
+                                  onClick={() =>
+                                    setProjectImageLightbox({
+                                      src: shot.src,
+                                      alt: `${shot.alt} ${absoluteIndex + 1}`,
+                                    })
+                                  }
+                                  aria-label={
+                                    lang === 'FR'
+                                      ? `Afficher la capture ${absoluteIndex + 1} du projet ${project.title.FR}`
+                                      : `View screenshot ${absoluteIndex + 1} of the ${project.title.EN} project`
+                                  }
+                                >
+                                  <img
+                                    className="detail-shot-image"
+                                    src={shot.src}
+                                    alt={`${shot.alt} ${absoluteIndex + 1}`}
+                                    loading="lazy"
+                                  />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   <div
-                    className="detail-shot-carousel-shell"
+                    className="detail-shot-carousel-shell detail-shot-mobile-carousel"
                     ref={(node) => {
                       detailCarouselRefs.current[projectId] = node;
                     }}
@@ -1617,18 +1731,37 @@ function App() {
                       className="carousel-dots detail-shot-dots"
                       aria-label={lang === 'FR' ? 'Position dans les captures projet' : 'Project screenshots position'}
                     >
-                      {screenshotItems.map((shot, index) => (
+                      {(isMobilePeekCarousel() ? screenshotItems : screenshotPages).map((shot, index) => (
                         <button
                           key={`${projectId}-shot-dot-${index + 1}`}
                           type="button"
-                          className={`carousel-dot ${activeScreenshotIndex === index ? 'active' : ''}`}
-                          onClick={() => goToDetailCarouselItem(projectId, index)}
+                          className={`carousel-dot ${
+                            isMobilePeekCarousel()
+                              ? activeScreenshotIndex === index
+                              : activeScreenshotPage === index
+                              ? 'active'
+                              : ''
+                          }`}
+                          onClick={() =>
+                            goToDetailCarouselItem(
+                              projectId,
+                              isMobilePeekCarousel() ? index : index * 4
+                            )
+                          }
                           aria-label={
                             lang === 'FR'
                               ? `Voir la capture ${index + 1}`
                               : `View screenshot ${index + 1}`
                           }
-                          aria-current={activeScreenshotIndex === index ? 'true' : undefined}
+                          aria-current={
+                            isMobilePeekCarousel()
+                              ? activeScreenshotIndex === index
+                                ? 'true'
+                                : undefined
+                              : activeScreenshotPage === index
+                              ? 'true'
+                              : undefined
+                          }
                         />
                       ))}
                     </div>
@@ -2739,33 +2872,33 @@ function App() {
       <AnimatePresence>
         {projectImageLightbox && (
           <motion.div
-            className="kp-portrait-lightbox"
+            className="project-image-lightbox"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
-            onClick={() => setProjectImageLightbox(null)}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' }}
+            onClick={closeProjectImageLightbox}
           >
             <button
               type="button"
-              className="kp-portrait-lightbox-close"
-              onClick={() => setProjectImageLightbox(null)}
+              className="project-image-lightbox-close"
+              onClick={closeProjectImageLightbox}
               aria-label={lang === 'FR' ? "Fermer l'image du projet" : 'Close project image'}
             >
-              X
+              ✕
             </button>
             <motion.div
-              className="kp-portrait-lightbox-dialog"
-              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.24 }}
+              className="project-image-lightbox-dialog"
+              initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={prefersReducedMotion ? { opacity: 0, y: 0 } : { opacity: 0, y: 12 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' }}
               onClick={(event) => event.stopPropagation()}
             >
               <img
                 src={projectImageLightbox.src}
                 alt={projectImageLightbox.alt}
-                className="kp-portrait-lightbox-image"
+                className="project-image-lightbox-image"
               />
             </motion.div>
           </motion.div>
