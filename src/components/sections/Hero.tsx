@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { assetPaths, withBaseAsset } from '../../config/assets';
 import usePrefersReducedMotion from '../../hooks/usePrefersReducedMotion';
 import { Language, t } from '../../translations';
 
@@ -132,7 +133,7 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
     a.localeCompare(b, lang === 'FR' ? 'fr' : 'en', { sensitivity: 'base' })
   );
   const marqueeItems = [...skillItems, ...skillItems];
-  const profileImage = `${import.meta.env.BASE_URL}_KSP4314.jpg`;
+  const profileImage = withBaseAsset(assetPaths.profilePortrait);
 
   useEffect(() => {
     let startTimer: ReturnType<typeof setTimeout> | undefined;

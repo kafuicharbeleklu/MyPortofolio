@@ -9,6 +9,7 @@ import Projects from './components/sections/Projects';
 import Contact from './components/sections/Contact';
 import Footer from './components/sections/Footer';
 import LanguageToggle from './components/LanguageToggle';
+import { assetPaths, withBaseAsset } from './config/assets';
 import { getSkillsData, getTimelineData, getFormationData } from './data';
 import usePrefersReducedMotion from './hooks/usePrefersReducedMotion';
 import { Language, t } from './translations';
@@ -467,8 +468,6 @@ function App() {
     );
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-  const withBase = (assetPath: string) =>
-    `${import.meta.env.BASE_URL}${assetPath.replace(/^\//, '')}`;
   const getScrollBehavior = () => (prefersReducedMotion ? 'auto' : 'smooth');
   const getNavOffset = () => {
     const nav = document.querySelector('.nav');
@@ -979,7 +978,7 @@ function App() {
         {/* Bio Hero — Photo + Identity */}
         <section className="bio-hero">
           <div className="bio-hero-photo">
-            <img src={withBase('_KSP4314.jpg')} alt="Kafui Charbel Eklu" loading="lazy" />
+            <img src={withBaseAsset(assetPaths.profilePortrait)} alt="Kafui Charbel Eklu" loading="lazy" />
           </div>
           <div className="bio-hero-info">
             <p className="bio-hero-eyebrow">Biographie</p>
@@ -1020,12 +1019,11 @@ function App() {
           </div>
           <div className="bio-story-grid">
             <div className="bio-story-main">
-              <p className="bio-story-lead">Professionnel togolais de l'IT, je concois des environnements numeriques fiables, utiles et lisibles, avec une approche orientee impact.</p>
-              <p>Specialise en <strong>Digital Workplace, support IT et optimisation des environnements de travail</strong>, j'evolue dans des contextes ou la performance quotidienne compte autant que la solidite technique. Mon fil conducteur reste le meme : simplifier l'usage, structurer les process et faire gagner du temps aux equipes.</p>
-              <p>Au-dela de l'administration courante, j'aime transformer un besoin metier en solution concrete. J'ai notamment concu une <strong>application de gestion de materiel IT</strong> avec suivi des equipements, affectations, restitutions et workflow de validation a trois niveaux, afin d'apporter plus de tracabilite, de gouvernance et de lisibilite aux operations internes.</p>
-              <p>Mon passage chez <strong>Orabank</strong> a renforce cette exigence. Dans un environnement critique, j'ai consolide mes bases sur Windows Server, Active Directory, GPO et le support avance, avec une logique de fiabilite, de securite et de continuite de service qui guide encore aujourd'hui ma maniere de travailler.</p>
-              <p>Je m'interesse particulierement a l'intersection entre <strong>cybersecurite, open source et intelligence artificielle</strong>, avec un attrait fort pour la detection, l'automatisation et les architectures evolutives. Mon ambition est de faire converger ces trois dimensions dans des projets IT a forte valeur, localement comme a l'international.</p>
-              <p>En parallele, je developpe aussi une dimension creative a travers la <strong>musique Afrobeats</strong>, ou j'explore les emotions, les relations humaines et le storytelling en francais comme en ewe. Cette double culture, technique et artistique, nourrit une approche plus complete, plus humaine et plus inventive de mon metier.</p>
+              <p className="bio-story-lead">Professionnel togolais de l'IT, je conçois des environnements numériques fiables, utiles et lisibles, avec une approche orientée impact.</p>
+              <p>Spécialisé en <strong>Digital Workplace, support IT et optimisation des environnements de travail</strong>, j'évolue dans des contextes où la performance quotidienne compte autant que la solidité technique. Mon fil conducteur reste le même : simplifier l'usage, structurer les process et faire gagner du temps aux équipes.</p>
+              <p>Au-delà de l'administration courante, j'aime transformer un besoin métier en solution concrète. J'ai notamment conçu une <strong>application de gestion de matériel IT</strong> avec suivi des équipements, affectations, restitutions et workflow de validation à trois niveaux, afin d'apporter plus de traçabilité, de gouvernance et de lisibilité aux opérations internes.</p>
+              <p>Mon passage chez <strong>Orabank</strong> a renforcé cette exigence. Dans un environnement critique, j'ai consolidé mes bases sur Windows Server, Active Directory, GPO et le support avancé, avec une logique de fiabilité, de sécurité et de continuité de service qui guide encore aujourd'hui ma manière de travailler.</p>
+              <p>Je m'intéresse particulièrement à l'intersection entre <strong>cybersécurité, open source et intelligence artificielle</strong>, avec un attrait fort pour la détection, l'automatisation et les architectures évolutives. Mon ambition est de faire converger ces trois dimensions dans des projets IT à forte valeur, localement comme à l'international.</p>
               {false && (
                 <>
               {/* Biography copy refreshed from Data_perso/Des.txt */}
@@ -1067,7 +1065,7 @@ function App() {
         {/* Bio Quote */}
         <section className="bio-quote-section">
           <blockquote className="bio-quote">
-            "Un problème mathématique semble compliqué quand notre niveau est inférieur à celui du défi. Élever son niveau au-dessus le rend facile."
+            "Chaque défi surmonté est une occasion d'acquérir des compétences qui rendent les futurs obstacles plus simples."
           </blockquote>
         </section>
 
@@ -1139,7 +1137,7 @@ function App() {
 
         {/* Bio CTA */}
         <section className="bio-cta">
-          <a href={withBase('CV_EKLU_Kafui_Charbel_Admin_Systeme.pdf')} download className="kp-btn-dark bio-cta-btn">
+          <a href={withBaseAsset(assetPaths.resume)} download className="kp-btn-dark bio-cta-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Télécharger mon CV
           </a>
