@@ -19,6 +19,10 @@ import useLocalRouting, {
 import useMobileScrollDots from './hooks/useMobileScrollDots';
 import usePrefersReducedMotion from './hooks/usePrefersReducedMotion';
 import useProjectLoader from './hooks/useProjectLoader';
+import BiographyPage from './pages/BiographyPage';
+import HomePage from './pages/HomePage';
+import ProjectDetailPage, { ProjectDetailLightbox } from './pages/ProjectDetailPage';
+import ProjectsPage from './pages/ProjectsPage';
 import { Language, t } from './translations';
 import type {
   PaginationToken,
@@ -1827,264 +1831,45 @@ function App() {
   return (
     <div className="app" id="app">
       {/* ====== MAIN PAGE ====== */}
-      <main className={`page ${activePage === 'main' ? 'active' : ''}`} id="page-main">
-        <nav className="nav">
-          <button
-            type="button"
-            className="nav-logo nav-control-btn"
-            onClick={() => scrollToSection('hero')}
-          >
-            K · E
-          </button>
-          <button
-            type="button"
-            className="hamburger nav-control-btn"
-            onClick={toggleMobileMenu}
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-menu"
-            aria-label={lang === 'FR' ? 'Ouvrir le menu' : 'Open menu'}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-          <ul className="nav-links">
-            <li><a href="#about" className={activeSection === 'about' ? 'active' : ''} aria-current={activeSection === 'about' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>{v.nav.about}</a></li>
-            <li><a href="#skills" className={activeSection === 'skills' ? 'active' : ''} aria-current={activeSection === 'skills' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('skills'); }}>{v.nav.skills}</a></li>
-            <li><a href="#parcours" className={activeSection === 'parcours' ? 'active' : ''} aria-current={activeSection === 'parcours' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('parcours'); }}>{v.nav.experience}</a></li>
-            <li><a href="#formation" className={activeSection === 'formation' ? 'active' : ''} aria-current={activeSection === 'formation' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('formation'); }}>{v.nav.education}</a></li>
-            <li><a href="#projets" className={activeSection === 'projets' ? 'active' : ''} aria-current={activeSection === 'projets' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('projets'); }}>{v.nav.projects}</a></li>
-            <li><a href="#refs" className={activeSection === 'refs' ? 'active' : ''} aria-current={activeSection === 'refs' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('refs'); }}>{v.nav.references}</a></li>
-            <li><a href="#contact" className={activeSection === 'contact' ? 'active' : ''} aria-current={activeSection === 'contact' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>{v.nav.contact}</a></li>
-          </ul>
-          <div className="nav-tag">{lang === 'FR' ? 'Lomé, Togo' : 'Lome, Togo'}</div>
-        </nav>
-        <MobileNav lang={lang} 
-          isMobileMenuOpen={isMobileMenuOpen} 
-          activeSection={activeSection} 
-          toggleMobileMenu={toggleMobileMenu} 
-          scrollToSection={scrollToSection} 
-        />
-
-        <Hero lang={lang} 
-          onDiscoverProfile={handleDiscoverProfile} 
-          onViewProjects={handleViewProjects} 
-          onViewBiography={() => showDetail('biography')}
-        />
-
-        <About lang={lang} onReadMore={() => showDetail('biography')} />
-
-        {/* CE QUE JE MAÎTRISE */}
-        <section className="sec" id="skills" style={{ background: '#EEEAE3' }}>
-          <div className="sec-hdr">
-            <span className="sec-num">{v.skills.num}</span>
-            <h2 className="sec-ttl">{v.skills.title}.</h2>
-            <span className="sec-sub">{getSectionSubcopy(typedSections.skills)}</span>
-          </div>
-          <div className="skills-grid" ref={skillsCarousel.containerRef}>
-            {sortedSkillsData.map((skill, i) => (
-              <div
-                className="skill-card"
-                key={i}
-                ref={skillsCarousel.setItemRef(i)}
-                data-carousel-index={i}
-              >
-                <div className="skill-icon" style={{ background: skill.bg }}>
-                  {skill.icon}
-                </div>
-                <h4>{skill.title}</h4>
-                <p>{skill.desc}</p>
-              </div>
-            ))}
-          </div>
-          {sortedSkillsData.length > 1 ? (
-            <div
-              className="carousel-dots mobile-scroll-dots"
-              aria-label={lang === 'FR' ? 'Position dans les compétences' : 'Skills position'}
-            >
-              {sortedSkillsData.map((skill, index) => (
-                <button
-                  key={`skill-dot-${skill.title}`}
-                  type="button"
-                  className={`carousel-dot ${skillsCarousel.activeIndex === index ? 'active' : ''}`}
-                  onClick={() => skillsCarousel.scrollToIndex(index)}
-                  aria-label={
-                    lang === 'FR'
-                      ? `Voir la compétence ${index + 1}`
-                      : `View skill ${index + 1}`
-                  }
-                  aria-current={skillsCarousel.activeIndex === index ? 'true' : undefined}
-                />
-              ))}
-            </div>
-          ) : null}
-        </section>
-
-        {/* MON PARCOURS */}
-        <section className="sec" id="parcours">
-          <div className="sec-hdr">
-            <span className="sec-num">{v.experience.num}</span>
-            <h2 className="sec-ttl">{v.experience.title}.</h2>
-            <span className="sec-sub">{getSectionSubcopy(typedSections.experience)}</span>
-          </div>
-          <div className="timeline">
-            {sortedTimelineData.map((item, i) => (
-              <div className={`tl-item ${item.isCurrent ? 'current' : ''}`} key={i}>
-                <div className="tl-date-row">
-                  <p className="tl-date">{item.date}</p>
-                  <span className="tl-duration">{item.duration}</span>
-                </div>
-                <h3 className="tl-title">{item.title}</h3>
-                <p className="tl-co">{item.company}</p>
-                <p className="tl-desc">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* MA FORMATION */}
-        <section className="sec" id="formation" style={{ background: '#EEEAE3' }}>
-          <div className="sec-hdr">
-            <span className="sec-num">{educationSection.num}</span>
-            <h2 className="sec-ttl">{educationSection.title}.</h2>
-            <span className="sec-sub">{educationSection.subtitle}</span>
-          </div>
-          <div className="edu-grid" ref={educationCarousel.containerRef}>
-            {sortedFormationData.map((item, i) => (
-              <div
-                className="edu-card"
-                key={i}
-                ref={educationCarousel.setItemRef(i)}
-                data-carousel-index={i}
-              >
-                <p className="edu-year">{item.year}</p>
-                <h3 className="edu-title">{item.title}</h3>
-                <p className="edu-school" dangerouslySetInnerHTML={{ __html: item.school }}></p>
-                {item.gradeNode}
-              </div>
-            ))}
-          </div>
-          {sortedFormationData.length > 1 ? (
-            <div
-              className="carousel-dots mobile-scroll-dots"
-              aria-label={lang === 'FR' ? 'Position dans la formation' : 'Education position'}
-            >
-              {sortedFormationData.map((item, index) => (
-                <button
-                  key={`education-dot-${item.title}`}
-                  type="button"
-                  className={`carousel-dot ${educationCarousel.activeIndex === index ? 'active' : ''}`}
-                  onClick={() => educationCarousel.scrollToIndex(index)}
-                  aria-label={
-                    lang === 'FR'
-                      ? `Voir la formation ${index + 1}`
-                      : `View education entry ${index + 1}`
-                  }
-                  aria-current={educationCarousel.activeIndex === index ? 'true' : undefined}
-                />
-              ))}
-            </div>
-          ) : null}
-        </section>
-
-        {/* MES RÉALISATIONS */}
-        <Projects
+      {activePage === 'main' && (
+        <HomePage
           lang={lang}
-          featuredProject={featuredMainProject}
-          recentProjects={recentMainProjects}
+          v={v}
+          activeSection={activeSection}
+          isMobileMenuOpen={isMobileMenuOpen}
+          toggleMobileMenu={toggleMobileMenu}
+          scrollToSection={scrollToSection}
+          onDiscoverProfile={handleDiscoverProfile}
+          onViewProjects={handleViewProjects}
+          onViewBiography={() => showDetail('biography')}
+          skillsSectionSubtitle={getSectionSubcopy(typedSections.skills)}
+          educationSection={educationSection}
+          referencesSection={referencesSection}
+          sortedSkillsData={sortedSkillsData}
+          sortedTimelineData={sortedTimelineData}
+          sortedFormationData={sortedFormationData}
+          sortedReferencesData={sortedReferencesData}
+          desktopReferencePages={desktopReferencePages}
+          desktopReferencePage={desktopReferencePage}
+          setDesktopReferencePage={setDesktopReferencePage}
+          referenceCarouselRef={referenceCarouselRef}
+          referenceCarouselIndex={referenceCarouselIndex}
+          referenceCarouselOffset={referenceCarouselOffset}
+          handleCarouselTouchStart={handleCarouselTouchStart}
+          handleReferenceCarouselTouchEnd={handleReferenceCarouselTouchEnd}
+          goToReferenceCard={goToReferenceCard}
+          featuredMainProject={featuredMainProject}
+          recentMainProjects={recentMainProjects}
           onProjectClick={showDetail}
-          onViewAll={() => {
+          onViewAllProjects={() => {
             setProjectPage(1);
             navigateTo('all-projects');
             window.scrollTo({ top: 0, behavior: getScrollBehavior() });
           }}
+          skillsCarousel={skillsCarousel}
+          educationCarousel={educationCarousel}
         />
-
-        <section className="sec" id="refs" style={{ background: '#EEEAE3' }}>
-          <div className="sec-hdr">
-            <span className="sec-num">{referencesSection.num}</span>
-            <h2 className="sec-ttl">{referencesSection.title}.</h2>
-            <span className="sec-sub">{referencesSection.subtitle}</span>
-          </div>
-          <div className="ref-desktop-carousel">
-            <div
-              className="ref-desktop-track"
-              style={{ transform: `translateX(-${desktopReferencePage * 100}%)` }}
-            >
-              {desktopReferencePages.map((page, pageIndex) => (
-                <div className="ref-desktop-page" key={`ref-page-${pageIndex}`}>
-                  <div className="ref-grid ref-desktop-grid">
-                    {page.map((reference) => renderReferenceCard(reference))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {desktopReferencePages.length > 1 ? (
-            <div
-              className="carousel-dots ref-desktop-dots"
-              aria-label={lang === 'FR' ? 'Pages des references' : 'Reference pages'}
-            >
-              {desktopReferencePages.map((_, index) => (
-                <button
-                  key={`ref-page-dot-${index}`}
-                  type="button"
-                  className={`carousel-dot ${desktopReferencePage === index ? 'active' : ''}`}
-                  onClick={() => setDesktopReferencePage(index)}
-                  aria-label={
-                    lang === 'FR'
-                      ? `Voir la page ${index + 1} des references`
-                      : `View reference page ${index + 1}`
-                  }
-                  aria-current={desktopReferencePage === index ? 'true' : undefined}
-                />
-              ))}
-            </div>
-          ) : null}
-          <div
-            className="ref-carousel-shell ref-mobile-carousel"
-            ref={referenceCarouselRef}
-            onTouchStart={handleCarouselTouchStart('references')}
-            onTouchEnd={handleReferenceCarouselTouchEnd}
-          >
-            <div
-              className="ref-grid mobile-peek-track"
-              style={{ transform: `translateX(-${referenceCarouselOffset}px)` }}
-            >
-              {sortedReferencesData.map((reference) => renderReferenceCard(reference))}
-            </div>
-          </div>
-          <div
-            className="carousel-dots ref-carousel-dots"
-            aria-label={lang === 'FR' ? 'Position dans les references' : 'Reference position'}
-          >
-            {sortedReferencesData.map((reference, index) => (
-              <button
-                key={`ref-dot-${reference.name}`}
-                type="button"
-                className={`carousel-dot ${referenceCarouselIndex === index ? 'active' : ''}`}
-                onClick={() => goToReferenceCard(index)}
-                aria-label={
-                  lang === 'FR'
-                    ? `Voir la reference ${index + 1}`
-                    : `View reference ${index + 1}`
-                }
-                aria-current={referenceCarouselIndex === index ? 'true' : undefined}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* ME CONTACTER */}
-        <Contact lang={lang} />
-
-        {/* TOP OF PAGE BUTTON */}
-        <BackToTop />
-
-        {/* FOOTER */}
-        <Footer lang={lang} onNavigate={scrollToSection} />
-      </main>{/* end page-main */}
-
+      )}
       {/* ====== DETAIL PAGES ====== */}
 
       {/* SIEM */}
@@ -2359,639 +2144,50 @@ function App() {
       )}
 
       {/* BIOGRAPHIE */}
-      <div className={`page ${activePage === 'biography' ? 'active' : ''}`} id="page-biography">
-        <nav className="nav">
-          <button
-            type="button"
-            className="nav-logo nav-control-btn"
-            onClick={() => scrollToSection('hero')}
-          >
-            K · E
-          </button>
-          <button
-            type="button"
-            className="nav-back nav-control-btn"
-            onClick={() => scrollToSection('hero')}
-          >
-            ← Retour à l'accueil
-          </button>
-          <div className="nav-tag">Biographie</div>
-        </nav>
-
-        {/* Bio Hero — Photo + Identity */}
-        <section className="bio-hero">
-          <div className="bio-hero-photo">
-            <img src={withBaseAsset(assetPaths.profilePortrait)} alt="Kafui Charbel Eklu" loading="lazy" />
-          </div>
-          <div className="bio-hero-info">
-            <p className="bio-hero-eyebrow">Biographie</p>
-            <h1 className="bio-hero-name">EKLU Kafui<br />Charbel</h1>
-            <p className="bio-hero-role">Administrateur Digital Workplace & Infrastructure</p>
-            <div className="bio-hero-badges">
-              <span className="badge-location">
-                <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6c0 3.5 4.5 8.5 4.5 8.5s4.5-5 4.5-8.5c0-2.5-2-4.5-4.5-4.5zm0 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill="currentColor"/>
-                </svg>
-                {lang === 'FR' ? 'Lomé, Togo' : 'Lome, Togo'}
-              </span>
-              <span className="badge-mobility">
-                <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-                  <path d="M8 2c0 0-3 2.5-3 6s3 6 3 6" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-                  <path d="M8 2c0 0 3 2.5 3 6s-3 6-3 6" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-                  <path d="M2 8h12" stroke="currentColor" strokeWidth="1.2"/>
-                </svg>
-                {lang === 'FR' ? 'Mobilité internationale' : 'International mobility'}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* Bio Stats */}
-        <section className="bio-stats">
-          <div className="bio-stat">
-            <span className="bio-stat-num">3+</span>
-            <span className="bio-stat-label">Années d'expérience<br />Admin & Sécurité</span>
-          </div>
-          <div className="bio-stat">
-            <span className="bio-stat-num">15+</span>
-            <span className="bio-stat-label">Technologies<br />maîtrisées</span>
-          </div>
-          <div className="bio-stat">
-            <span className="bio-stat-num">6</span>
-            <span className="bio-stat-label">Projets techniques<br />livrés</span>
-          </div>
-          <div className="bio-stat">
-            <span className="bio-stat-num bio-stat-text">Master II</span>
-            <span className="bio-stat-label">Collège de Paris<br />Mention Bien</span>
-          </div>
-        </section>
-
-        {/* Bio Story */}
-        <section className="bio-story sec">
-          <div className="sec-hdr">
-            <span className="sec-num">01</span>
-            <h2 className="sec-ttl">Mon histoire.</h2>
-          </div>
-          <div className="bio-story-grid">
-            <div className="bio-story-main">
-              <p className="bio-story-lead">Professionnel togolais de l'IT, je conçois des environnements numériques fiables, utiles et lisibles, avec une approche orientée impact.</p>
-              <p>Spécialisé en <strong>Digital Workplace, support IT et optimisation des environnements de travail</strong>, j'évolue dans des contextes où la performance quotidienne compte autant que la solidité technique. Mon fil conducteur reste le même : simplifier l'usage, structurer les process et faire gagner du temps aux équipes.</p>
-              <p>Au-delà de l'administration courante, j'aime transformer un besoin métier en solution concrète. J'ai notamment conçu une <strong>application de gestion de matériel IT</strong> avec suivi des équipements, affectations, restitutions et workflow de validation à trois niveaux, afin d'apporter plus de traçabilité, de gouvernance et de lisibilité aux opérations internes.</p>
-              <p>Mon passage chez <strong>Orabank</strong> a renforcé cette exigence. Dans un environnement critique, j'ai consolidé mes bases sur Windows Server, Active Directory, GPO et le support avancé, avec une logique de fiabilité, de sécurité et de continuité de service qui guide encore aujourd'hui ma manière de travailler.</p>
-              <p>Je m'intéresse particulièrement à l'intersection entre <strong>cybersécurité, open source et intelligence artificielle</strong>, avec un attrait fort pour la détection, l'automatisation et les architectures évolutives. Mon ambition est de faire converger ces trois dimensions dans des projets IT à forte valeur, localement comme à l'international.</p>
-            </div>
-            <div className="bio-story-side">
-              <div className="bio-milestone">
-                <span className="bio-milestone-year">2021</span>
-                <p>Stage Clinique BIASA — Services réseau Linux from scratch</p>
-              </div>
-              <div className="bio-milestone">
-                <span className="bio-milestone-year">2022</span>
-                <p>Stage Orabank — Contrôleur de domaine Windows Server</p>
-              </div>
-              <div className="bio-milestone">
-                <span className="bio-milestone-year">2023</span>
-                <p>Neemba Togo — Déploiement SIEM/XDR Wazuh</p>
-              </div>
-              <div className="bio-milestone active">
-                <span className="bio-milestone-year">2024</span>
-                <p>Admin Digital Workplace & Infrastructure</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Bio Quote */}
-        <section className="bio-quote-section">
-          <blockquote className="bio-quote">
-            "Chaque défi surmonté est une occasion d'acquérir des compétences qui rendent les futurs obstacles plus simples."
-          </blockquote>
-        </section>
-
-        {/* Bio Philosophy */}
-        <section className="bio-philosophy sec">
-          <div className="sec-hdr">
-            <span className="sec-num">02</span>
-            <h2 className="sec-ttl">Ma philosophie.</h2>
-          </div>
-          <div className="bio-philosophy-grid">
-            <div className="bio-philosophy-card">
-              <div className="bio-philosophy-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L20 6V12C20 17 16 20 12 22C8 20 4 17 4 12V6L12 2Z" stroke="currentColor" strokeWidth="1.5" fill="none" /><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.2" fill="none" /></svg>
-              </div>
-              <h4>Anticiper, pas réagir</h4>
-              <p>Chaque architecture que je conçois intègre la sécurité dès le départ. La détection proactive est plus efficace qu'une réponse post-incident.</p>
-            </div>
-            <div className="bio-philosophy-card">
-              <div className="bio-philosophy-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><polyline points="4,17 9,12 13,15 20,7" stroke="currentColor" strokeWidth="1.5" fill="none" /><circle cx="4" cy="17" r="1.5" fill="currentColor" /><circle cx="20" cy="7" r="1.5" fill="currentColor" /></svg>
-              </div>
-              <h4>Contrainte → Levier</h4>
-              <p>Face aux imprévus — comme une panne critique — je reste maître du système. Chaque incident est une opportunité de perfectionnement.</p>
-            </div>
-            <div className="bio-philosophy-card">
-              <div className="bio-philosophy-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" fill="none" /><circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1" fill="none" /><circle cx="12" cy="12" r="2" fill="currentColor" opacity=".6" /></svg>
-              </div>
-              <h4>Amélioration continue</h4>
-              <p>Je ne cesse d'apprendre et de me perfectionner. Élever son niveau au-dessus du défi, c'est ma signature professionnelle.</p>
-            </div>
-            <div className="bio-philosophy-card">
-              <div className="bio-philosophy-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18V13a3 3 0 0 1 6 0v5" stroke="currentColor" strokeWidth="1.5" fill="none" /><path d="M5 21h14" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>
-              </div>
-              <h4>Tech + Créatif</h4>
-              <p>Mon profil hybride — technique et artistique — me permet d'apporter une vision unique, où rigueur et créativité se renforcent mutuellement.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Bio Expertise */}
-        <section className="bio-expertise sec">
-          <div className="sec-hdr">
-            <span className="sec-num">03</span>
-            <h2 className="sec-ttl">Expertises clés.</h2>
-          </div>
-          <div className="bio-expertise-wrap">
-            {bioExpertiseItems.map((item) =>
-              item.href ? (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={item.className}
-                >
-                  {item.icon}
-                  {item.label}
-                </a>
-              ) : (
-                <span key={item.label} className={item.className}>
-                  {item.label}
-                </span>
-              )
-            )}
-          </div>
-        </section>
-
-        {/* Bio CTA */}
-        <section className="bio-cta">
-          <a href={withBaseAsset(assetPaths.resume)} download className="kp-btn-dark bio-cta-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Télécharger mon CV
-          </a>
-          <button type="button" className="kp-btn-line" onClick={() => scrollToSection('contact')}>Me contacter →</button>
-        </section>
-      </div>
-
+      {activePage === 'biography' && (
+        <BiographyPage
+          lang={lang}
+          bioExpertiseItems={bioExpertiseItems}
+          scrollToSection={scrollToSection}
+        />
+      )}
       {/* ====== ALL PROJECTS PAGE ====== */}
       {activePage === 'all-projects' && (
-        <div className="page active" id="page-all-projects">
-          <nav className="nav">
-            <button
-              type="button"
-              className="nav-logo nav-control-btn"
-              onClick={() => scrollToSection('hero')}
-            >
-              K · E
-            </button>
-            <button
-              type="button"
-              className="nav-back nav-control-btn"
-              onClick={backToMain}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-              Retour à l'accueil
-            </button>
-          </nav>
-          <section
-            ref={allProjectsSectionRef}
-            className="sec projects-page"
-            style={{ minHeight: '80vh', background: '#F5F1EC' }}
-          >
-            <div className="sec-hdr">
-              <span className="sec-num">{v.projects.num}</span>
-              <h2 className="sec-ttl">
-                {lang === 'FR' ? 'Tous mes projets.' : 'All my projects.'}
-              </h2>
-              <span className="sec-sub">
-                {lang === 'FR'
-                  ? 'Explore mes réalisations par mot-clé, domaine ou environnement technique.'
-                  : 'Explore my work by keyword, domain, or technical environment.'}
-              </span>
-            </div>
-
-            <div className="projects-tools">
-              <label className="projects-search">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="11" cy="11" r="7"></circle>
-                  <path d="m20 20-3.5-3.5"></path>
-                </svg>
-                <input
-                  type="search"
-                  value={projectSearch}
-                  onChange={(event) => setProjectSearch(event.target.value)}
-                  placeholder={
-                    lang === 'FR'
-                      ? 'Rechercher un projet, une techno, un client...'
-                      : 'Search by project, stack, client...'
-                  }
-                  aria-label={
-                    lang === 'FR' ? 'Rechercher dans les projets' : 'Search projects'
-                  }
-                />
-              </label>
-
-              <div className="project-filter-mobile-row">
-                <div
-                  className={`project-filter-dropdown ${isProjectFilterMenuOpen ? 'open' : ''}`}
-                  ref={projectFilterMenuRef}
-                >
-                  <button
-                    type="button"
-                    className="project-filter-trigger"
-                    aria-haspopup="listbox"
-                    aria-expanded={isProjectFilterMenuOpen}
-                    aria-label={lang === 'FR' ? 'Filtrer les projets' : 'Filter projects'}
-                    onClick={() => setIsProjectFilterMenuOpen((current) => !current)}
-                  >
-                    <span>{activeProjectFilterLabel}</span>
-                    <svg
-                      className="project-filter-trigger-icon"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M4 6.5L8 10L12 6.5"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                  {isProjectFilterMenuOpen && (
-                    <div
-                      className="project-filter-menu"
-                      role="listbox"
-                      aria-label={lang === 'FR' ? 'Options de filtre projet' : 'Project filter options'}
-                    >
-                      {sortedProjectFilters.map((filter) => (
-                        <button
-                          key={`mobile-filter-${filter.key}`}
-                          type="button"
-                          role="option"
-                          aria-selected={projectFilter === filter.key}
-                          className={`project-filter-option ${projectFilter === filter.key ? 'active' : ''}`}
-                          onClick={() => selectProjectFilter(filter.key)}
-                        >
-                          {filter.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div
-                className="project-filter-bar"
-                role="group"
-                aria-label={lang === 'FR' ? 'Filtres de projet' : 'Project filters'}
-              >
-                {sortedProjectFilters.map((filter) => (
-                  <button
-                    key={filter.key}
-                    type="button"
-                    className={`project-filter-btn ${projectFilter === filter.key ? 'active' : ''}`}
-                    onClick={() => selectProjectFilter(filter.key)}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-
-              {false && <p className="projects-results">
-                {lang === 'FR'
-                  ? `${filteredProjects.length} projet${filteredProjects.length > 1 ? 's' : ''} affiché${filteredProjects.length > 1 ? 's' : ''}`
-                  : `${filteredProjects.length} project${filteredProjects.length > 1 ? 's' : ''} shown`}
-              </p>}
-              <p className="projects-results">
-                {lang === 'FR'
-                  ? `${paginatedProjectRange.start}\u2013${paginatedProjectRange.end} sur ${filteredProjects.length} projet${filteredProjects.length > 1 ? 's' : ''}`
-                  : `${paginatedProjectRange.start}\u2013${paginatedProjectRange.end} of ${filteredProjects.length} project${filteredProjects.length > 1 ? 's' : ''}`}
-              </p>
-            </div>
-
-            {filteredProjects.length > 0 ? (
-              <>
-                <div className="pj-grid pj-grid-all">
-                {paginatedProjects.map((project) =>
-                  project.detailPage ? (
-                    <button
-                      key={project.id}
-                      type="button"
-                      className="pj-card card-action"
-                      onClick={() => showDetail(project.id)}
-                      aria-label={
-                        lang === 'FR'
-                          ? `Voir le détail du projet ${project.title.FR}`
-                          : `View details of the ${project.title.EN} project`
-                      }
-                    >
-                      <div className="pj-vis" style={{ background: project.background }}>
-                        {project.coverImage ? (
-                          <img
-                            className="project-card-cover"
-                            src={project.coverImage}
-                            alt={project.title[lang]}
-                            loading="lazy"
-                          />
-                        ) : (
-                          renderProjectIcon(project.icon, project.accent)
-                        )}
-                      </div>
-                      <div className="pj-body">
-                        <h3 className="pj-title">{project.title[lang]}</h3>
-                        <div className="pj-foot">
-                          <div className="tags">
-                            {getSortedTags(project.tags).map((tag) => (
-                              <span key={`${project.id}-${tag.label}`} className={`tag ${tag.className}`}>
-                                {tag.label}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  ) : (
-                    <article key={project.id} className="pj-card project-card-static">
-                      <div className="pj-vis" style={{ background: project.background }}>
-                        {project.coverImage ? (
-                          <img
-                            className="project-card-cover"
-                            src={project.coverImage}
-                            alt={project.title[lang]}
-                            loading="lazy"
-                          />
-                        ) : (
-                          renderProjectIcon(project.icon, project.accent)
-                        )}
-                      </div>
-                      <div className="pj-body">
-                        <h3 className="pj-title">{project.title[lang]}</h3>
-                        <div className="pj-foot">
-                          <div className="tags">
-                            {getSortedTags(project.tags).map((tag) => (
-                              <span key={`${project.id}-${tag.label}`} className={`tag ${tag.className}`}>
-                                {tag.label}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  )
-                )}
-                </div>
-                {totalProjectPages > 1 ? (
-                  <nav
-                    className="projects-pagination"
-                    aria-label={lang === 'FR' ? 'Pagination des projets' : 'Projects pagination'}
-                  >
-                    <button
-                      type="button"
-                      className="projects-pagination-btn projects-pagination-nav"
-                      onClick={() => changeProjectPage(projectPage - 1)}
-                      disabled={projectPage === 1}
-                    >
-                      {lang === 'FR' ? 'Précédent' : 'Previous'}
-                    </button>
-
-                    <div className="projects-pagination-pages">
-                      {projectPaginationTokens.map((token) =>
-                        typeof token === 'number' ? (
-                          <button
-                            key={`project-page-${token}`}
-                            type="button"
-                            className={`projects-pagination-btn projects-pagination-page ${projectPage === token ? 'active' : ''}`}
-                            aria-current={projectPage === token ? 'page' : undefined}
-                            onClick={() => changeProjectPage(token)}
-                          >
-                            {token}
-                          </button>
-                        ) : (
-                          <span
-                            key={`project-page-${token}`}
-                            className="projects-pagination-ellipsis"
-                            aria-hidden="true"
-                          >
-                            …
-                          </span>
-                        )
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      className="projects-pagination-btn projects-pagination-nav"
-                      onClick={() => changeProjectPage(projectPage + 1)}
-                      disabled={projectPage === totalProjectPages}
-                    >
-                      {lang === 'FR' ? 'Suivant' : 'Next'}
-                    </button>
-                  </nav>
-                ) : null}
-              </>
-            ) : (
-              <div className="projects-empty">
-                <h3>{lang === 'FR' ? 'Aucun projet trouvé.' : 'No matching project found.'}</h3>
-                <p>
-                  {lang === 'FR'
-                    ? 'Essaie un autre mot-clé ou retire un filtre pour élargir la liste.'
-                    : 'Try another keyword or remove a filter to broaden the list.'}
-                </p>
-              </div>
-            )}
-          </section>
-          {false && (
-          <section className="sec" style={{ minHeight: '80vh', background: '#F5F1EC' }}>
-            <div className="sec-hdr">
-              <span className="sec-num">06</span>
-              <h2 className="sec-ttl">Tous mes projets.</h2>
-              <span className="sec-sub">L'ensemble de mes réalisations techniques et académiques.</span>
-            </div>
-            <div className="pj-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(18.75rem, 1fr))', gap: '2rem' }}>
-              
-              <button
-                type="button"
-                className="pj-card card-action"
-                onClick={() => showDetail('siem')}
-                aria-label="Voir le détail du projet Déploiement SIEM XDR Wazuh"
-              >
-                <div className="pj-vis" style={{ background: '#2C3E2E' }}><div className="cat-b" style={{ background: 'rgba(212,149,106,.2)', color: '#D4956A' }}>Cybersécurité</div><svg width="45" height="45" viewBox="0 0 90 90" fill="none" style={{ opacity: '.3' }}><path d="M45 10L75 24L75 48C75 64 60 76 45 80C30 76 15 64 15 48L15 24Z" stroke="#D4956A" strokeWidth="2" fill="none" /><circle cx="45" cy="46" r="13" stroke="#D4956A" strokeWidth="1.5" fill="none" /><circle cx="45" cy="46" r="5" fill="#D4956A" opacity=".6" /></svg></div>
-                <div className="pj-body"><h3 className="pj-title">Déploiement SIEM / XDR Wazuh</h3><p className="pj-co">Neemba Togo · 2023–2024</p><p className="pj-desc">Déploiement complet d'une solution SIEM/XDR Wazuh sur l'ensemble du parc.</p><div className="pj-foot"><div className="tags"><span className="tag tc">Wazuh</span><span className="tag tc">SIEM</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </button>
-
-              <button
-                type="button"
-                className="pj-card card-action"
-                onClick={() => showDetail('moov')}
-                aria-label="Voir le détail du projet Portabilité MOOV vers Togocom"
-              >
-                <div className="pj-vis" style={{ background: '#2B3A4A' }}><div className="cat-b" style={{ background: 'rgba(123,191,208,.2)', color: '#7BBFD0' }}>Télécom</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><circle cx="30" cy="30" r="20" stroke="#7BBFD0" strokeWidth="1.5" fill="none" /><circle cx="30" cy="30" r="12" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="5" stroke="#7BBFD0" strokeWidth="1" fill="none" /><circle cx="30" cy="30" r="2" fill="#7BBFD0" /></svg></div>
-                <div className="pj-body"><h3 className="pj-title">Portabilité MOOV → Togocom</h3><p className="pj-co">Neemba Togo · 2024</p><p className="pj-desc">Migration complète réseau mobile avec supervision VSAT et zéro interruption.</p><div className="pj-foot"><div className="tags"><span className="tag tt">VSAT</span><span className="tag tt">Migration</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </button>
-
-              <button
-                type="button"
-                className="pj-card card-action"
-                onClick={() => showDetail('orabank')}
-                aria-label="Voir le détail du projet Contrôleur de Domaine Orabank"
-              >
-                <div className="pj-vis" style={{ background: '#3A2C1E' }}><div className="cat-b" style={{ background: 'rgba(200,168,90,.2)', color: '#C8A85A' }}>Réseau</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="20" y="8" width="20" height="12" rx="2" stroke="#C8A85A" strokeWidth="1.5" fill="none" /><rect x="8" y="34" width="16" height="10" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><rect x="36" y="34" width="16" height="10" rx="2" stroke="#C8A85A" strokeWidth="1" fill="none" /><line x1="30" y1="20" x2="30" y2="34" stroke="#C8A85A" /><line x1="16" y1="28" x2="44" y2="28" stroke="#C8A85A" /><line x1="16" y1="28" x2="16" y2="34" stroke="#C8A85A" /><line x1="44" y1="28" x2="44" y2="34" stroke="#C8A85A" /></svg></div>
-                <div className="pj-body"><h3 className="pj-title">Contrôleur de Domaine Orabank</h3><p className="pj-co">Orabank Togo · Stage 2022</p><p className="pj-desc">Windows Server AD, GPO et politiques de sécurité multi-agences.</p><div className="pj-foot"><div className="tags"><span className="tag tr">Windows Server</span><span className="tag tr">AD</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </button>
-
-              <button
-                type="button"
-                className="pj-card card-action"
-                onClick={() => showDetail('biasa')}
-                aria-label="Voir le détail du projet Services Réseau Linux BIASA"
-              >
-                <div className="pj-vis" style={{ background: '#2A3830' }}><div className="cat-b" style={{ background: 'rgba(125,196,160,.2)', color: '#7DC4A0' }}>Linux</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><rect x="10" y="16" width="40" height="8" rx="2" stroke="#7DC4A0" strokeWidth="1.5" fill="none" /><rect x="10" y="28" width="40" height="8" rx="2" stroke="#7DC4A0" strokeWidth="1" fill="none" /><circle cx="44" cy="20" r="2" fill="#7DC4A0" /><line x1="18" y1="40" x2="42" y2="40" stroke="#7DC4A0" /><line x1="30" y1="36" x2="30" y2="44" stroke="#7DC4A0" /></svg></div>
-                <div className="pj-body"><h3 className="pj-title">Services Réseau Linux · BIASA</h3><p className="pj-co">Clinique BIASA · Stage 2021</p><p className="pj-desc">DNS, DHCP, Apache, NAT sur Ubuntu Server — réseau créé from scratch.</p><div className="pj-foot"><div className="tags"><span className="tag tl2">Ubuntu</span><span className="tag tl2">DNS/DHCP</span></div><span style={{ color: '#B0A496', fontSize: '0.9375rem' }}>→</span></div></div>
-              </button>
-
-              <div className="pj-card" style={{ cursor: 'default' }}>
-                <div className="pj-vis" style={{ background: '#2D2A38' }}><div className="cat-b" style={{ background: 'rgba(155,130,195,.2)', color: '#9B82C3' }}>Cloud</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><path d="M15 35C15 25 30 20 30 30C30 20 45 25 45 35C50 35 50 45 45 45L15 45C10 45 10 35 15 35Z" stroke="#9B82C3" strokeWidth="1.5" fill="none" /></svg></div>
-                <div className="pj-body"><h3 className="pj-title">Déploiement Infra Cloud Azure</h3><p className="pj-co">Neemba Togo · 2023</p><p className="pj-desc">Mise en place d'une architecture hybride avec Azure AD et synchronisation locale.</p><div className="pj-foot"><div className="tags"><span className="tag" style={{ color: '#9B82C3', background: 'rgba(155,130,195,.1)' }}>Azure</span><span className="tag" style={{ color: '#9B82C3', background: 'rgba(155,130,195,.1)' }}>M365</span></div></div></div>
-              </div>
-
-              <div className="pj-card" style={{ cursor: 'default' }}>
-                <div className="pj-vis" style={{ background: '#382A2A' }}><div className="cat-b" style={{ background: 'rgba(195,130,130,.2)', color: '#C38282' }}>Infrastructure</div><svg width="45" height="45" viewBox="0 0 60 60" fill="none" style={{ opacity: '.35' }}><circle cx="30" cy="30" r="15" stroke="#C38282" strokeWidth="1.5" fill="none" /><line x1="15" y1="30" x2="45" y2="30" stroke="#C38282" /><line x1="30" y1="15" x2="30" y2="45" stroke="#C38282" /></svg></div>
-                <div className="pj-body"><h3 className="pj-title">Refonte Réseau LAN/WAN</h3><p className="pj-co">Projet Académique · 2022</p><p className="pj-desc">Conception et simulation d'une architecture réseau d'entreprise multi-sites sous GNS3.</p><div className="pj-foot"><div className="tags"><span className="tag" style={{ color: '#C38282', background: 'rgba(195,130,130,.1)' }}>Cisco</span><span className="tag" style={{ color: '#C38282', background: 'rgba(195,130,130,.1)' }}>GNS3</span></div></div></div>
-              </div>
-
-            </div>
-          </section>
-          )}
-        </div>
+        <ProjectsPage
+          lang={lang}
+          activeProjectFilterLabel={activeProjectFilterLabel}
+          allProjectsSectionRef={allProjectsSectionRef}
+          isProjectFilterMenuOpen={isProjectFilterMenuOpen}
+          projectFilterMenuRef={projectFilterMenuRef}
+          projectSearch={projectSearch}
+          setProjectSearch={setProjectSearch}
+          sortedProjectFilters={sortedProjectFilters}
+          projectFilter={projectFilter}
+          selectProjectFilter={selectProjectFilter}
+          setIsProjectFilterMenuOpen={setIsProjectFilterMenuOpen}
+          paginatedProjectRange={paginatedProjectRange}
+          filteredProjects={filteredProjects}
+          paginatedProjects={paginatedProjects}
+          projectPaginationTokens={projectPaginationTokens}
+          projectPage={projectPage}
+          totalProjectPages={totalProjectPages}
+          changeProjectPage={changeProjectPage}
+          renderProjectIcon={renderProjectIcon}
+          getSortedTags={getSortedTags}
+          showDetail={showDetail}
+          backToMain={backToMain}
+          scrollToSection={scrollToSection}
+        />
       )}
 
-      <AnimatePresence>
-        {projectImageLightbox && (
-          <motion.div
-            className="project-image-lightbox"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' }}
-            onClick={closeProjectImageLightbox}
-          >
-            <button
-              type="button"
-              className="project-image-lightbox-close"
-              onClick={closeProjectImageLightbox}
-              aria-label={lang === 'FR' ? "Fermer l'image du projet" : 'Close project image'}
-            >
-              ✕
-            </button>
-            <motion.div
-              className="project-image-lightbox-dialog"
-              initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={prefersReducedMotion ? { opacity: 0, y: 0 } : { opacity: 0, y: 12 }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' }}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <img
-                src={projectImageLightbox.items[projectImageLightbox.index].src}
-                alt={projectImageLightbox.items[projectImageLightbox.index].alt}
-                className="project-image-lightbox-image"
-              />
-              {projectImageLightbox.items.length > 1 ? (
-                <>
-                  <button
-                    type="button"
-                    className="project-image-lightbox-nav project-image-lightbox-nav-prev"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      stepProjectImageLightbox(-1);
-                    }}
-                    disabled={projectImageLightbox.index === 0}
-                    aria-label={lang === 'FR' ? 'Image précédente' : 'Previous image'}
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    className="project-image-lightbox-nav project-image-lightbox-nav-next"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      stepProjectImageLightbox(1);
-                    }}
-                    disabled={
-                      projectImageLightbox.index === projectImageLightbox.items.length - 1
-                    }
-                    aria-label={lang === 'FR' ? 'Image suivante' : 'Next image'}
-                  >
-                    ›
-                  </button>
-                  <div
-                    className="carousel-dots project-image-lightbox-dots"
-                    aria-label={
-                      lang === 'FR'
-                        ? 'Navigation dans les images du projet'
-                        : 'Project image navigation'
-                    }
-                  >
-                    {projectImageLightbox.items.map((item, index) => (
-                      <button
-                        key={`${item.src}-${index}`}
-                        type="button"
-                        className={`carousel-dot ${
-                          projectImageLightbox.index === index ? 'active' : ''
-                        }`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          goToProjectImageLightbox(index);
-                        }}
-                        aria-label={
-                          lang === 'FR'
-                            ? `Afficher l'image ${index + 1}`
-                            : `Show image ${index + 1}`
-                        }
-                        aria-current={
-                          projectImageLightbox.index === index ? 'true' : undefined
-                        }
-                      />
-                    ))}
-                  </div>
-                </>
-              ) : null}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <LanguageToggle lang={lang} onToggle={setLang} />
-      <ChatbotButton />
-    </div>
+      <ProjectDetailLightbox
+        lightbox={projectImageLightbox}
+        onClose={closeProjectImageLightbox}
+        onStep={stepProjectImageLightbox}
+        onGoTo={goToProjectImageLightbox}
+      />    </div>
   );
 }
 
 export default App;
+
