@@ -3274,9 +3274,11 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   cursor: not-allowed;
 }
 .chat-send-btn {
-  min-height: 2.75rem;
-  min-width: 2.875rem;
-  padding: 0.625rem 1rem;
+  width: auto;
+  height: 42px;
+  min-height: 42px;
+  min-width: 0;
+  padding: 0 18px;
   background: var(--accent);
   color: #fff;
   border: none;
