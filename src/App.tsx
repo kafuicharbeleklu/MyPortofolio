@@ -606,8 +606,8 @@ function App() {
     Record<string, StructuredProjectData | null>
   >({});
   const [projectImageLightbox, setProjectImageLightbox] = useState<{
-    src: string;
-    alt: string;
+    items: { src: string; alt: string }[];
+    index: number;
   } | null>(null);
   const [referenceCarouselIndex, setReferenceCarouselIndex] = useState(0);
   const [desktopReferencePage, setDesktopReferencePage] = useState(0);
@@ -1366,6 +1366,16 @@ function App() {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setProjectImageLightbox(null);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        stepProjectImageLightbox(-1);
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        stepProjectImageLightbox(1);
       }
     };
 
@@ -1563,6 +1573,52 @@ function App() {
     }));
   };
 
+  const openProjectImageLightbox = (
+    items: { src: string; alt: string }[],
+    index: number
+  ) => {
+    if (!items.length) {
+      return;
+    }
+
+    const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
+    setProjectImageLightbox({
+      items,
+      index: clampedIndex,
+    });
+  };
+
+  const stepProjectImageLightbox = (delta: number) => {
+    setProjectImageLightbox((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextIndex = Math.max(
+        0,
+        Math.min(current.index + delta, current.items.length - 1)
+      );
+
+      return {
+        ...current,
+        index: nextIndex,
+      };
+    });
+  };
+
+  const goToProjectImageLightbox = (index: number) => {
+    setProjectImageLightbox((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        index: Math.max(0, Math.min(index, current.items.length - 1)),
+      };
+    });
+  };
+
   const closeProjectImageLightbox = () => {
     setProjectImageLightbox(null);
   };
@@ -1683,7 +1739,7 @@ function App() {
                 <button
                   type="button"
                   className="det-vis-media-btn"
-                  onClick={() => setProjectImageLightbox(screenshotItems[0])}
+                  onClick={() => openProjectImageLightbox(screenshotItems, 0)}
                   aria-label={
                     lang === 'FR'
                       ? `Afficher l'image de couverture du projet ${project.title.FR}`
@@ -1767,12 +1823,7 @@ function App() {
                                   key={`${projectId}-shot-desktop-${absoluteIndex + 1}`}
                                   type="button"
                                   className="detail-shot-card"
-                                  onClick={() =>
-                                    setProjectImageLightbox({
-                                      src: shot.src,
-                                      alt: `${shot.alt} ${absoluteIndex + 1}`,
-                                    })
-                                  }
+                                  onClick={() => openProjectImageLightbox(screenshotItems, absoluteIndex)}
                                   aria-label={
                                     lang === 'FR'
                                       ? `Afficher la capture ${absoluteIndex + 1} du projet ${project.title.FR}`
@@ -1812,12 +1863,7 @@ function App() {
                           key={`${projectId}-shot-${index + 1}`}
                           type="button"
                           className="detail-shot-card mobile-peek-item"
-                          onClick={() =>
-                            setProjectImageLightbox({
-                              src: shot.src,
-                              alt: `${shot.alt} ${index + 1}`,
-                            })
-                          }
+                          onClick={() => openProjectImageLightbox(screenshotItems, index)}
                           aria-label={
                             lang === 'FR'
                               ? `Afficher la capture ${index + 1} du projet ${project.title.FR}`
@@ -3064,10 +3110,70 @@ function App() {
               onClick={(event) => event.stopPropagation()}
             >
               <img
-                src={projectImageLightbox.src}
-                alt={projectImageLightbox.alt}
+                src={projectImageLightbox.items[projectImageLightbox.index].src}
+                alt={projectImageLightbox.items[projectImageLightbox.index].alt}
                 className="project-image-lightbox-image"
               />
+              {projectImageLightbox.items.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    className="project-image-lightbox-nav project-image-lightbox-nav-prev"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      stepProjectImageLightbox(-1);
+                    }}
+                    disabled={projectImageLightbox.index === 0}
+                    aria-label={lang === 'FR' ? 'Image précédente' : 'Previous image'}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="project-image-lightbox-nav project-image-lightbox-nav-next"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      stepProjectImageLightbox(1);
+                    }}
+                    disabled={
+                      projectImageLightbox.index === projectImageLightbox.items.length - 1
+                    }
+                    aria-label={lang === 'FR' ? 'Image suivante' : 'Next image'}
+                  >
+                    ›
+                  </button>
+                  <div
+                    className="carousel-dots project-image-lightbox-dots"
+                    aria-label={
+                      lang === 'FR'
+                        ? 'Navigation dans les images du projet'
+                        : 'Project image navigation'
+                    }
+                  >
+                    {projectImageLightbox.items.map((item, index) => (
+                      <button
+                        key={`${item.src}-${index}`}
+                        type="button"
+                        className={`carousel-dot ${
+                          projectImageLightbox.index === index ? 'active' : ''
+                        }`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          goToProjectImageLightbox(index);
+                        }}
+                        aria-label={
+                          lang === 'FR'
+                            ? `Afficher l'image ${index + 1}`
+                            : `Show image ${index + 1}`
+                        }
+                        aria-current={
+                          projectImageLightbox.index === index ? 'true' : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </motion.div>
           </motion.div>
         )}
