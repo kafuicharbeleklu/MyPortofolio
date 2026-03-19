@@ -1020,11 +1020,28 @@ function App() {
           </div>
           <div className="bio-story-grid">
             <div className="bio-story-main">
+              <p className="bio-story-lead">Professionnel togolais de l'IT, je concois des environnements numeriques fiables, utiles et lisibles, avec une approche orientee impact.</p>
+              <p>Specialise en <strong>Digital Workplace, support IT et optimisation des environnements de travail</strong>, j'evolue dans des contextes ou la performance quotidienne compte autant que la solidite technique. Mon fil conducteur reste le meme : simplifier l'usage, structurer les process et faire gagner du temps aux equipes.</p>
+              <p>Au-dela de l'administration courante, j'aime transformer un besoin metier en solution concrete. J'ai notamment concu une <strong>application de gestion de materiel IT</strong> avec suivi des equipements, affectations, restitutions et workflow de validation a trois niveaux, afin d'apporter plus de tracabilite, de gouvernance et de lisibilite aux operations internes.</p>
+              <p>Mon passage chez <strong>Orabank</strong> a renforce cette exigence. Dans un environnement critique, j'ai consolide mes bases sur Windows Server, Active Directory, GPO et le support avance, avec une logique de fiabilite, de securite et de continuite de service qui guide encore aujourd'hui ma maniere de travailler.</p>
+              <p>Je m'interesse particulierement a l'intersection entre <strong>cybersecurite, open source et intelligence artificielle</strong>, avec un attrait fort pour la detection, l'automatisation et les architectures evolutives. Mon ambition est de faire converger ces trois dimensions dans des projets IT a forte valeur, localement comme a l'international.</p>
+              <p>En parallele, je developpe aussi une dimension creative a travers la <strong>musique Afrobeats</strong>, ou j'explore les emotions, les relations humaines et le storytelling en francais comme en ewe. Cette double culture, technique et artistique, nourrit une approche plus complete, plus humaine et plus inventive de mon metier.</p>
+              {false && (
+                <>
+              {/* Biography copy refreshed from Data_perso/Des.txt */}
+              <p className="bio-story-lead">Professionnel togolais de l'IT, je conÃ§ois des environnements numÃ©riques fiables, utiles et lisibles, avec une approche orientÃ©e impact.</p>
+              <p>SpÃ©cialisÃ© en <strong>Digital Workplace, support IT et optimisation des environnements de travail</strong>, j'Ã©volue dans des contextes oÃ¹ la performance quotidienne compte autant que la soliditÃ© technique. Mon fil conducteur reste le mÃªme : simplifier l'usage, structurer les process et faire gagner du temps aux Ã©quipes.</p>
+              <p>Au-delÃ  de l'administration courante, j'aime transformer un besoin mÃ©tier en solution concrÃ¨te. J'ai notamment conÃ§u une <strong>application de gestion de matÃ©riel IT</strong> avec suivi des Ã©quipements, affectations, restitutions et workflow de validation Ã  trois niveaux, afin d'apporter plus de traÃ§abilitÃ©, de gouvernance et de lisibilitÃ© aux opÃ©rations internes.</p>
+              <p>Mon passage chez <strong>Orabank</strong> a renforcÃ© cette exigence. Dans un environnement critique, j'ai consolidÃ© mes bases sur Windows Server, Active Directory, GPO et le support avancÃ©, avec une logique de fiabilitÃ©, de sÃ©curitÃ© et de continuitÃ© de service qui guide encore aujourd'hui ma maniÃ¨re de travailler.</p>
+              <p>Je m'intÃ©resse particuliÃ¨rement Ã  l'intersection entre <strong>cybersÃ©curitÃ©, open source et intelligence artificielle</strong>, avec un attrait fort pour la dÃ©tection, l'automatisation et les architectures Ã©volutives. Mon ambition est de faire converger ces trois dimensions dans des projets IT Ã  forte valeur, localement comme Ã  l'international.</p>
+              <p>En parallÃ¨le, je dÃ©veloppe aussi une dimension crÃ©ative Ã  travers la <strong>musique Afrobeats</strong>, oÃ¹ j'explore les Ã©motions, les relations humaines et le storytelling en franÃ§ais comme en Ã©wÃ©. Cette double culture, technique et artistique, nourrit une approche plus complÃ¨te, plus humaine et plus inventive de mon mÃ©tier.</p>
               <p className="bio-story-lead">Professionnel togolais de l'IT, j'allie rigueur technique, innovation et créativité.</p>
               <p>Spécialisé en <strong>Digital Workplace et optimisation des environnements numériques</strong>, j'ai développé une forte capacité à concevoir des solutions efficaces dans des environnements dynamiques, en combinant <strong>adaptabilité, rigueur technique et sens de l'innovation</strong>.</p>
               <p>Mon immersion chez <strong>Orabank</strong> a été le catalyseur de mon expertise. Confronté à l'exigence d'un environnement bancaire critique, j'ai maîtrisé en un temps record l'architecture Windows Server (Active Directory, DFS, GPO, WDS). Ce qui était un défi est devenu une compétence socle.</p>
               <p>Passionné par les technologies émergentes, je m'intéresse particulièrement à l'intersection entre <strong>cybersécurité et intelligence artificielle</strong>, avec l'ambition de développer des solutions intelligentes capables d'anticiper et de répondre aux menaces modernes.</p>
               <p>Au-delà de mon expertise technique, je développe également une dimension créative à travers la <strong>musique Afrobeats</strong>, où j'explore des thématiques humaines et culturelles en français et en éwé — un profil rare qui allie analyse, créativité et sensibilité.</p>
+                </>
+              )}
             </div>
             <div className="bio-story-side">
               <div className="bio-milestone">
