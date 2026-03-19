@@ -1,6 +1,12 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 
+declare global {
+  interface Window {
+    bttLaunch?: () => void;
+  }
+}
+
 const BackToTop: React.FC = () => {
   useEffect(() => {
     let busy = false,
@@ -324,7 +330,7 @@ const BackToTop: React.FC = () => {
       }
     }
 
-    (window as any).bttLaunch = function () {
+    window.bttLaunch = function () {
       if (busy) return;
       busy = true;
       const btn = document.getElementById("backToTopBtn");
@@ -412,7 +418,7 @@ const BackToTop: React.FC = () => {
         <button
           id="backToTopBtn"
           className="back-to-top-btn"
-          onClick={() => (window as any).bttLaunch()}
+          onClick={() => window.bttLaunch?.()}
         >
           <span className="btt-half btt-top">↑ HAUT</span>
           <span className="btt-half btt-bot">DE PAGE</span>

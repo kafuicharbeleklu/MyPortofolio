@@ -101,6 +101,26 @@ type StructuredProjectConfig = {
 };
 
 type PaginationToken = number | 'ellipsis-left' | 'ellipsis-right';
+type StaticDetailPage = 'siem' | 'moov' | 'orabank' | 'biasa';
+type ActiveSection = '' | 'hero' | 'about' | 'skills' | 'parcours' | 'formation' | 'projets' | 'refs' | 'contact';
+type SectionWithSubcopy = {
+  sub?: string;
+  subtitle?: string;
+};
+type TranslationPageSections = {
+  education?: {
+    num: string;
+    title: string;
+    subtitle: string;
+  };
+  references?: {
+    num: string;
+    title: string;
+    subtitle: string;
+  };
+  skills: SectionWithSubcopy;
+  experience: SectionWithSubcopy;
+};
 
 const getProjectsPerPage = () => {
   if (typeof window === 'undefined') {
@@ -357,6 +377,42 @@ const structuredProjectConfigs: Record<string, StructuredProjectConfig> = {
   },
 };
 
+type StructuredProjectId = keyof typeof structuredProjectConfigs;
+type ActivePage =
+  | 'main'
+  | 'biography'
+  | 'all-projects'
+  | StaticDetailPage
+  | StructuredProjectId;
+
+const navigableSections = [
+  'hero',
+  'about',
+  'skills',
+  'parcours',
+  'formation',
+  'projets',
+  'refs',
+  'contact',
+] as const;
+
+const staticDetailPages = ['siem', 'moov', 'orabank', 'biasa'] as const;
+
+const isNavigableSection = (value: string): value is Exclude<ActiveSection, ''> =>
+  navigableSections.includes(value as Exclude<ActiveSection, ''>);
+
+const isStructuredProjectId = (value: string): value is StructuredProjectId =>
+  value in structuredProjectConfigs;
+
+const isStaticDetailPage = (value: string): value is StaticDetailPage =>
+  staticDetailPages.includes(value as StaticDetailPage);
+
+const isDetailPage = (value: string): value is Exclude<ActivePage, 'main' | 'all-projects'> =>
+  value === 'biography' || isStructuredProjectId(value) || isStaticDetailPage(value);
+
+const getSectionSubcopy = (section: SectionWithSubcopy) =>
+  section.subtitle ?? section.sub ?? '';
+
 const renderProjectIcon = (icon: ProjectCardData['icon'], accent: string) => {
   switch (icon) {
     case 'shield':
@@ -594,9 +650,9 @@ const projectCatalog: ProjectCardData[] = [
 ];
 
 function App() {
-  const [activePage, setActivePage] = useState('main');
+  const [activePage, setActivePage] = useState<ActivePage>('main');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
+  const [activeSection, setActiveSection] = useState<ActiveSection>('');
   const [projectSearch, setProjectSearch] = useState('');
   const [projectFilter, setProjectFilter] = useState<ProjectFilterKey>('all');
   const [projectPage, setProjectPage] = useState(1);
@@ -642,11 +698,12 @@ function App() {
   });
   const prefersReducedMotion = usePrefersReducedMotion();
   const v = t[lang];
+  const typedSections = v as TranslationPageSections;
   const skillsData = getSkillsData(lang);
   const timelineData = getTimelineData(lang);
   const formationData = getFormationData(lang);
   const educationSection =
-    (v as any).education ??
+    typedSections.education ??
     (lang === 'FR'
       ? {
           num: '05',
@@ -661,7 +718,7 @@ function App() {
             'Degrees earned with distinction from leading institutions in Lomé.',
         });
   const referencesSection =
-    (v as any).references ??
+    typedSections.references ??
     (lang === 'FR'
       ? {
           num: '07',
@@ -1185,7 +1242,7 @@ function App() {
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && isNavigableSection(entry.target.id)) {
           setActiveSection(entry.target.id);
         }
       });
@@ -1441,6 +1498,10 @@ function App() {
   };
 
   const showDetail = (id: string) => {
+    if (!isDetailPage(id)) {
+      return;
+    }
+
     setDetailCarouselIndex((current) => ({
       ...current,
       [id]: 0,
@@ -2070,7 +2131,7 @@ function App() {
           <div className="sec-hdr">
             <span className="sec-num">{v.skills.num}</span>
             <h2 className="sec-ttl">{v.skills.title}.</h2>
-            <span className="sec-sub">{(v.skills as any).subtitle ?? v.skills.sub}</span>
+            <span className="sec-sub">{getSectionSubcopy(typedSections.skills)}</span>
           </div>
           <div className="skills-grid" ref={skillsCarousel.containerRef}>
             {sortedSkillsData.map((skill, i) => (
@@ -2116,7 +2177,7 @@ function App() {
           <div className="sec-hdr">
             <span className="sec-num">{v.experience.num}</span>
             <h2 className="sec-ttl">{v.experience.title}.</h2>
-            <span className="sec-sub">{(v.experience as any).subtitle ?? v.experience.sub}</span>
+            <span className="sec-sub">{getSectionSubcopy(typedSections.experience)}</span>
           </div>
           <div className="timeline">
             {sortedTimelineData.map((item, i) => (
