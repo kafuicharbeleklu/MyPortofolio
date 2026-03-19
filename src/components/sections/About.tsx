@@ -42,19 +42,19 @@ const About: React.FC<AboutProps> = ({ lang, onReadMore }) => {
           {lang === 'FR' ? (
             <>
               <p>
-                Ingénieur des travaux informatiques formé à l&apos;IAI-Togo, j&apos;ai ensuite obtenu mon
-                <strong> Master II Réseaux & Systèmes d&apos;Information </strong>
+                Ingénieur des travaux informatiques formé à l’IAI-Togo, j’ai ensuite obtenu mon
+                <strong> Master II Réseaux & Systèmes d’Information </strong>
                 au Collège de Paris Supérieur de Lomé avec la
                 <strong> mention bien</strong>.
               </p>
               <p>
-                Chez <strong>Neemba Togo</strong>, j&apos;interviens sur les infrastructures, le support avancé,
-                les sujets télécoms, ainsi que sur l&apos;amélioration des environnements IT avec une approche
+                Chez <strong>Neemba Togo</strong>, j’interviens sur les infrastructures, le support avancé,
+                les sujets télécoms, ainsi que sur l’amélioration des environnements IT avec une approche
                 orientée fiabilité, clarté et efficacité.
               </p>
               <p>
                 En tant que <strong>Wazuh Security Ambassador</strong>, je conçois et déploie aussi des
-                architectures de supervision et de sécurité capables d&apos;apporter une visibilité concrète sur
+                architectures de supervision et de sécurité capables d’apporter une visibilité concrète sur
                 les menaces et les événements critiques.
               </p>
               <p style={{ marginTop: '1.25rem' }}>
@@ -68,7 +68,7 @@ const About: React.FC<AboutProps> = ({ lang, onReadMore }) => {
               <p>
                 Trained in IT engineering at IAI-Togo, I later earned a
                 <strong> Master II in Information Systems & Networks </strong>
-                from Collège de Paris Supérieur in Lome with
+                from Collège de Paris Supérieur in Lomé with
                 <strong> honors</strong>.
               </p>
               <p>
