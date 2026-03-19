@@ -91,7 +91,7 @@ export const t = {
     hero: {
       eyebrow: 'Portfolio',
       role: 'Digital Workplace & Infrastructure Administrator',
-      location: 'Lome, Togo · International mobility',
+      location: 'Lomé, Togo · International mobility',
       btnPrimary: 'Explore my profile',
       btnSecondary: 'View my projects',
     },
