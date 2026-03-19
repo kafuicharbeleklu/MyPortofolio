@@ -132,7 +132,6 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
   const skillItems = [...v.skills.stripItems].sort((a, b) =>
     a.localeCompare(b, lang === 'FR' ? 'fr' : 'en', { sensitivity: 'base' })
   );
-  const marqueeItems = [...skillItems, ...skillItems, ...skillItems];
   const profileImage = withBaseAsset(assetPaths.profilePortrait);
 
   useEffect(() => {
@@ -404,12 +403,20 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
       </AnimatePresence>
 
       <div className="skills-strip">
-        <div className="skills-track" style={{ animationDuration: '26s' }}>
-          {marqueeItems.map((item, index) => (
-            <React.Fragment key={`${item}-${index}`}>
-              <span className="sk">{item}</span>
-              {index < marqueeItems.length - 1 && <div className="sk-sep"></div>}
-            </React.Fragment>
+        <div className="skills-track" style={{ animationDuration: '22s' }}>
+          {[0, 1].map((groupIndex) => (
+            <div
+              key={`skills-group-${groupIndex}`}
+              className="skills-track-group"
+              aria-hidden={groupIndex === 1 ? 'true' : undefined}
+            >
+              {skillItems.map((item) => (
+                <span key={`${groupIndex}-${item}`} className="skills-item">
+                  <span className="sk-sep" aria-hidden="true"></span>
+                  <span className="sk">{item}</span>
+                </span>
+              ))}
+            </div>
           ))}
         </div>
       </div>
