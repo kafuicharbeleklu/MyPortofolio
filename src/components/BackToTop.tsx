@@ -13,6 +13,7 @@ const BackToTop: React.FC = () => {
     let plX = 0,
       plY = 0,
       plA = 0,
+      drawA = 0,
       plAlpha = 1,
       prevA: number | null = null,
       bankAngle = 0,
@@ -30,10 +31,10 @@ const BackToTop: React.FC = () => {
     let scrollStart = 0,
       scrollTarget = 0;
     let flightCeiling = 26;
-    let flightDuration = 1980;
-    let wobbleAmplitude = 0.8;
-    let wobbleCycles = 2.1;
-    let bankSensitivity = 17;
+    let flightDuration = 2100;
+    let wobbleAmplitude = 0.55;
+    let wobbleCycles = 1.7;
+    let bankSensitivity = 14;
 
     function initCanvas() {
       cv = document.getElementById("bttCanvas") as HTMLCanvasElement;
@@ -226,7 +227,7 @@ const BackToTop: React.FC = () => {
         const dt = 0.016;
         sV += (300 * (1 - sS) - 26 * sV) * dt;
         sS += sV * dt;
-        drawPlane(plX, plY, plA, Math.max(0, sS) * SCALE, 1, 0);
+        drawPlane(plX, plY, drawA, Math.max(0, sS) * SCALE, 1, 0);
         if (Math.abs(1 - sS) < 0.01 && Math.abs(sV) < 0.01) {
           springing = false;
           flying = true;
@@ -242,10 +243,7 @@ const BackToTop: React.FC = () => {
         if (!startTs) startTs = ts;
         const prog = Math.min((ts - startTs) / flightDuration, 1);
         /* ease-in-out cubic — même courbe pour avion ET scroll */
-        const e =
-          prog < 0.5
-            ? 4 * prog * prog * prog
-            : 1 - Math.pow(-2 * prog + 2, 3) / 2;
+        const e = prog * prog * prog * (prog * (prog * 6 - 15) + 10);
 
         /* ── SCROLL synchronisé : même easing que l'avion ── */
         window.scrollTo(0, scrollStart + (scrollTarget - scrollStart) * e);
@@ -263,27 +261,31 @@ const BackToTop: React.FC = () => {
           while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
           while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
         }
+        let drawDiff = plA - drawA;
+        while (drawDiff > Math.PI) drawDiff -= 2 * Math.PI;
+        while (drawDiff < -Math.PI) drawDiff += 2 * Math.PI;
+        drawA += drawDiff * 0.22;
         bankV +=
           (angleDiff * bankSensitivity - bankAngle) * 0.24 - bankV * 0.38;
         bankAngle += bankV;
         bankAngle = Math.max(-0.65, Math.min(0.65, bankAngle));
         prevA = plA;
 
-        plAlpha = prog > 0.7 ? 1 - (prog - 0.7) / 0.3 : 1;
-        if (pos.y <= flightCeiling + 56) {
-          plAlpha *= Math.max(0, Math.min(1, (pos.y - flightCeiling) / 56));
+        plAlpha = prog > 0.66 ? 1 - (prog - 0.66) / 0.34 : 1;
+        if (pos.y <= flightCeiling + 64) {
+          plAlpha *= Math.max(0, Math.min(1, (pos.y - flightCeiling) / 64));
         }
 
         const lp = trailPts[trailPts.length - 1],
           dx = pos.x - lp.x,
           dy = pos.y - lp.y;
-        if (dx * dx + dy * dy > 12) {
+        if (dx * dx + dy * dy > 8) {
           trailPts.push({ x: pos.x, y: pos.y });
-          if (trailPts.length > 160) trailPts.shift();
+          if (trailPts.length > 190) trailPts.shift();
         }
 
         drawTrail(plAlpha, prog);
-        drawPlane(plX, plY, plA, SCALE, plAlpha, bankAngle);
+        drawPlane(plX, plY, drawA, SCALE, plAlpha, bankAngle);
 
         if (prog < 1) {
           aid = requestAnimationFrame(tick);
@@ -346,20 +348,20 @@ const BackToTop: React.FC = () => {
         const navRect = nav?.getBoundingClientRect();
         const isMobile = W <= 768;
         const firstDrift = Math.min(
-          isMobile ? W * 0.1 : W * 0.15,
-          isMobile ? 42 : 128,
+          isMobile ? W * 0.085 : W * 0.12,
+          isMobile ? 34 : 96,
         );
         const secondDrift = Math.min(
-          isMobile ? W * 0.025 : W * 0.045,
-          isMobile ? 12 : 34,
+          isMobile ? W * 0.018 : W * 0.03,
+          isMobile ? 10 : 24,
         );
-        const firstLift = isMobile ? 0.17 : 0.22;
-        const secondLift = isMobile ? 0.42 : 0.5;
+        const firstLift = isMobile ? 0.2 : 0.24;
+        const secondLift = isMobile ? 0.46 : 0.54;
 
-        flightDuration = isMobile ? 1860 : 1980;
-        wobbleAmplitude = isMobile ? 0.45 : 0.8;
-        wobbleCycles = isMobile ? 1.8 : 2.1;
-        bankSensitivity = isMobile ? 12 : 17;
+        flightDuration = isMobile ? 1920 : 2100;
+        wobbleAmplitude = isMobile ? 0.3 : 0.55;
+        wobbleCycles = isMobile ? 1.35 : 1.7;
+        bankSensitivity = isMobile ? 10 : 14;
         flightCeiling = Math.max(26, (navRect?.bottom ?? 0) + 64);
         /* Position de l'avion = position visuelle du bouton sur l'écran */
         const sx = br.left + br.width / 2;
@@ -382,6 +384,7 @@ const BackToTop: React.FC = () => {
         plX = sx;
         plY = sy;
         plA = Math.atan2(P1.y - P0.y, P1.x - P0.x);
+        drawA = plA;
         sS = 0;
         sV = 0;
         bankAngle = 0;

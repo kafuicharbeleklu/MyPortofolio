@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { assetPaths, withBaseAsset } from '../../config/assets';
 import usePrefersReducedMotion from '../../hooks/usePrefersReducedMotion';
@@ -119,6 +119,13 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
   const [isHoveringLeft, setIsHoveringLeft] = useState(false);
   const [isHoveringRight, setIsHoveringRight] = useState(false);
   const [isPortraitOpen, setIsPortraitOpen] = useState(false);
+  const swipeStartRef = useRef<{
+    left: { x: number | null; y: number | null };
+    right: { x: number | null; y: number | null };
+  }>({
+    left: { x: null, y: null },
+    right: { x: null, y: null },
+  });
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const leftTransition = prefersReducedMotion ? { duration: 0 } : { duration: 0.72 };
@@ -133,6 +140,50 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
     a.localeCompare(b, lang === 'FR' ? 'fr' : 'en', { sensitivity: 'base' })
   );
   const profileImage = withBaseAsset(assetPaths.profilePortrait);
+  const linkedInUrl = 'https://www.linkedin.com/in/kafui-charbel-eklu';
+  const swipeThreshold = 42;
+
+  const captureSwipeStart =
+    (side: 'left' | 'right') => (event: React.TouchEvent<HTMLDivElement>) => {
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      swipeStartRef.current[side] = {
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+    };
+
+  const handleSwipe =
+    (
+      side: 'left' | 'right',
+      totalSlides: number,
+      setSlide: React.Dispatch<React.SetStateAction<number>>
+    ) =>
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      const touch = event.changedTouches[0];
+      const swipeStart = swipeStartRef.current[side];
+
+      if (!touch || swipeStart.x === null || swipeStart.y === null) {
+        return;
+      }
+
+      const deltaX = touch.clientX - swipeStart.x;
+      const deltaY = touch.clientY - swipeStart.y;
+      swipeStartRef.current[side] = { x: null, y: null };
+
+      if (Math.abs(deltaX) < swipeThreshold || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) {
+        return;
+      }
+
+      setSlide((current) =>
+        deltaX < 0
+          ? (current + 1) % totalSlides
+          : (current - 1 + totalSlides) % totalSlides
+      );
+    };
 
   useEffect(() => {
     let startTimer: ReturnType<typeof setTimeout> | undefined;
@@ -213,6 +264,8 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
                 className="kp-hero-showcase"
                 onMouseEnter={() => setIsHoveringLeft(true)}
                 onMouseLeave={() => setIsHoveringLeft(false)}
+                onTouchStart={captureSwipeStart('left')}
+                onTouchEnd={handleSwipe('left', leftHeroSlides.length, setLeftSlide)}
               >
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -298,6 +351,8 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
               className="hr-top overflow-hidden"
               onMouseEnter={() => setIsHoveringRight(true)}
               onMouseLeave={() => setIsHoveringRight(false)}
+              onTouchStart={captureSwipeStart('right')}
+              onTouchEnd={handleSwipe('right', rightHeroSlides.length, setRightSlide)}
             >
               <div className="hero-carousel-shell hero-carousel-shell-right">
                 <AnimatePresence mode="wait">
@@ -349,6 +404,24 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
                     className="wazuh-cert-btn"
                   >
                     Wazuh Ambassador {'\u2197'}
+                  </a>
+                  <a
+                    href={linkedInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="wazuh-cert-linkedin"
+                    aria-label={
+                      lang === 'FR'
+                        ? 'Voir le profil LinkedIn de Kafui Charbel Eklu'
+                        : 'View Kafui Charbel Eklu LinkedIn profile'
+                    }
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M6.94 8.5H3.56V20h3.38V8.5Zm.22-3.56c0-1.06-.8-1.94-1.9-1.94S3.33 3.88 3.33 4.94c0 1.04.8 1.9 1.9 1.9h.03c1.1 0 1.9-.86 1.9-1.9ZM20.67 13.02c0-3.52-1.88-5.16-4.39-5.16-2.02 0-2.92 1.12-3.43 1.9V8.5H9.47c.04.84 0 11.5 0 11.5h3.38v-6.42c0-.34.03-.68.13-.92.27-.68.88-1.38 1.9-1.38 1.34 0 1.88 1.04 1.88 2.56V20h3.38v-6.98Z"
+                      />
+                    </svg>
                   </a>
                 </div>
               </div>

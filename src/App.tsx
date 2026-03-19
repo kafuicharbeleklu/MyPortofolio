@@ -100,6 +100,62 @@ type StructuredProjectConfig = {
   }[];
 };
 
+type PaginationToken = number | 'ellipsis-left' | 'ellipsis-right';
+
+const getProjectsPerPage = () => {
+  if (typeof window === 'undefined') {
+    return 6;
+  }
+
+  if (window.innerWidth >= 1440) {
+    return 9;
+  }
+
+  if (window.innerWidth >= 1024) {
+    return 6;
+  }
+
+  if (window.innerWidth >= 768) {
+    return 4;
+  }
+
+  return 3;
+};
+
+const buildPaginationTokens = (
+  currentPage: number,
+  totalPages: number
+): PaginationToken[] => {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, 'ellipsis-right', totalPages];
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [
+      1,
+      'ellipsis-left',
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  }
+
+  return [
+    1,
+    'ellipsis-left',
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    'ellipsis-right',
+    totalPages,
+  ];
+};
+
 const structuredProjectConfigs: Record<string, StructuredProjectConfig> = {
   automate: {
     dataPath: 'projects/automate/projects_data.json',
@@ -543,6 +599,8 @@ function App() {
   const [activeSection, setActiveSection] = useState('');
   const [projectSearch, setProjectSearch] = useState('');
   const [projectFilter, setProjectFilter] = useState<ProjectFilterKey>('all');
+  const [projectPage, setProjectPage] = useState(1);
+  const [projectsPerPage, setProjectsPerPage] = useState(() => getProjectsPerPage());
   const [isProjectFilterMenuOpen, setIsProjectFilterMenuOpen] = useState(false);
   const [structuredProjectData, setStructuredProjectData] = useState<
     Record<string, StructuredProjectData | null>
@@ -559,6 +617,7 @@ function App() {
   const referenceCarouselRef = useRef<HTMLDivElement | null>(null);
   const detailCarouselRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const projectFilterMenuRef = useRef<HTMLDivElement | null>(null);
+  const allProjectsSectionRef = useRef<HTMLElement | null>(null);
   const carouselTouchStartX = useRef<Record<string, number | null>>({});
   const projectLightboxScrollY = useRef(0);
   const projectLightboxBodyStyles = useRef<{
@@ -656,20 +715,14 @@ function App() {
       name: 'Afi KOSSI',
       organization: 'Direction SSE Benin | Togo',
       role: 'Coordinatrice SSE Benin | Togo',
-      phones: [
-        { display: '+229 01 60 60 68 84', href: 'tel:+2290160606884' },
-        { display: '+228 92 10 48 16', href: 'tel:+22892104816' },
-      ],
+      phones: [{ display: '+228 92 10 48 16', href: 'tel:+22892104816' }],
     },
     {
       initials: 'BM',
       name: 'Baboyime MAEBENA',
       organization: 'Ressources Humaines',
       role: 'Responsable RH Benin',
-      phones: [
-        { display: '+229 01 21 33 18 06', href: 'tel:+2290121331806' },
-        { display: '+228 91 57 49 04', href: 'tel:+22891574904' },
-      ],
+      phones: [{ display: '+228 91 57 49 04', href: 'tel:+22891574904' }],
     },
     {
       initials: 'AK',
@@ -1093,6 +1146,19 @@ function App() {
       (a, b) =>
         b.sortDate - a.sortDate || alphaCollator.compare(a.title[lang], b.title[lang])
     );
+  const totalProjectPages = Math.max(1, Math.ceil(filteredProjects.length / projectsPerPage));
+  const paginatedProjects = filteredProjects.slice(
+    (projectPage - 1) * projectsPerPage,
+    projectPage * projectsPerPage
+  );
+  const paginatedProjectRange =
+    filteredProjects.length === 0
+      ? { start: 0, end: 0 }
+      : {
+          start: (projectPage - 1) * projectsPerPage + 1,
+          end: Math.min(projectPage * projectsPerPage, filteredProjects.length),
+        };
+  const projectPaginationTokens = buildPaginationTokens(projectPage, totalProjectPages);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const getScrollBehavior = () => (prefersReducedMotion ? 'auto' : 'smooth');
@@ -1136,6 +1202,31 @@ function App() {
       window.localStorage.setItem('portfolio_lang', lang);
     }
   }, [lang]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      setProjectsPerPage(getProjectsPerPage());
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    setProjectPage(1);
+  }, [projectSearch, projectFilter]);
+
+  useEffect(() => {
+    setProjectPage((currentPage) => Math.min(currentPage, totalProjectPages));
+  }, [totalProjectPages]);
 
   useEffect(() => {
     if (!isProjectFilterMenuOpen) {
@@ -1320,6 +1411,23 @@ function App() {
   const selectProjectFilter = (filterKey: ProjectFilterKey) => {
     setProjectFilter(filterKey);
     setIsProjectFilterMenuOpen(false);
+  };
+
+  const changeProjectPage = (nextPage: number) => {
+    const clampedPage = Math.max(1, Math.min(nextPage, totalProjectPages));
+    setProjectPage(clampedPage);
+
+    if (!allProjectsSectionRef.current) {
+      return;
+    }
+
+    const targetTop =
+      window.scrollY + allProjectsSectionRef.current.getBoundingClientRect().top - getNavOffset();
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: getScrollBehavior(),
+    });
   };
 
   const showDetail = (id: string) => {
@@ -2031,6 +2139,7 @@ function App() {
           recentProjects={recentMainProjects}
           onProjectClick={showDetail}
           onViewAll={() => {
+            setProjectPage(1);
             setActivePage('all-projects');
             window.scrollTo({ top: 0, behavior: getScrollBehavior() });
           }}
@@ -2601,7 +2710,11 @@ function App() {
               Retour à l'accueil
             </button>
           </nav>
-          <section className="sec projects-page" style={{ minHeight: '80vh', background: '#F5F1EC' }}>
+          <section
+            ref={allProjectsSectionRef}
+            className="sec projects-page"
+            style={{ minHeight: '80vh', background: '#F5F1EC' }}
+          >
             <div className="sec-hdr">
               <span className="sec-num">{v.projects.num}</span>
               <h2 className="sec-ttl">
@@ -2716,16 +2829,22 @@ function App() {
                 ))}
               </div>
 
-              <p className="projects-results">
+              {false && <p className="projects-results">
                 {lang === 'FR'
                   ? `${filteredProjects.length} projet${filteredProjects.length > 1 ? 's' : ''} affiché${filteredProjects.length > 1 ? 's' : ''}`
                   : `${filteredProjects.length} project${filteredProjects.length > 1 ? 's' : ''} shown`}
+              </p>}
+              <p className="projects-results">
+                {lang === 'FR'
+                  ? `${paginatedProjectRange.start}\u2013${paginatedProjectRange.end} sur ${filteredProjects.length} projet${filteredProjects.length > 1 ? 's' : ''}`
+                  : `${paginatedProjectRange.start}\u2013${paginatedProjectRange.end} of ${filteredProjects.length} project${filteredProjects.length > 1 ? 's' : ''}`}
               </p>
             </div>
 
             {filteredProjects.length > 0 ? (
-              <div className="pj-grid pj-grid-all">
-                {filteredProjects.map((project) =>
+              <>
+                <div className="pj-grid pj-grid-all">
+                {paginatedProjects.map((project) =>
                   project.detailPage ? (
                     <button
                       key={project.id}
@@ -2792,7 +2911,56 @@ function App() {
                     </article>
                   )
                 )}
-              </div>
+                </div>
+                {totalProjectPages > 1 ? (
+                  <nav
+                    className="projects-pagination"
+                    aria-label={lang === 'FR' ? 'Pagination des projets' : 'Projects pagination'}
+                  >
+                    <button
+                      type="button"
+                      className="projects-pagination-btn projects-pagination-nav"
+                      onClick={() => changeProjectPage(projectPage - 1)}
+                      disabled={projectPage === 1}
+                    >
+                      {lang === 'FR' ? 'Précédent' : 'Previous'}
+                    </button>
+
+                    <div className="projects-pagination-pages">
+                      {projectPaginationTokens.map((token) =>
+                        typeof token === 'number' ? (
+                          <button
+                            key={`project-page-${token}`}
+                            type="button"
+                            className={`projects-pagination-btn projects-pagination-page ${projectPage === token ? 'active' : ''}`}
+                            aria-current={projectPage === token ? 'page' : undefined}
+                            onClick={() => changeProjectPage(token)}
+                          >
+                            {token}
+                          </button>
+                        ) : (
+                          <span
+                            key={`project-page-${token}`}
+                            className="projects-pagination-ellipsis"
+                            aria-hidden="true"
+                          >
+                            …
+                          </span>
+                        )
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="projects-pagination-btn projects-pagination-nav"
+                      onClick={() => changeProjectPage(projectPage + 1)}
+                      disabled={projectPage === totalProjectPages}
+                    >
+                      {lang === 'FR' ? 'Suivant' : 'Next'}
+                    </button>
+                  </nav>
+                ) : null}
+              </>
             ) : (
               <div className="projects-empty">
                 <h3>{lang === 'FR' ? 'Aucun projet trouvé.' : 'No matching project found.'}</h3>
