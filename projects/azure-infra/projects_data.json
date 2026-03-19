@@ -1,0 +1,64 @@
+[
+  {
+    "title": "M365 Power BI Dashboard",
+    "slug": "m365-power-bi-dashboard",
+    "tagline": "Dashboard Power BI pour piloter l'usage, les licences et les risques Microsoft 365.",
+    "description": "Ce projet est un dashboard Power BI au format PBIP concu pour suivre l'activite des utilisateurs Microsoft 365, la consommation de licences et les risques de capacite sur un tenant Azure AD. Le modele semantique interroge Microsoft Graph API via OAuth2 Client Credentials, consolide les donnees utilisateurs, produits, affectations et usage applicatif, puis les expose dans un schema en etoile. Le rapport couvre la vue d'ensemble, l'analyse des licences, l'analyse utilisateur et un drillthrough de detail utilisateur. La valeur ajoutee du projet est de transformer des donnees M365 brutes en indicateurs directement exploitables pour la gouvernance, le nettoyage des comptes et l'optimisation des couts de licences.",
+    "category": "Dashboard",
+    "status": "Termine",
+    "duration": null,
+    "role": null,
+    "tech_stack": {
+      "frontend": [
+        "Power BI"
+      ],
+      "backend": [
+        "Microsoft Graph API",
+        "OAuth2 Client Credentials",
+        "Power Query M"
+      ],
+      "database": [],
+      "devops": [],
+      "tools": [
+        "DAX",
+        "TMDL",
+        "PBIP",
+        "Git",
+        "Power BI Desktop"
+      ]
+    },
+    "features": [
+      "Vue d'ensemble avec KPI globaux sur les comptes, les licences et l'activite M365",
+      "Analyse des licences avec stock disponible, sur-allocation, alertes critiques et niveau de risque",
+      "Segmentation des utilisateurs entre actifs, inactifs, jamais connectes, comptes techniques et comptes desactives",
+      "Fiche detail utilisateur en drillthrough avec profil 360, dates clefs, score d'utilisation et licences affectees",
+      "Mesures DAX pour suivre l'adoption applicative sur Outlook, Teams, Word, Excel, PowerPoint et OneNote",
+      "Tooltips metier et bandeaux UX pour contextualiser les indicateurs et prioriser les actions de nettoyage"
+    ],
+    "challenges": "Les principaux defis techniques ont ete la gestion des valeurs nulles dans Azure AD, les doublons de comptage provoques par le fanout du modele, et la distinction entre authentification Azure AD et activite reelle M365. Ces points ont ete resolus par des colonnes DAX plus defensives (COALESCE, SWITCH), un DISTINCTCOUNT sur l'identifiant d'affectation pour fiabiliser les KPI de licences, et une logique de classification qui combine les donnees de connexion et les rapports d'usage Graph. Le projet a aussi demande un travail de modelisation pour conserver une granularite correcte entre utilisateurs, activite et affectations, tout en maintenant des pages de drillthrough et des tooltips coherents.",
+    "learnings": "Ce projet m'a permis d'approfondir la construction d'un modele semantique Power BI en source control, l'integration de Microsoft Graph API en Power Query M avec pagination et OAuth2, ainsi que la maitrise du contexte de filtre DAX sur un schema en etoile. Il m'a aussi appris a concevoir un dashboard d'administration oriente decision, ou la qualite des classifications et la lisibilite des indicateurs sont aussi importantes que la justesse technique.",
+    "links": {
+      "github": "https://github.com/kafuicharbeleklu/M365.git",
+      "live": null,
+      "demo": null
+    },
+    "assets": {
+      "screenshots": [],
+      "has_video": false
+    },
+    "keywords": [
+      "Power BI",
+      "Microsoft 365",
+      "Microsoft Graph API",
+      "Azure AD",
+      "DAX",
+      "Power Query",
+      "PBIP",
+      "TMDL",
+      "Dashboard BI",
+      "License Management",
+      "User Activity Analytics",
+      "Capacity Risk Monitoring"
+    ]
+  }
+]

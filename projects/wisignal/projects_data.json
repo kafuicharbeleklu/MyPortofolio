@@ -1,0 +1,58 @@
+[
+  {
+    "title": "Simulateur de Couverture Wi-Fi - Neemba CAT Togo",
+    "slug": "simulateur-couverture-wifi-neemba-cat",
+    "tagline": "Simulateur web autonome pour visualiser et optimiser la couverture Wi-Fi sur plan.",
+    "description": "Conçu pour la DSI de Neemba CAT Togo, ce simulateur aide à évaluer la couverture Wi-Fi sur un site mêlant bureaux, ateliers, hangars et zones extérieures. L'application charge le plan du site, permet de placer des points d'accès, d'annoter les murs et de calculer une heatmap RSSI basée sur un modèle log-distance enrichi. Elle compare plusieurs scénarios de déploiement, calcule des indicateurs de couverture et exporte un rapport PDF exploitable par la direction. Sa valeur ajoutée est de réduire les diagnostics terrain manuels et de fiabiliser la planification avant achat ou réaménagement réseau.",
+    "category": "Dashboard",
+    "status": "Terminé",
+    "duration": null,
+    "role": null,
+    "primary_language": "JavaScript",
+    "tech_stack": {
+      "frontend": [
+        "HTML5",
+        "CSS3",
+        "JavaScript (ES6+)",
+        "Canvas API"
+      ],
+      "backend": [],
+      "database": [],
+      "devops": [],
+      "tools": [
+        "Anthropic Claude API"
+      ]
+    },
+    "features": [
+      "Heatmap RSSI calculée en temps réel sur le plan du site",
+      "Placement interactif des points d'accès avec ajout, déplacement, renommage et suppression",
+      "Annotation manuelle des murs par matériau avec prise en compte de l'atténuation radio",
+      "Import de plans image avec calibration de l'échelle en pixels par mètre",
+      "Comparaison de scénarios de déploiement côte à côte",
+      "Catalogue de modèles AP éditable avec recherche assistée par IA",
+      "Analyse RSSI par zones métiers critiques",
+      "Export PDF de la simulation, des statistiques et des recommandations visuelles"
+    ],
+    "challenges": "Le principal défi était d'obtenir une simulation radio crédible sans backend ni outil spécialisé. Le projet s'appuie sur un modèle log-distance indoor, une carte binaire des murs issue du plan et des annotations manuelles par matériau pour ajuster l'atténuation. Un second enjeu était d'intégrer la recherche de spécifications AP et la génération de rapport dans un fichier HTML autonome ; cela a été résolu via l'API Anthropic côté navigateur et un export Canvas + window.print().",
+    "learnings": "Ce projet a renforcé la maîtrise de Canvas et du calcul géométrique pour des interfaces interactives à forte logique métier. Il a aussi montré comment concevoir une SPA autonome mêlant simulation, reporting et assistance IA sans infrastructure lourde. Enfin, il a apporté une meilleure compréhension des compromis entre modélisation radio théorique et validation terrain.",
+    "links": {
+      "github": null,
+      "live": null,
+      "demo": null
+    },
+    "assets": {
+      "screenshots": [],
+      "has_video": false
+    },
+    "keywords": [
+      "simulation Wi-Fi",
+      "heatmap RSSI",
+      "plan indoor",
+      "Canvas API",
+      "Single Page Application",
+      "catalogue AP",
+      "comparaison de scénarios",
+      "export PDF"
+    ]
+  }
+]
