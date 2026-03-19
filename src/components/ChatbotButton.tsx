@@ -3,6 +3,7 @@ import { MessageCircle, Send, X } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const chatbotApiUrl = (import.meta.env.VITE_CHATBOT_API_URL || '').trim();
+console.log('API URL:', import.meta.env.VITE_CHATBOT_API_URL);
 
 const assistantGreeting =
   "Bonjour ! Je suis l'assistant virtuel de Kafui. Comment puis-je vous aider aujourd'hui ?";
