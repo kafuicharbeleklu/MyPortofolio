@@ -4,7 +4,8 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const base = env.VITE_BASE_PATH || (mode === 'production' ? '/MyPortofolio/' : '/');
+  const repoBase = '/MyPortofolio/';
+  const base = env.VITE_BASE_PATH || (mode === 'production' ? repoBase : '/');
   const usePolling =
     process.platform === 'win32' &&
     process.env.VITE_DISABLE_POLLING !== 'true';
