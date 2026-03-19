@@ -17,7 +17,6 @@ const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
             <button type="button" className="footer-logo" onClick={() => onNavigate('hero')}>
               K · E
             </button>
-            <p className="footer-tagline">{v.footer.tagline}</p>
           </div>
 
           <div className="footer-col">

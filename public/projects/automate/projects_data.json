@@ -1,0 +1,56 @@
+[
+  {
+    "title": "Veeam Backup Report Automation",
+    "slug": "veeam-backup-report-automation",
+    "tagline": "Workflow Power Automate qui transforme les emails Veeam en reporting Excel exploitable.",
+    "description": "Ce projet automatise la collecte des emails de notification Veeam Backup & Replication dans Outlook afin d'alimenter un reporting Excel centralise. Le workflow convertit le contenu HTML des emails en texte exploitable, extrait le nom du job et les indicateurs cles (VMs totales, succes, erreurs, avertissements), puis calcule un taux de reussite. Il ajoute ensuite une ligne dans un tableau Excel Online tout en empechant les doublons grace a un controle par date et nom de job. L'ensemble reduit la saisie manuelle et fiabilise le suivi des sauvegardes.",
+    "category": "Autre",
+    "status": null,
+    "duration": null,
+    "role": null,
+    "tech_stack": {
+      "frontend": [],
+      "backend": [
+        "Microsoft Power Automate",
+        "Azure Logic Apps Workflow Definition"
+      ],
+      "database": [
+        "Excel Online (Business)"
+      ],
+      "devops": [],
+      "tools": [
+        "Office 365 Outlook",
+        "Content Conversion",
+        "Veeam Backup & Replication"
+      ]
+    },
+    "features": [
+      "Declenchement automatique a la reception d'un email Outlook contenant le sujet \"Backup\".",
+      "Conversion du corps HTML en texte brut pour faciliter l'analyse des notifications.",
+      "Extraction automatique du nom du job, du total de VMs, des succes, erreurs et avertissements.",
+      "Calcul du taux de succes a partir des metriques extraites.",
+      "Verification des doublons par date et nom de job avant l'ajout dans Excel.",
+      "Insertion des resultats dans un tableau Excel Online dedie au suivi des sauvegardes."
+    ],
+    "challenges": "Le point sensible est l'extraction de donnees semi-structurees depuis plusieurs formats d'emails Veeam, avec nettoyage des suffixes de retry, puis l'idempotence lors de l'ecriture dans Excel. Le flow le resout avec une conversion HTML-vers-texte, des expressions conditionnelles de type split/trim/replace, et une verification de doublon sur Date et JobName avant insertion.",
+    "learnings": "Ce projet montre une bonne maitrise des workflows low-code robustes, de l'analyse de contenu non structure dans Power Automate et de la mise en place d'une logique d'idempotence sur une source de stockage simple comme Excel.",
+    "links": {
+      "github": null,
+      "live": null,
+      "demo": null
+    },
+    "assets": {
+      "screenshots": [],
+      "has_video": false
+    },
+    "keywords": [
+      "power automate",
+      "veeam backup",
+      "excel online",
+      "office 365",
+      "workflow automation",
+      "backup reporting",
+      "low-code"
+    ]
+  }
+]

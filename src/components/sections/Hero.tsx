@@ -132,7 +132,7 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
   const skillItems = [...v.skills.stripItems].sort((a, b) =>
     a.localeCompare(b, lang === 'FR' ? 'fr' : 'en', { sensitivity: 'base' })
   );
-  const marqueeItems = [...skillItems, ...skillItems];
+  const marqueeItems = [...skillItems, ...skillItems, ...skillItems];
   const profileImage = withBaseAsset(assetPaths.profilePortrait);
 
   useEffect(() => {
@@ -209,58 +209,79 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
           <div className="kp-hero-main">
             <div className="kp-hero-eyebrow">{v.hero.eyebrow}</div>
 
-            <div
-              className="kp-hero-showcase"
-              onMouseEnter={() => setIsHoveringLeft(true)}
-              onMouseLeave={() => setIsHoveringLeft(false)}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`left-${activeLeftSlide.id}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={leftTransition}
-                  className="kp-hero-showcase-panel"
-                >
-                  {activeLeftSlide.type === 'statement' ? (
-                    <div className="kp-hero-statement-card">
-                      <div className="kp-hero-slide-label">{activeLeftSlide.label}</div>
-                      <h1 className="kp-hero-h1">{renderStatementTitle(lang)}</h1>
-                      <p className="kp-hero-body">{activeLeftSlide.body}</p>
-                    </div>
-                  ) : (
-                    <div className="kp-hero-card-frame">
-                      <article className="kp-hero-portrait-card">
-                        <button
-                          type="button"
-                          className="kp-hero-portrait-media kp-hero-portrait-media-btn"
-                          onClick={() => setIsPortraitOpen(true)}
-                          aria-label={
-                            lang === 'FR'
-                              ? 'Afficher la photo en plein ecran'
-                              : 'Open portrait in full screen'
-                          }
-                        >
-                          <img
-                            src={profileImage}
-                            alt={
+            <div className="hero-carousel-shell">
+              <div
+                className="kp-hero-showcase"
+                onMouseEnter={() => setIsHoveringLeft(true)}
+                onMouseLeave={() => setIsHoveringLeft(false)}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`left-${activeLeftSlide.id}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={leftTransition}
+                    className="kp-hero-showcase-panel"
+                  >
+                    {activeLeftSlide.type === 'statement' ? (
+                      <div className="kp-hero-statement-card">
+                        <div className="kp-hero-slide-label">{activeLeftSlide.label}</div>
+                        <h1 className="kp-hero-h1">{renderStatementTitle(lang)}</h1>
+                        <p className="kp-hero-body">{activeLeftSlide.body}</p>
+                      </div>
+                    ) : (
+                      <div className="kp-hero-card-frame">
+                        <article className="kp-hero-portrait-card">
+                          <button
+                            type="button"
+                            className="kp-hero-portrait-media kp-hero-portrait-media-btn"
+                            onClick={() => setIsPortraitOpen(true)}
+                            aria-label={
                               lang === 'FR'
-                                ? 'Portrait de Kafui Charbel Eklu'
-                                : 'Portrait of Kafui Charbel Eklu'
+                                ? 'Afficher la photo en plein ecran'
+                                : 'Open portrait in full screen'
                             }
-                            className="kp-hero-portrait-image"
-                          />
-                        </button>
-                        <div className="kp-hero-portrait-meta">
-                          <span className="kp-hero-portrait-name">Kafui Charbel Eklu</span>
-                          <span className="kp-hero-portrait-role">{activeLeftSlide.role}</span>
-                        </div>
-                      </article>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
+                          >
+                            <img
+                              src={profileImage}
+                              alt={
+                                lang === 'FR'
+                                  ? 'Portrait de Kafui Charbel Eklu'
+                                  : 'Portrait of Kafui Charbel Eklu'
+                              }
+                              className="kp-hero-portrait-image"
+                            />
+                          </button>
+                          <div className="kp-hero-portrait-meta">
+                            <span className="kp-hero-portrait-name">Kafui Charbel Eklu</span>
+                            <span className="kp-hero-portrait-role">{activeLeftSlide.role}</span>
+                          </div>
+                        </article>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <div
+                className="carousel-dots hero-carousel-dots"
+                aria-label={lang === 'FR' ? 'Navigation du slide principal' : 'Primary slide navigation'}
+              >
+                {leftHeroSlides.map((slide, index) => (
+                  <button
+                    key={`left-dot-${slide.id}`}
+                    type="button"
+                    className={`carousel-dot ${leftSlide === index ? 'active' : ''}`}
+                    onClick={() => setLeftSlide(index)}
+                    aria-label={
+                      lang === 'FR'
+                        ? `Afficher le slide ${index + 1}`
+                        : `Show slide ${index + 1}`
+                    }
+                    aria-current={leftSlide === index ? 'true' : undefined}
+                  />
+                ))}
+              </div>
             </div>
 
             <div className="kp-hero-btns">
@@ -279,37 +300,58 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
               onMouseEnter={() => setIsHoveringRight(true)}
               onMouseLeave={() => setIsHoveringRight(false)}
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`right-${activeRightSlide.idx}`}
-                  initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
-                  transition={rightTransition}
-                  className="hero-slide-inner"
+              <div className="hero-carousel-shell hero-carousel-shell-right">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`right-${activeRightSlide.idx}`}
+                    initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
+                    transition={rightTransition}
+                    className="hero-slide-inner"
+                  >
+                    <p className="hr-idx">{activeRightSlide.idx}</p>
+                    <div>
+                      <div className="hr-pill">{activeRightSlide.pill}</div>
+                      <p className="hr-quote">{activeRightSlide.quote}</p>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+                <div
+                  className="carousel-dots hero-carousel-dots hero-carousel-dots-right"
+                  aria-label={lang === 'FR' ? 'Navigation du slide secondaire' : 'Secondary slide navigation'}
                 >
-                  <p className="hr-idx">{activeRightSlide.idx}</p>
-                  <div>
-                    <div className="hr-pill">{activeRightSlide.pill}</div>
-                    <p className="hr-quote">{activeRightSlide.quote}</p>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+                  {rightHeroSlides.map((slide, index) => (
+                    <button
+                      key={`right-dot-${slide.idx}`}
+                      type="button"
+                      className={`carousel-dot ${rightSlide === index ? 'active' : ''}`}
+                      onClick={() => setRightSlide(index)}
+                      aria-label={
+                        lang === 'FR'
+                          ? `Afficher le slide secondaire ${index + 1}`
+                          : `Show secondary slide ${index + 1}`
+                      }
+                      aria-current={rightSlide === index ? 'true' : undefined}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="hr-bot">
               <div className="ib">
                 <small>{lang === 'FR' ? 'Certification' : 'Certification'}</small>
-                <a
-                  href="https://wazuh.com/ambassadors/kafui-charbel-eklu/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="wazuh-badge"
-                >
-                  Wazuh Security
-                  <br />
-                  Ambassador
-                </a>
+                <div className="wazuh-cert-row">
+                  <a
+                    href="https://wazuh.com/ambassadors/kafui-charbel-eklu/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="wazuh-cert-btn"
+                  >
+                    Wazuh Ambassador {'\u2197'}
+                  </a>
+                </div>
               </div>
 
               <div className="ib">

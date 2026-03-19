@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import BackToTop from './components/BackToTop';
 import ChatbotButton from './components/ChatbotButton';
@@ -11,6 +11,7 @@ import Footer from './components/sections/Footer';
 import LanguageToggle from './components/LanguageToggle';
 import { assetPaths, withBaseAsset } from './config/assets';
 import { getSkillsData, getTimelineData, getFormationData } from './data';
+import useMobileScrollDots from './hooks/useMobileScrollDots';
 import usePrefersReducedMotion from './hooks/usePrefersReducedMotion';
 import { Language, t } from './translations';
 
@@ -26,11 +27,10 @@ type ReferenceContact = {
 type ProjectFilterKey =
   | 'all'
   | 'cybersecurity'
-  | 'telecom'
   | 'network'
-  | 'linux'
   | 'cloud'
-  | 'infrastructure';
+  | 'infrastructure'
+  | 'bi';
 
 type ProjectTag = {
   label: string;
@@ -49,7 +49,234 @@ type ProjectCardData = {
   background: string;
   accent: string;
   icon: 'shield' | 'signal' | 'domain' | 'server' | 'cloud' | 'grid';
+  coverImage?: string | null;
   detailPage: boolean;
+};
+
+type StructuredProjectData = {
+  title: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  category: string;
+  status: string | null;
+  duration: string | null;
+  role: string | null;
+  primary_language?: string;
+  tech_stack: {
+    frontend?: string[];
+    backend?: string[];
+    database?: string[];
+    devops?: string[];
+    tools?: string[];
+  };
+  features: string[];
+  challenges: string;
+  learnings: string;
+  links: {
+    github: string | null;
+    live: string | null;
+    demo: string | null;
+  };
+  assets: {
+    screenshots: string[];
+    has_video: boolean;
+  };
+  keywords: string[];
+};
+
+type StructuredProjectConfig = {
+  dataPath: string;
+  client: Record<Language, string>;
+  role: Record<Language, string> | null;
+  environment: Record<Language, string> | null;
+  fallbackStatus: Record<Language, string> | null;
+  relatedIds: string[];
+  resourceLinks?: {
+    href: string;
+    label: Record<Language, string>;
+  }[];
+};
+
+const structuredProjectConfigs: Record<string, StructuredProjectConfig> = {
+  automate: {
+    dataPath: 'projects/automate/projects_data.json',
+    client: {
+      FR: 'Power Platform / Microsoft 365',
+      EN: 'Power Platform / Microsoft 365',
+    },
+    role: {
+      FR: 'Conception de workflow et logique de reporting',
+      EN: 'Workflow design and reporting logic',
+    },
+    environment: {
+      FR: 'Power Automate · Outlook · Excel Online',
+      EN: 'Power Automate · Outlook · Excel Online',
+    },
+    fallbackStatus: {
+      FR: 'Operationnel',
+      EN: 'Operational',
+    },
+    relatedIds: ['azure-infra', 'siem'],
+  },
+  'azure-infra': {
+    dataPath: 'projects/azure-infra/projects_data.json',
+    client: {
+      FR: 'Microsoft 365 / Azure AD',
+      EN: 'Microsoft 365 / Azure AD',
+    },
+    role: {
+      FR: 'Conception BI, modele semantique et integration Graph',
+      EN: 'BI design, semantic model, and Graph integration',
+    },
+    environment: {
+      FR: 'Power BI · Graph API · DAX',
+      EN: 'Power BI · Graph API · DAX',
+    },
+    fallbackStatus: {
+      FR: 'Termine',
+      EN: 'Completed',
+    },
+    relatedIds: ['automate', 'wisignal'],
+  },
+  wisignal: {
+    dataPath: 'projects/wisignal/projects_data.json',
+    client: {
+      FR: 'Neemba CAT Togo',
+      EN: 'Neemba CAT Togo',
+    },
+    role: {
+      FR: 'Conception produit et logique de simulation radio',
+      EN: 'Product design and radio simulation logic',
+    },
+    environment: {
+      FR: 'HTML · CSS · JavaScript · Canvas',
+      EN: 'HTML · CSS · JavaScript · Canvas',
+    },
+    fallbackStatus: {
+      FR: 'Termine',
+      EN: 'Completed',
+    },
+    relatedIds: ['moov', 'azure-infra'],
+  },
+  printtrack: {
+    dataPath: 'projects/printtrack/projects_data.json',
+    client: {
+      FR: 'Application interne de gestion des consommables',
+      EN: 'Internal consumables management app',
+    },
+    role: {
+      FR: 'Conception front-end et logique metier stock/couts',
+      EN: 'Front-end design and stock/cost business logic',
+    },
+    environment: {
+      FR: 'React · TypeScript · Vite',
+      EN: 'React · TypeScript · Vite',
+    },
+    fallbackStatus: {
+      FR: 'MVP',
+      EN: 'MVP',
+    },
+    relatedIds: ['tracker', 'smartprocure'],
+  },
+  smartprocure: {
+    dataPath: 'projects/smartprocure/projects_data.json',
+    client: {
+      FR: 'Aide a la decision achats assistee par IA',
+      EN: 'AI-assisted procurement decision support',
+    },
+    role: {
+      FR: 'Solo developer',
+      EN: 'Solo developer',
+    },
+    environment: {
+      FR: 'React · Gemini API · local-first',
+      EN: 'React · Gemini API · local-first',
+    },
+    fallbackStatus: {
+      FR: 'MVP',
+      EN: 'MVP',
+    },
+    relatedIds: ['printtrack', 'tracker'],
+  },
+  tracker: {
+    dataPath: 'projects/tracker/projects_data.json',
+    client: {
+      FR: 'Pilotage parc IT et operations internes',
+      EN: 'IT fleet and internal operations tracking',
+    },
+    role: {
+      FR: 'Solo fullstack developer',
+      EN: 'Solo fullstack developer',
+    },
+    environment: {
+      FR: 'React · Node.js · Azure AD',
+      EN: 'React · Node.js · Azure AD',
+    },
+    fallbackStatus: {
+      FR: 'En cours',
+      EN: 'In progress',
+    },
+    relatedIds: ['printtrack', 'smartprocure'],
+  },
+  mfa: {
+    dataPath: 'projects/mfa/projects_data.json',
+    client: {
+      FR: 'Projet personnel de durcissement Ubuntu',
+      EN: 'Personal Ubuntu hardening project',
+    },
+    role: {
+      FR: 'Documentation et mise en oeuvre',
+      EN: 'Implementation and technical documentation',
+    },
+    environment: {
+      FR: 'Ubuntu · PAM · OpenSSH',
+      EN: 'Ubuntu · PAM · OpenSSH',
+    },
+    fallbackStatus: {
+      FR: 'Termine',
+      EN: 'Completed',
+    },
+    relatedIds: ['siem', 'ubuntu_ldap'],
+    resourceLinks: [
+      {
+        href: 'projects/mfa/exports/rapport_mfa.pdf',
+        label: {
+          FR: 'Rapport PDF',
+          EN: 'PDF report',
+        },
+      },
+    ],
+  },
+  ubuntu_ldap: {
+    dataPath: 'projects/ubuntu_ldap/projects_data.json',
+    client: {
+      FR: 'Projet personnel Active Directory sous Ubuntu',
+      EN: 'Personal Ubuntu Active Directory project',
+    },
+    role: {
+      FR: 'Conception, configuration et documentation',
+      EN: 'Design, configuration, and documentation',
+    },
+    environment: {
+      FR: 'Ubuntu · Samba AD · Kerberos',
+      EN: 'Ubuntu · Samba AD · Kerberos',
+    },
+    fallbackStatus: {
+      FR: 'Termine',
+      EN: 'Completed',
+    },
+    relatedIds: ['orabank', 'mfa'],
+    resourceLinks: [
+      {
+        href: 'projects/ubuntu_ldap/exports/rapport_ldap.pdf',
+        label: {
+          FR: 'Rapport PDF',
+          EN: 'PDF report',
+        },
+      },
+    ],
+  },
 };
 
 const renderProjectIcon = (icon: ProjectCardData['icon'], accent: string) => {
@@ -160,7 +387,7 @@ const projectCatalog: ProjectCardData[] = [
       FR: 'Télécom',
       EN: 'Telecom',
     },
-    categoryKey: 'telecom',
+    categoryKey: 'network',
     tags: [
       { label: 'VSAT', className: 'tt' },
       { label: 'Migration', className: 'tt' },
@@ -218,7 +445,7 @@ const projectCatalog: ProjectCardData[] = [
       FR: 'Linux',
       EN: 'Linux',
     },
-    categoryKey: 'linux',
+    categoryKey: 'infrastructure',
     tags: [
       { label: 'Ubuntu', className: 'tl2' },
       { label: 'DNS/DHCP', className: 'tl2' },
@@ -276,7 +503,7 @@ const projectCatalog: ProjectCardData[] = [
       FR: 'Infrastructure',
       EN: 'Infrastructure',
     },
-    categoryKey: 'infrastructure',
+    categoryKey: 'network',
     tags: [
       { label: 'Cisco', className: 'ts' },
       { label: 'GNS3', className: 'ts' },
@@ -294,6 +521,22 @@ function App() {
   const [activeSection, setActiveSection] = useState('');
   const [projectSearch, setProjectSearch] = useState('');
   const [projectFilter, setProjectFilter] = useState<ProjectFilterKey>('all');
+  const [isProjectFilterMenuOpen, setIsProjectFilterMenuOpen] = useState(false);
+  const [structuredProjectData, setStructuredProjectData] = useState<
+    Record<string, StructuredProjectData | null>
+  >({});
+  const [projectImageLightbox, setProjectImageLightbox] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
+  const [referenceCarouselIndex, setReferenceCarouselIndex] = useState(0);
+  const [referenceCarouselOffset, setReferenceCarouselOffset] = useState(0);
+  const [detailCarouselIndex, setDetailCarouselIndex] = useState<Record<string, number>>({});
+  const [detailCarouselOffset, setDetailCarouselOffset] = useState<Record<string, number>>({});
+  const referenceCarouselRef = useRef<HTMLDivElement | null>(null);
+  const detailCarouselRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const projectFilterMenuRef = useRef<HTMLDivElement | null>(null);
+  const carouselTouchStartX = useRef<Record<string, number | null>>({});
   const [lang, setLang] = useState<Language>(() => {
     if (typeof window === 'undefined') {
       return 'FR';
@@ -388,11 +631,288 @@ function App() {
   });
   const sortAlphabetically = <T,>(items: T[], getValue: (item: T) => string) =>
     [...items].sort((a, b) => alphaCollator.compare(getValue(a), getValue(b)));
+  const sortByDateDesc = <T extends { sortDate: string }>(items: T[]) =>
+    [...items].sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime());
   const getSortedTags = (tags: ProjectTag[]) =>
     sortAlphabetically(tags, (tag) => tag.label);
   const sortedSkillsData = sortAlphabetically(skillsData, (skill) => skill.title);
-  const sortedFormationData = sortAlphabetically(formationData, (item) => item.title);
+  const sortedTimelineData = sortByDateDesc(timelineData);
+  const sortedFormationData = sortByDateDesc(formationData);
   const sortedReferencesData = sortAlphabetically(referencesData, (reference) => reference.name);
+  const skillsCarousel = useMobileScrollDots(sortedSkillsData.length);
+  const educationCarousel = useMobileScrollDots(sortedFormationData.length);
+  const catalogProjects: ProjectCardData[] = [
+    ...projectCatalog.map((project) =>
+      project.id === 'azure-infra'
+        ? {
+            ...project,
+            sortDate: 202502,
+            title: {
+              FR: 'Dashboard M365 Power BI',
+              EN: 'M365 Power BI Dashboard',
+            },
+            companyLine: {
+              FR: 'Microsoft 365 · Power BI',
+              EN: 'Microsoft 365 · Power BI',
+            },
+            desc: {
+              FR: 'Dashboard Power BI pour suivre activite, licences et risques de capacite sur un tenant M365 / Azure AD.',
+              EN: 'Power BI dashboard to monitor activity, licenses, and capacity risks across a Microsoft 365 / Azure AD tenant.',
+            },
+            category: {
+              FR: 'Cloud & BI',
+              EN: 'Cloud & BI',
+            },
+            tags: [
+              { label: 'Power BI', className: 'tb' },
+              { label: 'Graph API', className: 'tb' },
+              { label: 'DAX', className: 'tb' },
+            ],
+            background: '#24324A',
+            accent: '#83B8FF',
+            detailPage: true,
+          }
+        : project
+    ),
+    {
+      id: 'automate',
+      sortDate: 202503,
+      title: {
+        FR: 'Automatisation reporting Veeam',
+        EN: 'Veeam reporting automation',
+      },
+      companyLine: {
+        FR: 'Power Platform · Outlook / Excel Online',
+        EN: 'Power Platform · Outlook / Excel Online',
+      },
+      desc: {
+        FR: 'Workflow Power Automate qui transforme les emails Veeam en reporting Excel exploitable sans saisie manuelle.',
+        EN: 'Power Automate workflow that turns Veeam emails into actionable Excel reporting without manual entry.',
+      },
+      category: {
+        FR: 'Automatisation',
+        EN: 'Automation',
+      },
+      categoryKey: 'bi',
+      tags: [
+        { label: 'Power Automate', className: 'tb' },
+        { label: 'Veeam', className: 'tb' },
+        { label: 'Excel Online', className: 'tb' },
+      ],
+      background: '#273744',
+      accent: '#86C6E2',
+      icon: 'grid',
+      detailPage: true,
+    },
+    {
+      id: 'wisignal',
+      sortDate: 202504,
+      title: {
+        FR: 'Simulateur couverture Wi-Fi',
+        EN: 'Wi-Fi coverage simulator',
+      },
+      companyLine: {
+        FR: 'Neemba CAT Togo · Simulation reseau',
+        EN: 'Neemba CAT Togo · Network simulation',
+      },
+      desc: {
+        FR: 'Application web autonome pour placer des bornes, modeliser les murs et visualiser une heatmap RSSI sur plan.',
+        EN: 'Standalone web app to place access points, model walls, and visualize an RSSI heatmap on floor plans.',
+      },
+      category: {
+        FR: 'Infrastructure Wi-Fi',
+        EN: 'Wi-Fi Infrastructure',
+      },
+      categoryKey: 'infrastructure',
+      tags: [
+        { label: 'Wi-Fi', className: 'tt' },
+        { label: 'Canvas API', className: 'tt' },
+        { label: 'RSSI', className: 'tt' },
+      ],
+      background: '#2C3444',
+      accent: '#8CC2FF',
+      icon: 'signal',
+      detailPage: true,
+    },
+    {
+      id: 'printtrack',
+      sortDate: 202603190811,
+      title: {
+        FR: 'PrintTrack',
+        EN: 'PrintTrack',
+      },
+      companyLine: {
+        FR: 'Gestion de stock impression',
+        EN: 'Print supply inventory',
+      },
+      desc: {
+        FR: "Dashboard de gestion des consommables d'impression, des couts et des alertes par departement.",
+        EN: 'Dashboard for print consumables, cost tracking, and department-level alerts.',
+      },
+      category: {
+        FR: 'Operations IT',
+        EN: 'IT Operations',
+      },
+      categoryKey: 'bi',
+      tags: [
+        { label: 'React 19', className: 'tb' },
+        { label: 'Recharts', className: 'tb' },
+        { label: 'Inventory', className: 'tb' },
+      ],
+      background: '#314146',
+      accent: '#8ED1C2',
+      icon: 'grid',
+      detailPage: true,
+    },
+    {
+      id: 'smartprocure',
+      sortDate: 202603190759,
+      title: {
+        FR: 'SmartProcure AI',
+        EN: 'SmartProcure AI',
+      },
+      companyLine: {
+        FR: 'Analyse fournisseurs assistee par IA',
+        EN: 'AI-assisted supplier analysis',
+      },
+      desc: {
+        FR: "Plateforme d'analyse comparative de devis fournisseurs avec extraction Gemini et moteur de recommandation.",
+        EN: 'Procurement comparison platform with Gemini extraction and recommendation engine.',
+      },
+      category: {
+        FR: 'Cloud & IA',
+        EN: 'Cloud & AI',
+      },
+      categoryKey: 'bi',
+      tags: [
+        { label: 'Gemini', className: 'tb' },
+        { label: 'Procurement', className: 'tb' },
+        { label: 'React', className: 'tb' },
+      ],
+      background: '#2F3046',
+      accent: '#B5A0FF',
+      icon: 'cloud',
+      detailPage: true,
+    },
+    {
+      id: 'tracker',
+      sortDate: 202603190814,
+      title: {
+        FR: 'Neemba Tracker',
+        EN: 'Neemba Tracker',
+      },
+      companyLine: {
+        FR: 'Parc IT · audits · depenses',
+        EN: 'IT fleet · audits · finance',
+      },
+      desc: {
+        FR: "SPA metier de suivi du parc IT, des demandes, des audits et des depenses avec RBAC et Azure AD.",
+        EN: 'Business SPA for IT fleet, approvals, audits, and expense tracking with RBAC and Azure AD.',
+      },
+      category: {
+        FR: 'Infrastructure & Ops',
+        EN: 'Infrastructure & Ops',
+      },
+      categoryKey: 'bi',
+      tags: [
+        { label: 'Azure AD', className: 'tt' },
+        { label: 'RBAC', className: 'tt' },
+        { label: 'React 19', className: 'tt' },
+      ],
+      background: '#273742',
+      accent: '#83C1E6',
+      icon: 'domain',
+      detailPage: true,
+    },
+    {
+      id: 'mfa',
+      sortDate: 202603190818,
+      title: {
+        FR: 'MFA Ubuntu avec Google Authenticator',
+        EN: 'Ubuntu MFA with Google Authenticator',
+      },
+      companyLine: {
+        FR: 'Ubuntu 22.04+ · securite systeme',
+        EN: 'Ubuntu 22.04+ · system security',
+      },
+      desc: {
+        FR: "Guide technique de configuration MFA sur Ubuntu avec PAM, Google Authenticator et extension aux connexions SSH.",
+        EN: 'Technical guide to configure MFA on Ubuntu with PAM, Google Authenticator, and SSH integration.',
+      },
+      category: {
+        FR: 'Cybersecurite',
+        EN: 'Cybersecurity',
+      },
+      categoryKey: 'cybersecurity',
+      tags: [
+        { label: 'MFA', className: 'tc' },
+        { label: 'Ubuntu', className: 'tc' },
+        { label: 'PAM', className: 'tc' },
+      ],
+      background: '#29353B',
+      accent: '#84D7B5',
+      icon: 'shield',
+      detailPage: true,
+    },
+    {
+      id: 'ubuntu_ldap',
+      sortDate: 202603190822,
+      title: {
+        FR: 'Active Directory sur Ubuntu',
+        EN: 'Active Directory on Ubuntu',
+      },
+      companyLine: {
+        FR: 'Ubuntu · Samba AD · Kerberos',
+        EN: 'Ubuntu · Samba AD · Kerberos',
+      },
+      desc: {
+        FR: "Mise en place pas a pas d'un controleur de domaine Samba/LDAP sur Ubuntu avec Kerberos et DNS integres.",
+        EN: 'Step-by-step deployment of a Samba/LDAP domain controller on Ubuntu with integrated Kerberos and DNS.',
+      },
+      category: {
+        FR: 'Linux & Identite',
+        EN: 'Linux & Identity',
+      },
+      categoryKey: 'infrastructure',
+      tags: [
+        { label: 'Samba AD', className: 'tl2' },
+        { label: 'Kerberos', className: 'tl2' },
+        { label: 'LDAP', className: 'tl2' },
+      ],
+      background: '#2E3431',
+      accent: '#97D7A4',
+      icon: 'server',
+      detailPage: true,
+    },
+  ];
+  const getStructuredScreenshotItems = (
+    project: ProjectCardData,
+    detail: StructuredProjectData | null | undefined
+  ) =>
+    detail
+      ? (detail.assets.screenshots ?? [])
+          .filter((path) => Boolean(path))
+          .filter((path) => !/^[A-Za-z]:[\\/]/.test(path))
+          .map((path) => ({
+            src: /^https?:\/\//.test(path) ? path : withBaseAsset(path),
+            alt: `${project.title[lang]} screenshot`,
+          }))
+      : [];
+
+  const catalogProjectsWithCovers = catalogProjects.map((project) => ({
+    ...project,
+    coverImage: getStructuredScreenshotItems(project, structuredProjectData[project.id])[0]?.src ?? null,
+  }));
+
+  const projectById = catalogProjectsWithCovers.reduce<Record<string, ProjectCardData>>((acc, project) => {
+    acc[project.id] = project;
+    return acc;
+  }, {});
+  const recentMainProjects = [...catalogProjectsWithCovers]
+    .filter((project) => project.detailPage)
+    .sort((a, b) => b.sortDate - a.sortDate || alphaCollator.compare(a.title[lang], b.title[lang]))
+    .slice(0, 3);
+  const featuredMainProject = projectById.siem ?? recentMainProjects[0];
   const bioExpertiseItems = sortAlphabetically(
     [
       {
@@ -426,25 +946,24 @@ function App() {
   );
   const projectFilters = [
     { key: 'all' as const, label: lang === 'FR' ? 'Tous' : 'All' },
+    { key: 'cloud' as const, label: 'Cloud' },
     {
       key: 'cybersecurity' as const,
       label: lang === 'FR' ? 'Cybersécurité' : 'Cybersecurity',
     },
-    { key: 'telecom' as const, label: lang === 'FR' ? 'Télécom' : 'Telecom' },
-    { key: 'network' as const, label: lang === 'FR' ? 'Réseau' : 'Network' },
-    { key: 'linux' as const, label: 'Linux' },
-    { key: 'cloud' as const, label: 'Cloud' },
     {
       key: 'infrastructure' as const,
       label: lang === 'FR' ? 'Infrastructure' : 'Infrastructure',
     },
+    { key: 'network' as const, label: lang === 'FR' ? 'Réseaux' : 'Networks' },
+    { key: 'bi' as const, label: lang === 'FR' ? 'Pilotage & BI' : 'Management & BI' },
   ];
-  const sortedProjectFilters = [
-    projectFilters[0],
-    ...sortAlphabetically(projectFilters.slice(1), (filter) => filter.label),
-  ];
+  const sortedProjectFilters = projectFilters;
+  const activeProjectFilterLabel =
+    sortedProjectFilters.find((filter) => filter.key === projectFilter)?.label ??
+    sortedProjectFilters[0].label;
   const normalizedProjectSearch = projectSearch.trim().toLowerCase();
-  const filteredProjects = projectCatalog
+  const filteredProjects = catalogProjectsWithCovers
     .filter((project) => {
       const matchesFilter =
         projectFilter === 'all' || project.categoryKey === projectFilter;
@@ -510,6 +1029,112 @@ function App() {
     }
   }, [lang]);
 
+  useEffect(() => {
+    if (!isProjectFilterMenuOpen) {
+      return;
+    }
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target;
+
+      if (
+        projectFilterMenuRef.current &&
+        target instanceof Node &&
+        !projectFilterMenuRef.current.contains(target)
+      ) {
+        setIsProjectFilterMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleDocumentClick);
+
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  }, [isProjectFilterMenuOpen]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadStructuredProjects = async () => {
+      const entries = await Promise.all(
+        Object.entries(structuredProjectConfigs).map(async ([projectId, config]) => {
+          try {
+            const response = await fetch(withBaseAsset(config.dataPath));
+            if (!response.ok) {
+              throw new Error(`Unable to load ${config.dataPath}`);
+            }
+
+            const payload = (await response.json()) as StructuredProjectData[];
+            return [projectId, payload[0] ?? null] as const;
+          } catch (error) {
+            console.error(`Failed to load structured project data for ${projectId}`, error);
+            return [projectId, null] as const;
+          }
+        })
+      );
+
+      if (!isCancelled) {
+        setStructuredProjectData(Object.fromEntries(entries));
+      }
+    };
+
+    loadStructuredProjects();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncReferenceCarousel = () => {
+      if (!isMobilePeekCarousel()) {
+        setReferenceCarouselOffset(0);
+        return;
+      }
+
+      setReferenceCarouselOffset(
+        measurePeekCarouselOffset(referenceCarouselRef.current, referenceCarouselIndex)
+      );
+    };
+
+    syncReferenceCarousel();
+    window.addEventListener('resize', syncReferenceCarousel);
+
+    return () => {
+      window.removeEventListener('resize', syncReferenceCarousel);
+    };
+  }, [referenceCarouselIndex]);
+
+  useEffect(() => {
+    const syncDetailCarousels = () => {
+      if (!isMobilePeekCarousel()) {
+        setDetailCarouselOffset({});
+        return;
+      }
+
+      setDetailCarouselOffset((current) => {
+        const next = { ...current };
+
+        Object.keys(structuredProjectConfigs).forEach((projectId) => {
+          next[projectId] = measurePeekCarouselOffset(
+            detailCarouselRefs.current[projectId] ?? null,
+            detailCarouselIndex[projectId] ?? 0
+          );
+        });
+
+        return next;
+      });
+    };
+
+    syncDetailCarousels();
+    window.addEventListener('resize', syncDetailCarousels);
+
+    return () => {
+      window.removeEventListener('resize', syncDetailCarousels);
+    };
+  }, [detailCarouselIndex, structuredProjectData, activePage]);
+
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
     if (activePage !== 'main') {
@@ -524,8 +1149,16 @@ function App() {
 
   const handleDiscoverProfile = () => scrollToSection('about');
   const handleViewProjects = () => scrollToSection('projets');
+  const selectProjectFilter = (filterKey: ProjectFilterKey) => {
+    setProjectFilter(filterKey);
+    setIsProjectFilterMenuOpen(false);
+  };
 
   const showDetail = (id: string) => {
+    setDetailCarouselIndex((current) => ({
+      ...current,
+      [id]: 0,
+    }));
     setActivePage(id);
     window.scrollTo({ top: 0, behavior: getScrollBehavior() });
   };
@@ -535,6 +1168,438 @@ function App() {
     setTimeout(() => {
       scrollToElement('projets');
     }, 100);
+  };
+
+  const isMobilePeekCarousel = () =>
+    typeof window !== 'undefined' && window.innerWidth <= 768;
+
+  const measurePeekCarouselOffset = (
+    shell: HTMLDivElement | null,
+    activeIndex: number
+  ) => {
+    if (!shell || !isMobilePeekCarousel()) {
+      return 0;
+    }
+
+    const track = shell.querySelector<HTMLElement>('.mobile-peek-track');
+    const items = Array.from(
+      shell.querySelectorAll('.mobile-peek-item')
+    ) as HTMLElement[];
+
+    if (!track || !items.length) {
+      return 0;
+    }
+
+    const safeIndex = Math.max(0, Math.min(activeIndex, items.length - 1));
+    const activeItem = items[safeIndex];
+    const activeCenter = activeItem.offsetLeft + activeItem.offsetWidth / 2;
+    const rawOffset = activeCenter - shell.clientWidth / 2;
+    const maxOffset = Math.max(0, track.scrollWidth - shell.clientWidth);
+
+    return Math.max(0, Math.min(rawOffset, maxOffset));
+  };
+
+  const stepReferenceCarousel = (direction: 1 | -1) => {
+    setReferenceCarouselIndex((current) =>
+      Math.max(0, Math.min(current + direction, sortedReferencesData.length - 1))
+    );
+  };
+
+  const stepDetailCarousel = (projectId: string, totalItems: number, direction: 1 | -1) => {
+    setDetailCarouselIndex((current) => {
+      const currentIndex = current[projectId] ?? 0;
+      return {
+        ...current,
+        [projectId]: Math.max(0, Math.min(currentIndex + direction, totalItems - 1)),
+      };
+    });
+  };
+
+  const handleCarouselTouchStart = (key: string) => (event: React.TouchEvent<HTMLDivElement>) => {
+    carouselTouchStartX.current[key] = event.changedTouches[0]?.clientX ?? null;
+  };
+
+  const handleReferenceCarouselTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const startX = carouselTouchStartX.current.references;
+    const endX = event.changedTouches[0]?.clientX ?? null;
+    carouselTouchStartX.current.references = null;
+
+    if (startX === null || endX === null) {
+      return;
+    }
+
+    const delta = endX - startX;
+    if (Math.abs(delta) < 36) {
+      return;
+    }
+
+    stepReferenceCarousel(delta < 0 ? 1 : -1);
+  };
+
+  const handleDetailCarouselTouchEnd =
+    (projectId: string, totalItems: number) => (event: React.TouchEvent<HTMLDivElement>) => {
+      const startX = carouselTouchStartX.current[projectId];
+      const endX = event.changedTouches[0]?.clientX ?? null;
+      carouselTouchStartX.current[projectId] = null;
+
+      if (startX === null || endX === null) {
+        return;
+      }
+
+      const delta = endX - startX;
+      if (Math.abs(delta) < 36) {
+        return;
+      }
+
+      stepDetailCarousel(projectId, totalItems, delta < 0 ? 1 : -1);
+    };
+
+  const goToReferenceCard = (index: number) => {
+    setReferenceCarouselIndex(index);
+  };
+
+  const goToDetailCarouselItem = (projectId: string, index: number) => {
+    setDetailCarouselIndex((current) => ({
+      ...current,
+      [projectId]: index,
+    }));
+  };
+
+  const renderStructuredProjectPage = (projectId: string) => {
+    const project = projectById[projectId];
+    const config = structuredProjectConfigs[projectId];
+
+    if (!project || !config) {
+      return null;
+    }
+
+    const detail = structuredProjectData[projectId];
+    const isLoading = !(projectId in structuredProjectData);
+    const techStackItems = detail
+      ? sortAlphabetically(
+          Array.from(
+            new Set<string>(
+              [
+                ...(detail.tech_stack.frontend ?? []),
+                ...(detail.tech_stack.backend ?? []),
+                ...(detail.tech_stack.database ?? []),
+                ...(detail.tech_stack.devops ?? []),
+                ...(detail.tech_stack.tools ?? []),
+              ].filter((item): item is string => Boolean(item))
+            )
+          ),
+          (item) => item
+        )
+      : [];
+    const keywordItems = detail
+      ? sortAlphabetically(Array.from(new Set<string>(detail.keywords ?? [])), (item) => item)
+      : [];
+    const relatedProjects = config.relatedIds
+      .map((relatedId) => projectById[relatedId])
+      .filter(Boolean);
+    const linkItems = detail
+      ? [
+          detail.links.github
+            ? {
+                href: detail.links.github,
+                label: 'GitHub',
+              }
+            : null,
+          detail.links.live
+            ? {
+                href: detail.links.live,
+                label: lang === 'FR' ? 'Lien live' : 'Live link',
+              }
+            : null,
+        ].filter(Boolean) as { href: string; label: string }[]
+      : [];
+    const resourceLinks =
+      config.resourceLinks?.map((link) => ({
+        href: withBaseAsset(link.href),
+        label: link.label[lang],
+      })) ?? [];
+    const allLinkItems = [...linkItems, ...resourceLinks];
+    const screenshotItems = getStructuredScreenshotItems(project, detail);
+    const activeScreenshotIndex = detailCarouselIndex[projectId] ?? 0;
+    const metaItems = [
+      {
+        label: lang === 'FR' ? 'Categorie' : 'Category',
+        value: detail?.category || project.category[lang],
+      },
+      {
+        label: lang === 'FR' ? 'Role' : 'Role',
+        value:
+          detail?.role ||
+          config.role?.[lang] ||
+          (lang === 'FR' ? 'Non precise' : 'Not specified'),
+      },
+      {
+        label: lang === 'FR' ? 'Environnement' : 'Environment',
+        value:
+          config.environment?.[lang] ||
+          detail?.primary_language ||
+          (lang === 'FR' ? 'Non precise' : 'Not specified'),
+      },
+      {
+        label: lang === 'FR' ? 'Statut' : 'Status',
+        value:
+          detail?.status ||
+          config.fallbackStatus?.[lang] ||
+          (lang === 'FR' ? 'Documente' : 'Documented'),
+        success: Boolean(detail?.status || config.fallbackStatus),
+      },
+    ];
+
+    return (
+      <div className={`page ${activePage === projectId ? 'active' : ''}`} id={`page-${projectId}`} key={projectId}>
+        <nav className="nav">
+          <button
+            type="button"
+            className="nav-logo nav-control-btn"
+            onClick={() => scrollToSection('hero')}
+          >
+            K · E
+          </button>
+          <button
+            type="button"
+            className="nav-back nav-control-btn"
+            onClick={backToMain}
+          >
+            {lang === 'FR' ? '← Retour aux projets' : '← Back to projects'}
+          </button>
+          <div className="nav-tag">{project.category[lang]}</div>
+        </nav>
+        <div className="sec">
+          <div className="det-hero">
+            <div className="det-vis" style={{ background: project.background }}>
+              {screenshotItems.length ? (
+                <button
+                  type="button"
+                  className="det-vis-media-btn"
+                  onClick={() => setProjectImageLightbox(screenshotItems[0])}
+                  aria-label={
+                    lang === 'FR'
+                      ? `Afficher l'image de couverture du projet ${project.title.FR}`
+                      : `View the cover image of the ${project.title.EN} project`
+                  }
+                >
+                  <img
+                    className="det-vis-media"
+                    src={screenshotItems[0].src}
+                    alt={screenshotItems[0].alt}
+                    loading="lazy"
+                  />
+                </button>
+              ) : (
+                renderProjectIcon(project.icon, project.accent)
+              )}
+            </div>
+            <div>
+              <p className="det-eye">{project.companyLine[lang]}</p>
+              <h1 className="det-title">{project.title[lang]}</h1>
+              <p className="det-co">{config.client[lang]}</p>
+              <p className="det-desc">{detail?.tagline ?? project.desc[lang]}</p>
+              <div className="det-meta">
+                {metaItems.map((item) => (
+                  <div className="dm" key={`${projectId}-${item.label}`}>
+                    <small>{item.label}</small>
+                    <p style={item.success ? { color: '#4CAF7D' } : undefined}>{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="det-body">
+            <div>
+              <div className="blk">
+                <h3 className="blk-ttl">{lang === 'FR' ? "Vue d'ensemble" : 'Overview'}</h3>
+                <p>{detail?.description ?? project.desc[lang]}</p>
+              </div>
+              <div className="blk">
+                <h3 className="blk-ttl">{lang === 'FR' ? 'Fonctionnalites cles' : 'Key features'}</h3>
+                {detail?.features?.length ? (
+                  <ul className="steps">
+                    {detail.features.map((feature) => (
+                      <li key={`${projectId}-${feature}`}>{feature}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>
+                    {isLoading
+                      ? lang === 'FR'
+                        ? 'Synchronisation des details en cours...'
+                        : 'Syncing project details...'
+                      : lang === 'FR'
+                        ? 'Aucune fonctionnalite detaillee pour le moment.'
+                        : 'No detailed features available yet.'}
+                  </p>
+                )}
+              </div>
+              {detail?.challenges ? (
+                <div className="blk">
+                  <h3 className="blk-ttl">{lang === 'FR' ? 'Defis traites' : 'Challenges addressed'}</h3>
+                  <p>{detail.challenges}</p>
+                </div>
+              ) : null}
+              {screenshotItems.length ? (
+                <div className="blk">
+                  <h3 className="blk-ttl">{lang === 'FR' ? 'Captures projet' : 'Project screenshots'}</h3>
+                  <div
+                    className="detail-shot-carousel-shell"
+                    ref={(node) => {
+                      detailCarouselRefs.current[projectId] = node;
+                    }}
+                    onTouchStart={handleCarouselTouchStart(projectId)}
+                    onTouchEnd={handleDetailCarouselTouchEnd(projectId, screenshotItems.length)}
+                  >
+                    <div
+                      className="detail-shot-grid mobile-peek-track"
+                      style={{
+                        transform: `translateX(-${detailCarouselOffset[projectId] ?? 0}px)`,
+                      }}
+                    >
+                      {screenshotItems.map((shot, index) => (
+                        <button
+                          key={`${projectId}-shot-${index + 1}`}
+                          type="button"
+                          className="detail-shot-card mobile-peek-item"
+                          onClick={() =>
+                            setProjectImageLightbox({
+                              src: shot.src,
+                              alt: `${shot.alt} ${index + 1}`,
+                            })
+                          }
+                          aria-label={
+                            lang === 'FR'
+                              ? `Afficher la capture ${index + 1} du projet ${project.title.FR}`
+                              : `View screenshot ${index + 1} of the ${project.title.EN} project`
+                          }
+                        >
+                          <img
+                            className="detail-shot-image"
+                            src={shot.src}
+                            alt={`${shot.alt} ${index + 1}`}
+                            loading="lazy"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {screenshotItems.length > 1 ? (
+                    <div
+                      className="carousel-dots detail-shot-dots"
+                      aria-label={lang === 'FR' ? 'Position dans les captures projet' : 'Project screenshots position'}
+                    >
+                      {screenshotItems.map((shot, index) => (
+                        <button
+                          key={`${projectId}-shot-dot-${index + 1}`}
+                          type="button"
+                          className={`carousel-dot ${activeScreenshotIndex === index ? 'active' : ''}`}
+                          onClick={() => goToDetailCarouselItem(projectId, index)}
+                          aria-label={
+                            lang === 'FR'
+                              ? `Voir la capture ${index + 1}`
+                              : `View screenshot ${index + 1}`
+                          }
+                          aria-current={activeScreenshotIndex === index ? 'true' : undefined}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              {detail?.learnings ? (
+                <div className="blk">
+                  <h3 className="blk-ttl">{lang === 'FR' ? 'Apprentissages' : 'Key learnings'}</h3>
+                  <p>{detail.learnings}</p>
+                </div>
+              ) : null}
+            </div>
+            <div>
+              <div className="sb-blk">
+                <div className="sb-lbl">{lang === 'FR' ? 'Technologies' : 'Technologies'}</div>
+                {techStackItems.length ? (
+                  <div className="tags" style={{ gap: '0.375rem' }}>
+                    {techStackItems.map((item) => (
+                      <span className="tag" key={`${projectId}-tech-${item}`}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="detail-empty-copy">
+                    {lang === 'FR'
+                      ? 'Le dossier projet est branche, mais la stack detaillee n est pas encore renseignee.'
+                      : 'The project folder is connected, but the detailed stack is not filled in yet.'}
+                  </p>
+                )}
+              </div>
+              <div className="sb-blk">
+                <div className="sb-lbl">{lang === 'FR' ? 'Mots-cles' : 'Keywords'}</div>
+                {keywordItems.length ? (
+                  <div className="tags" style={{ gap: '0.375rem' }}>
+                    {keywordItems.map((item) => (
+                      <span className="tag" key={`${projectId}-keyword-${item}`}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="detail-empty-copy">
+                    {lang === 'FR' ? 'Aucun mot-cle supplementaire.' : 'No additional keywords.'}
+                  </p>
+                )}
+              </div>
+              <div className="sb-blk">
+                <div className="sb-lbl">{lang === 'FR' ? 'Liens utiles' : 'Useful links'}</div>
+                {allLinkItems.length ? (
+                  <div className="detail-link-group">
+                    {allLinkItems.map((link) => (
+                      <a
+                        key={`${projectId}-${link.label}`}
+                        href={link.href}
+                        className="kp-btn-line detail-link-btn"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="detail-empty-copy">
+                    {lang === 'FR'
+                      ? 'Le detail provient du dossier projet local, sans lien externe publie pour l instant.'
+                      : 'Details are sourced from the local project folder, with no published external link yet.'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="rel">
+            <h3>{lang === 'FR' ? 'Projets similaires' : 'Related projects'}</h3>
+            <div className="rel-grid" style={{ marginTop: '1rem' }}>
+              {relatedProjects.map((relatedProject) => (
+                <button
+                  key={`${projectId}-related-${relatedProject.id}`}
+                  type="button"
+                  className="rel-card card-action"
+                  onClick={() => showDetail(relatedProject.id)}
+                  aria-label={
+                    lang === 'FR'
+                      ? `Voir le projet ${relatedProject.title.FR}`
+                      : `View the ${relatedProject.title.EN} project`
+                  }
+                >
+                  <h4>{relatedProject.title[lang]}</h4>
+                  <p>{relatedProject.companyLine[lang]}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -593,9 +1658,14 @@ function App() {
             <h2 className="sec-ttl">{v.skills.title}.</h2>
             <span className="sec-sub">{(v.skills as any).subtitle ?? v.skills.sub}</span>
           </div>
-          <div className="skills-grid">
+          <div className="skills-grid" ref={skillsCarousel.containerRef}>
             {sortedSkillsData.map((skill, i) => (
-              <div className="skill-card" key={i}>
+              <div
+                className="skill-card"
+                key={i}
+                ref={skillsCarousel.setItemRef(i)}
+                data-carousel-index={i}
+              >
                 <div className="skill-icon" style={{ background: skill.bg }}>
                   {skill.icon}
                 </div>
@@ -604,6 +1674,27 @@ function App() {
               </div>
             ))}
           </div>
+          {sortedSkillsData.length > 1 ? (
+            <div
+              className="carousel-dots mobile-scroll-dots"
+              aria-label={lang === 'FR' ? 'Position dans les compétences' : 'Skills position'}
+            >
+              {sortedSkillsData.map((skill, index) => (
+                <button
+                  key={`skill-dot-${skill.title}`}
+                  type="button"
+                  className={`carousel-dot ${skillsCarousel.activeIndex === index ? 'active' : ''}`}
+                  onClick={() => skillsCarousel.scrollToIndex(index)}
+                  aria-label={
+                    lang === 'FR'
+                      ? `Voir la compétence ${index + 1}`
+                      : `View skill ${index + 1}`
+                  }
+                  aria-current={skillsCarousel.activeIndex === index ? 'true' : undefined}
+                />
+              ))}
+            </div>
+          ) : null}
         </section>
 
         {/* MON PARCOURS */}
@@ -614,9 +1705,12 @@ function App() {
             <span className="sec-sub">{(v.experience as any).subtitle ?? v.experience.sub}</span>
           </div>
           <div className="timeline">
-            {getTimelineData(lang).map((item, i) => (
+            {sortedTimelineData.map((item, i) => (
               <div className={`tl-item ${item.isCurrent ? 'current' : ''}`} key={i}>
-                <p className="tl-date">{item.date}</p>
+                <div className="tl-date-row">
+                  <p className="tl-date">{item.date}</p>
+                  <span className="tl-duration">{item.duration}</span>
+                </div>
                 <h3 className="tl-title">{item.title}</h3>
                 <p className="tl-co">{item.company}</p>
                 <p className="tl-desc">{item.desc}</p>
@@ -632,9 +1726,14 @@ function App() {
             <h2 className="sec-ttl">{educationSection.title}.</h2>
             <span className="sec-sub">{educationSection.subtitle}</span>
           </div>
-          <div className="edu-grid">
+          <div className="edu-grid" ref={educationCarousel.containerRef}>
             {sortedFormationData.map((item, i) => (
-              <div className="edu-card" key={i}>
+              <div
+                className="edu-card"
+                key={i}
+                ref={educationCarousel.setItemRef(i)}
+                data-carousel-index={i}
+              >
                 <p className="edu-year">{item.year}</p>
                 <h3 className="edu-title">{item.title}</h3>
                 <p className="edu-school" dangerouslySetInnerHTML={{ __html: item.school }}></p>
@@ -642,10 +1741,34 @@ function App() {
               </div>
             ))}
           </div>
+          {sortedFormationData.length > 1 ? (
+            <div
+              className="carousel-dots mobile-scroll-dots"
+              aria-label={lang === 'FR' ? 'Position dans la formation' : 'Education position'}
+            >
+              {sortedFormationData.map((item, index) => (
+                <button
+                  key={`education-dot-${item.title}`}
+                  type="button"
+                  className={`carousel-dot ${educationCarousel.activeIndex === index ? 'active' : ''}`}
+                  onClick={() => educationCarousel.scrollToIndex(index)}
+                  aria-label={
+                    lang === 'FR'
+                      ? `Voir la formation ${index + 1}`
+                      : `View education entry ${index + 1}`
+                  }
+                  aria-current={educationCarousel.activeIndex === index ? 'true' : undefined}
+                />
+              ))}
+            </div>
+          ) : null}
         </section>
 
         {/* MES RÉALISATIONS */}
-        <Projects lang={lang}
+        <Projects
+          lang={lang}
+          featuredProject={featuredMainProject}
+          recentProjects={recentMainProjects}
           onProjectClick={showDetail}
           onViewAll={() => {
             setActivePage('all-projects');
@@ -659,19 +1782,54 @@ function App() {
             <h2 className="sec-ttl">{referencesSection.title}.</h2>
             <span className="sec-sub">{referencesSection.subtitle}</span>
           </div>
-          <div className="ref-grid">
+          <div
+            className="ref-carousel-shell"
+            ref={referenceCarouselRef}
+            onTouchStart={handleCarouselTouchStart('references')}
+            onTouchEnd={handleReferenceCarouselTouchEnd}
+          >
+            <div
+              className="ref-grid mobile-peek-track"
+              style={{ transform: `translateX(-${referenceCarouselOffset}px)` }}
+            >
             {sortedReferencesData.map((reference) => (
-              <div className="ref-card" key={reference.phoneHref}>
-                <div className="ref-av">{reference.initials}</div>
-                <p className="ref-name">{reference.name}</p>
-                <p className="ref-org">{reference.organization}</p>
-                <p className="ref-role">{reference.role}</p>
-                <p className="ref-contact">
-                  <a className="ref-contact-link" href={reference.phoneHref}>
-                    {reference.phoneDisplay}
-                  </a>
-                </p>
+              <div className="ref-card mobile-peek-item" key={reference.phoneHref}>
+                <div className="ref-card-head">
+                  <div className="ref-av">{reference.initials}</div>
+                  <div className="ref-card-meta">
+                    <p className="ref-name">{reference.name}</p>
+                    <p className="ref-org">{reference.organization}</p>
+                  </div>
+                </div>
+                <div className="ref-card-body">
+                  <p className="ref-role">{reference.role}</p>
+                  <p className="ref-contact">
+                    <a className="ref-contact-link" href={reference.phoneHref}>
+                      {reference.phoneDisplay}
+                    </a>
+                  </p>
+                </div>
               </div>
+            ))}
+            </div>
+          </div>
+          <div
+            className="carousel-dots ref-carousel-dots"
+            aria-label={lang === 'FR' ? 'Position dans les references' : 'Reference position'}
+          >
+            {sortedReferencesData.map((reference, index) => (
+              <button
+                key={`ref-dot-${reference.phoneHref}`}
+                type="button"
+                className={`carousel-dot ${referenceCarouselIndex === index ? 'active' : ''}`}
+                onClick={() => goToReferenceCard(index)}
+                aria-label={
+                  lang === 'FR'
+                    ? `Voir la reference ${index + 1}`
+                    : `View reference ${index + 1}`
+                }
+                aria-current={referenceCarouselIndex === index ? 'true' : undefined}
+              />
             ))}
           </div>
         </section>
@@ -955,6 +2113,10 @@ function App() {
         </div>
       </div>
 
+      {Object.keys(structuredProjectConfigs).map((projectId) =>
+        renderStructuredProjectPage(projectId)
+      )}
+
       {/* BIOGRAPHIE */}
       <div className={`page ${activePage === 'biography' ? 'active' : ''}`} id="page-biography">
         <nav className="nav">
@@ -984,9 +2146,22 @@ function App() {
             <p className="bio-hero-eyebrow">Biographie</p>
             <h1 className="bio-hero-name">EKLU Kafui<br />Charbel</h1>
             <p className="bio-hero-role">Administrateur Digital Workplace & Infrastructure</p>
-            <div className="bio-hero-location">
-              <div className="dot-g"></div>
-              <span>Lomé, Togo · Mobilité internationale</span>
+            <div className="bio-hero-badges">
+              <span className="badge-location">
+                <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M8 1.5C5.5 1.5 3.5 3.5 3.5 6c0 3.5 4.5 8.5 4.5 8.5s4.5-5 4.5-8.5c0-2.5-2-4.5-4.5-4.5zm0 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill="currentColor"/>
+                </svg>
+                {lang === 'FR' ? 'Lomé, Togo' : 'Lome, Togo'}
+              </span>
+              <span className="badge-mobility">
+                <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+                  <path d="M8 2c0 0-3 2.5-3 6s3 6 3 6" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+                  <path d="M8 2c0 0 3 2.5 3 6s-3 6-3 6" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+                  <path d="M2 8h12" stroke="currentColor" strokeWidth="1.2"/>
+                </svg>
+                {lang === 'FR' ? 'Mobilité internationale' : 'International mobility'}
+              </span>
             </div>
           </div>
         </section>
@@ -1024,22 +2199,6 @@ function App() {
               <p>Au-delà de l'administration courante, j'aime transformer un besoin métier en solution concrète. J'ai notamment conçu une <strong>application de gestion de matériel IT</strong> avec suivi des équipements, affectations, restitutions et workflow de validation à trois niveaux, afin d'apporter plus de traçabilité, de gouvernance et de lisibilité aux opérations internes.</p>
               <p>Mon passage chez <strong>Orabank</strong> a renforcé cette exigence. Dans un environnement critique, j'ai consolidé mes bases sur Windows Server, Active Directory, GPO et le support avancé, avec une logique de fiabilité, de sécurité et de continuité de service qui guide encore aujourd'hui ma manière de travailler.</p>
               <p>Je m'intéresse particulièrement à l'intersection entre <strong>cybersécurité, open source et intelligence artificielle</strong>, avec un attrait fort pour la détection, l'automatisation et les architectures évolutives. Mon ambition est de faire converger ces trois dimensions dans des projets IT à forte valeur, localement comme à l'international.</p>
-              {false && (
-                <>
-              {/* Biography copy refreshed from Data_perso/Des.txt */}
-              <p className="bio-story-lead">Professionnel togolais de l'IT, je conÃ§ois des environnements numÃ©riques fiables, utiles et lisibles, avec une approche orientÃ©e impact.</p>
-              <p>SpÃ©cialisÃ© en <strong>Digital Workplace, support IT et optimisation des environnements de travail</strong>, j'Ã©volue dans des contextes oÃ¹ la performance quotidienne compte autant que la soliditÃ© technique. Mon fil conducteur reste le mÃªme : simplifier l'usage, structurer les process et faire gagner du temps aux Ã©quipes.</p>
-              <p>Au-delÃ  de l'administration courante, j'aime transformer un besoin mÃ©tier en solution concrÃ¨te. J'ai notamment conÃ§u une <strong>application de gestion de matÃ©riel IT</strong> avec suivi des Ã©quipements, affectations, restitutions et workflow de validation Ã  trois niveaux, afin d'apporter plus de traÃ§abilitÃ©, de gouvernance et de lisibilitÃ© aux opÃ©rations internes.</p>
-              <p>Mon passage chez <strong>Orabank</strong> a renforcÃ© cette exigence. Dans un environnement critique, j'ai consolidÃ© mes bases sur Windows Server, Active Directory, GPO et le support avancÃ©, avec une logique de fiabilitÃ©, de sÃ©curitÃ© et de continuitÃ© de service qui guide encore aujourd'hui ma maniÃ¨re de travailler.</p>
-              <p>Je m'intÃ©resse particuliÃ¨rement Ã  l'intersection entre <strong>cybersÃ©curitÃ©, open source et intelligence artificielle</strong>, avec un attrait fort pour la dÃ©tection, l'automatisation et les architectures Ã©volutives. Mon ambition est de faire converger ces trois dimensions dans des projets IT Ã  forte valeur, localement comme Ã  l'international.</p>
-              <p>En parallÃ¨le, je dÃ©veloppe aussi une dimension crÃ©ative Ã  travers la <strong>musique Afrobeats</strong>, oÃ¹ j'explore les Ã©motions, les relations humaines et le storytelling en franÃ§ais comme en Ã©wÃ©. Cette double culture, technique et artistique, nourrit une approche plus complÃ¨te, plus humaine et plus inventive de mon mÃ©tier.</p>
-              <p className="bio-story-lead">Professionnel togolais de l'IT, j'allie rigueur technique, innovation et créativité.</p>
-              <p>Spécialisé en <strong>Digital Workplace et optimisation des environnements numériques</strong>, j'ai développé une forte capacité à concevoir des solutions efficaces dans des environnements dynamiques, en combinant <strong>adaptabilité, rigueur technique et sens de l'innovation</strong>.</p>
-              <p>Mon immersion chez <strong>Orabank</strong> a été le catalyseur de mon expertise. Confronté à l'exigence d'un environnement bancaire critique, j'ai maîtrisé en un temps record l'architecture Windows Server (Active Directory, DFS, GPO, WDS). Ce qui était un défi est devenu une compétence socle.</p>
-              <p>Passionné par les technologies émergentes, je m'intéresse particulièrement à l'intersection entre <strong>cybersécurité et intelligence artificielle</strong>, avec l'ambition de développer des solutions intelligentes capables d'anticiper et de répondre aux menaces modernes.</p>
-              <p>Au-delà de mon expertise technique, je développe également une dimension créative à travers la <strong>musique Afrobeats</strong>, où j'explore des thématiques humaines et culturelles en français et en éwé — un profil rare qui allie analyse, créativité et sensibilité.</p>
-                </>
-              )}
             </div>
             <div className="bio-story-side">
               <div className="bio-milestone">
@@ -1209,6 +2368,60 @@ function App() {
                 />
               </label>
 
+              <div className="project-filter-mobile-row">
+                <div
+                  className={`project-filter-dropdown ${isProjectFilterMenuOpen ? 'open' : ''}`}
+                  ref={projectFilterMenuRef}
+                >
+                  <button
+                    type="button"
+                    className="project-filter-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded={isProjectFilterMenuOpen}
+                    aria-label={lang === 'FR' ? 'Filtrer les projets' : 'Filter projects'}
+                    onClick={() => setIsProjectFilterMenuOpen((current) => !current)}
+                  >
+                    <span>{activeProjectFilterLabel}</span>
+                    <svg
+                      className="project-filter-trigger-icon"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M4 6.5L8 10L12 6.5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  {isProjectFilterMenuOpen && (
+                    <div
+                      className="project-filter-menu"
+                      role="listbox"
+                      aria-label={lang === 'FR' ? 'Options de filtre projet' : 'Project filter options'}
+                    >
+                      {sortedProjectFilters.map((filter) => (
+                        <button
+                          key={`mobile-filter-${filter.key}`}
+                          type="button"
+                          role="option"
+                          aria-selected={projectFilter === filter.key}
+                          className={`project-filter-option ${projectFilter === filter.key ? 'active' : ''}`}
+                          onClick={() => selectProjectFilter(filter.key)}
+                        >
+                          {filter.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div
                 className="project-filter-bar"
                 role="group"
@@ -1219,7 +2432,7 @@ function App() {
                     key={filter.key}
                     type="button"
                     className={`project-filter-btn ${projectFilter === filter.key ? 'active' : ''}`}
-                    onClick={() => setProjectFilter(filter.key)}
+                    onClick={() => selectProjectFilter(filter.key)}
                   >
                     {filter.label}
                   </button>
@@ -1249,16 +2462,16 @@ function App() {
                       }
                     >
                       <div className="pj-vis" style={{ background: project.background }}>
-                        <div
-                          className="cat-b"
-                          style={{
-                            background: `${project.accent}33`,
-                            color: project.accent,
-                          }}
-                        >
-                          {project.category[lang]}
-                        </div>
-                        {renderProjectIcon(project.icon, project.accent)}
+                        {project.coverImage ? (
+                          <img
+                            className="project-card-cover"
+                            src={project.coverImage}
+                            alt={project.title[lang]}
+                            loading="lazy"
+                          />
+                        ) : (
+                          renderProjectIcon(project.icon, project.accent)
+                        )}
                       </div>
                       <div className="pj-body">
                         <h3 className="pj-title">{project.title[lang]}</h3>
@@ -1279,16 +2492,16 @@ function App() {
                   ) : (
                     <article key={project.id} className="pj-card project-card-static">
                       <div className="pj-vis" style={{ background: project.background }}>
-                        <div
-                          className="cat-b"
-                          style={{
-                            background: `${project.accent}33`,
-                            color: project.accent,
-                          }}
-                        >
-                          {project.category[lang]}
-                        </div>
-                        {renderProjectIcon(project.icon, project.accent)}
+                        {project.coverImage ? (
+                          <img
+                            className="project-card-cover"
+                            src={project.coverImage}
+                            alt={project.title[lang]}
+                            loading="lazy"
+                          />
+                        ) : (
+                          renderProjectIcon(project.icon, project.accent)
+                        )}
                       </div>
                       <div className="pj-body">
                         <h3 className="pj-title">{project.title[lang]}</h3>
@@ -1386,6 +2599,42 @@ function App() {
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {projectImageLightbox && (
+          <motion.div
+            className="kp-portrait-lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
+            onClick={() => setProjectImageLightbox(null)}
+          >
+            <button
+              type="button"
+              className="kp-portrait-lightbox-close"
+              onClick={() => setProjectImageLightbox(null)}
+              aria-label={lang === 'FR' ? "Fermer l'image du projet" : 'Close project image'}
+            >
+              X
+            </button>
+            <motion.div
+              className="kp-portrait-lightbox-dialog"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.24 }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <img
+                src={projectImageLightbox.src}
+                alt={projectImageLightbox.alt}
+                className="kp-portrait-lightbox-image"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <LanguageToggle lang={lang} onToggle={setLang} />
       <ChatbotButton />

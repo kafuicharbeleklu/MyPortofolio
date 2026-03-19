@@ -177,10 +177,6 @@ const About: React.FC<AboutProps> = ({ lang, onReadMore }) => {
                     <br />
                     Togo
                   </big>
-                  <em>
-                    <div className="dot-g"></div>
-                    {lang === 'FR' ? 'Mobilité internationale' : 'International mobility'}
-                  </em>
                 </motion.div>
               )}
               {statIndex % 2 === 1 && (
