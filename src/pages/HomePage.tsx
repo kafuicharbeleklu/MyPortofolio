@@ -181,7 +181,7 @@ const HomePage: React.FC<HomePageProps> = ({
           <li><a href="#refs" className={activeSection === 'refs' ? 'active' : ''} aria-current={activeSection === 'refs' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('refs'); }}>{v.nav.references}</a></li>
           <li><a href="#contact" className={activeSection === 'contact' ? 'active' : ''} aria-current={activeSection === 'contact' ? 'page' : undefined} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>{v.nav.contact}</a></li>
         </ul>
-        <div className="nav-tag">{lang === 'FR' ? 'LomÃ©, Togo' : 'Lome, Togo'}</div>
+        <div className="nav-tag">{lang === 'FR' ? 'Lomé, Togo' : 'Lome, Togo'}</div>
       </nav>
 
       <MobileNav
