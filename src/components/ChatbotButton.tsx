@@ -24,11 +24,16 @@ const githubPagesMissingKeyMessage =
   "Le chatbot IA n'est pas disponible sur cette version GitHub Pages. Utilisez plutôt l'email ou LinkedIn pour me contacter.";
 const chatbotPanelId = 'chatbot-panel';
 const chatbotTitleId = 'chatbot-title';
+const maxSessionMessages = 10;
 const rateLimitMessage = 'Limite de messages atteinte, réessayez plus tard.';
 const genericFailureMessage =
   "Une erreur réseau est survenue. Vérifiez l'URL du worker Cloudflare puis réessayez.";
 const temporaryServiceMessage =
   "Le service IA est en cours de mise à jour. Réessayez dans quelques instants.";
+const demoLimitMessage = 'Limite de la démo atteinte. Contactez-moi directement.';
+const directEmail = 'charbelkafuieklu@gmail.com';
+const directPhoneHref = 'tel:+22870664225';
+const directPhoneLabel = '+228 70 66 42 25';
 
 type ChatMessage = {
   text: string;
@@ -94,19 +99,23 @@ const ChatbotButton: React.FC = () => {
   );
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [sentCount, setSentCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const remainingMessages = Math.max(0, maxSessionMessages - sentCount);
+  const isSessionLimitReached = sentCount >= maxSessionMessages;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) {
+    if (!input.trim() || isLoading || isSessionLimitReached) {
       return;
     }
 
     const userMessage = input.trim();
     setInput('');
+    setSentCount((prev) => prev + 1);
     setMessages((prev) => [...prev, { text: userMessage, isUser: true }]);
 
     if (!isChatAvailable) {
@@ -217,18 +226,32 @@ const ChatbotButton: React.FC = () => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Écrivez un message..."
-                disabled={isLoading}
+                disabled={isLoading || isSessionLimitReached}
                 aria-label="Message à envoyer"
               />
               <button
                 type="button"
                 className="chat-send-btn"
                 onClick={handleSend}
-                disabled={isLoading}
+                disabled={isLoading || isSessionLimitReached}
                 aria-label="Envoyer le message"
               >
                 <Send size={18} />
               </button>
+              <div className="chat-meta">
+                <p className="chat-remaining-count">
+                  {remainingMessages}/{maxSessionMessages} messages restants
+                </p>
+                {isSessionLimitReached && (
+                  <div className="chat-limit-note">
+                    <p>{demoLimitMessage}</p>
+                    <div className="chat-limit-links">
+                      <a href={`mailto:${directEmail}`}>{directEmail}</a>
+                      <a href={directPhoneHref}>{directPhoneLabel}</a>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="chat-unavailable">

@@ -3168,7 +3168,49 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   border-top: 1px solid #eee;
   background: #fff;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+}
+.chat-meta {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.chat-remaining-count {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ink-3);
+  text-align: right;
+}
+.chat-limit-note {
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--radius-soft);
+  background: #f7f2ec;
+  border: 1px solid rgba(212, 149, 106, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.chat-limit-note p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.chat-limit-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+.chat-limit-links a {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.chat-limit-links a:hover {
+  text-decoration: underline;
 }
 .chat-unavailable {
   padding: 1rem;
