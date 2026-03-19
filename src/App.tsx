@@ -1515,9 +1515,9 @@ function App() {
     const allLinkItems = [...linkItems, ...resourceLinks];
     const screenshotItems = getStructuredScreenshotItems(project, detail);
     const activeScreenshotIndex = detailCarouselIndex[projectId] ?? 0;
-    const screenshotPages = chunkItems(screenshotItems, 4);
+    const screenshotPages = chunkItems(screenshotItems, 2);
     const activeScreenshotPage = Math.min(
-      Math.floor(activeScreenshotIndex / 4),
+      Math.floor(activeScreenshotIndex / 2),
       Math.max(screenshotPages.length - 1, 0)
     );
     const metaItems = [
@@ -1652,7 +1652,7 @@ function App() {
                         <div className="detail-shot-desktop-page" key={`${projectId}-shot-page-${pageIndex + 1}`}>
                           <div className="detail-shot-grid detail-shot-grid-desktop">
                             {page.map((shot, index) => {
-                              const absoluteIndex = pageIndex * 4 + index;
+                              const absoluteIndex = pageIndex * 2 + index;
 
                               return (
                                 <button
@@ -1745,7 +1745,7 @@ function App() {
                           onClick={() =>
                             goToDetailCarouselItem(
                               projectId,
-                              isMobilePeekCarousel() ? index : index * 4
+                              isMobilePeekCarousel() ? index : index * 2
                             )
                           }
                           aria-label={
