@@ -111,9 +111,15 @@ interface HeroProps {
   lang: Language;
   onDiscoverProfile: () => void;
   onViewProjects: () => void;
+  onViewBiography: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) => {
+const Hero: React.FC<HeroProps> = ({
+  lang,
+  onDiscoverProfile,
+  onViewProjects,
+  onViewBiography,
+}) => {
   const [leftSlide, setLeftSlide] = useState(1);
   const [rightSlide, setRightSlide] = useState(0);
   const [isHoveringLeft, setIsHoveringLeft] = useState(false);
@@ -128,8 +134,12 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
   });
   const prefersReducedMotion = usePrefersReducedMotion();
 
-  const leftTransition = prefersReducedMotion ? { duration: 0 } : { duration: 0.72 };
-  const rightTransition = prefersReducedMotion ? { duration: 0 } : { duration: 0.46 };
+  const leftTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const };
+  const rightTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : { duration: 0.58, ease: [0.22, 1, 0.36, 1] as const };
 
   const v = t[lang];
   const rightHeroSlides = getRightHeroSlides(lang);
@@ -270,9 +280,17 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`left-${activeLeftSlide.id}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={
+                      prefersReducedMotion
+                        ? { opacity: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }
+                        : { opacity: 0, x: 18, y: 8, scale: 0.988, filter: 'blur(6px)' }
+                    }
+                    animate={{ opacity: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }}
+                    exit={
+                      prefersReducedMotion
+                        ? { opacity: 0, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }
+                        : { opacity: 0, x: -18, y: -8, scale: 0.992, filter: 'blur(6px)' }
+                    }
                     transition={leftTransition}
                     className="kp-hero-showcase-panel"
                   >
@@ -305,10 +323,19 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
                               className="kp-hero-portrait-image"
                             />
                           </button>
-                          <div className="kp-hero-portrait-meta">
+                          <button
+                            type="button"
+                            className="kp-hero-portrait-meta kp-hero-portrait-meta-btn"
+                            onClick={onViewBiography}
+                            aria-label={
+                              lang === 'FR'
+                                ? 'Ouvrir la biographie de Kafui Charbel Eklu'
+                                : 'Open Kafui Charbel Eklu biography'
+                            }
+                          >
                             <span className="kp-hero-portrait-name">Kafui Charbel Eklu</span>
                             <span className="kp-hero-portrait-role">{activeLeftSlide.role}</span>
-                          </div>
+                          </button>
                         </article>
                       </div>
                     )}
@@ -358,9 +385,17 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`right-${activeRightSlide.idx}`}
-                    initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
+                    initial={
+                      prefersReducedMotion
+                        ? { opacity: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }
+                        : { opacity: 0, x: 14, y: 8, scale: 0.992, filter: 'blur(5px)' }
+                    }
+                    animate={{ opacity: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }}
+                    exit={
+                      prefersReducedMotion
+                        ? { opacity: 0, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }
+                        : { opacity: 0, x: -14, y: -6, scale: 0.994, filter: 'blur(5px)' }
+                    }
                     transition={rightTransition}
                     className="hero-slide-inner"
                   >
@@ -429,7 +464,15 @@ const Hero: React.FC<HeroProps> = ({ lang, onDiscoverProfile, onViewProjects }) 
 
               <div className="ib">
                 <small>{lang === 'FR' ? 'Contact' : 'Contact'}</small>
-                <p>charbelkafuieklu@gmail.com</p>
+                <p>
+                  <a className="hero-contact-link" href="mailto:charbelkafuieklu@gmail.com">
+                    charbelkafuieklu@gmail.com
+                  </a>
+                  <br />
+                  <a className="hero-contact-link" href="tel:+22870664225">
+                    +228 70664225
+                  </a>
+                </p>
               </div>
             </div>
           </div>

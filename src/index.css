@@ -684,6 +684,9 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   min-height: var(--hero-showcase-height);
   display: flex;
   align-items: stretch;
+  will-change: transform, opacity, filter;
+  transform-origin: center center;
+  backface-visibility: hidden;
 }
 .kp-hero-statement-card {
   flex: 1;
@@ -765,6 +768,18 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   flex-direction: column;
   gap: 0.25rem;
   padding: 1rem 1.125rem 1.125rem;
+}
+.kp-hero-portrait-meta-btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.kp-hero-portrait-meta-btn:hover {
+  background: rgba(232, 216, 207, 0.28);
 }
 .kp-hero-portrait-name {
   font-size: 1rem;
@@ -1049,6 +1064,15 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   font-size: var(--text-md);
   color: var(--ink-2);
   line-height: var(--leading-body);
+}
+.hero-contact-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+.hero-contact-link:hover {
+  color: var(--ink);
+  opacity: 0.8;
 }
 
 
@@ -2910,6 +2934,9 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  will-change: transform, opacity, filter;
+  transform-origin: center center;
+  backface-visibility: hidden;
 }
 .wazuh-cert-row {
   display: flex;
