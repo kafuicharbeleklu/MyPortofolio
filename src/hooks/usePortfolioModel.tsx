@@ -2205,7 +2205,7 @@ const usePortfolioModel = () => {
     </div>
   );
 
-  return { content };
+  return { content, lang, setLang };
 };
 
 export default usePortfolioModel;
