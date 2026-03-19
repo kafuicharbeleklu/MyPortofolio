@@ -11,6 +11,9 @@ export default defineConfig(({mode}) => {
     process.env.VITE_DISABLE_POLLING !== 'true';
   return {
     base,
+    define: {
+      'import.meta.env.VITE_CHATBOT_API_URL': JSON.stringify(process.env.VITE_CHATBOT_API_URL),
+    },
     plugins: [react()],
     optimizeDeps: {
       entries: ['./index.html'],

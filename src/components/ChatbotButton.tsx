@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { motion } from 'motion/react';
 
-const chatbotApiUrl = (import.meta.env.VITE_CHATBOT_API_URL || '').trim();
-console.log('API URL:', import.meta.env.VITE_CHATBOT_API_URL);
+const apiUrl = import.meta.env.VITE_CHATBOT_API_URL;
+console.log('[Chatbot] API URL au démarrage:', apiUrl);
+const chatbotApiUrl = (apiUrl || '').trim();
 
 const assistantGreeting =
   "Bonjour ! Je suis l'assistant virtuel de Kafui. Comment puis-je vous aider aujourd'hui ?";
