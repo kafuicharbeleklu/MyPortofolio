@@ -20,8 +20,10 @@ type ReferenceContact = {
   name: string;
   organization: string;
   role: string;
-  phoneDisplay: string;
-  phoneHref: string;
+  phones: {
+    display: string;
+    href: string;
+  }[];
 };
 
 type ProjectFilterKey =
@@ -530,6 +532,7 @@ function App() {
     alt: string;
   } | null>(null);
   const [referenceCarouselIndex, setReferenceCarouselIndex] = useState(0);
+  const [desktopReferencePage, setDesktopReferencePage] = useState(0);
   const [referenceCarouselOffset, setReferenceCarouselOffset] = useState(0);
   const [detailCarouselIndex, setDetailCarouselIndex] = useState<Record<string, number>>({});
   const [detailCarouselOffset, setDetailCarouselOffset] = useState<Record<string, number>>({});
@@ -589,40 +592,76 @@ function App() {
       name: 'Yan NYAKU',
       organization: 'CFAO Mobility Togo',
       role: 'DSI',
-      phoneDisplay: '+228 93 23 24 65',
-      phoneHref: 'tel:+22893232465',
+      phones: [{ display: '+228 93 23 24 65', href: 'tel:+22893232465' }],
     },
     {
       initials: 'JK',
       name: 'Jerome KPETO',
       organization: 'CORIS BANK INTERNATIONAL TOGO',
       role: 'RSI',
-      phoneDisplay: '+228 96 11 03 56',
-      phoneHref: 'tel:+22896110356',
+      phones: [{ display: '+228 96 11 03 56', href: 'tel:+22896110356' }],
     },
     {
       initials: 'AK',
       name: 'Ange KOBLAN',
       organization: 'FINANCE AFRIQUE / Hub Abidjan',
       role: 'Responsable Regional Support IT',
-      phoneDisplay: '+225 07 07 79 90 81',
-      phoneHref: 'tel:+2250707799081',
+      phones: [{ display: '+225 07 07 79 90 81', href: 'tel:+2250707799081' }],
     },
     {
       initials: 'ED',
       name: 'El Djiba Kolon DIALLO',
       organization: 'DSI - Support & Operations',
       role: 'Chef de projet / Administrateur Systemes et Reseaux',
-      phoneDisplay: '+224 621 08 86 97',
-      phoneHref: 'tel:+224621088697',
+      phones: [{ display: '+224 621 08 86 97', href: 'tel:+224621088697' }],
     },
     {
       initials: 'AD',
       name: 'Alfred Noel DEGBE',
       organization: 'Groupe Orabank',
       role: 'Ingenieur support informatique',
-      phoneDisplay: '+228 90 54 13 91',
-      phoneHref: 'tel:+22890541391',
+      phones: [{ display: '+228 90 54 13 91', href: 'tel:+22890541391' }],
+    },
+    {
+      initials: 'AK',
+      name: 'Afi KOSSI',
+      organization: 'Direction SSE Benin | Togo',
+      role: 'Coordinatrice SSE Benin | Togo',
+      phones: [
+        { display: '+229 01 60 60 68 84', href: 'tel:+2290160606884' },
+        { display: '+228 92 10 48 16', href: 'tel:+22892104816' },
+      ],
+    },
+    {
+      initials: 'BM',
+      name: 'Baboyime MAEBENA',
+      organization: 'Ressources Humaines',
+      role: 'Responsable RH Benin',
+      phones: [
+        { display: '+229 01 21 33 18 06', href: 'tel:+2290121331806' },
+        { display: '+228 91 57 49 04', href: 'tel:+22891574904' },
+      ],
+    },
+    {
+      initials: 'AK',
+      name: 'Ankou KOUNTA',
+      organization: 'Logistique',
+      role: 'Responsable Logistique',
+      phones: [{ display: '+228 99 67 01 84', href: 'tel:+22899670184' }],
+    },
+    {
+      initials: 'DS',
+      name: 'Desire Francois SAVADOGO',
+      organization: 'DSI - Support & Operations',
+      role: 'Expert Systemes et Reseaux',
+      phones: [{ display: '+226 01 14 62 66', href: 'tel:+22601146266' }],
+    },
+    {
+      initials: 'ON',
+      name: 'Ousseni NAITE',
+      organization: 'DSI - Cybersecurite / GRC',
+      role: 'Responsable GRC',
+      phones: [{ display: '+226 70 94 12 14', href: 'tel:+22670941214' }],
     },
   ];
   const alphaCollator = new Intl.Collator(lang === 'FR' ? 'fr' : 'en', {
@@ -633,12 +672,22 @@ function App() {
     [...items].sort((a, b) => alphaCollator.compare(getValue(a), getValue(b)));
   const sortByDateDesc = <T extends { sortDate: string }>(items: T[]) =>
     [...items].sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime());
+  const chunkItems = <T,>(items: T[], size: number) => {
+    const chunks: T[][] = [];
+
+    for (let index = 0; index < items.length; index += size) {
+      chunks.push(items.slice(index, index + size));
+    }
+
+    return chunks;
+  };
   const getSortedTags = (tags: ProjectTag[]) =>
     sortAlphabetically(tags, (tag) => tag.label);
   const sortedSkillsData = sortAlphabetically(skillsData, (skill) => skill.title);
   const sortedTimelineData = sortByDateDesc(timelineData);
   const sortedFormationData = sortByDateDesc(formationData);
   const sortedReferencesData = sortAlphabetically(referencesData, (reference) => reference.name);
+  const desktopReferencePages = chunkItems(sortedReferencesData, 6);
   const skillsCarousel = useMobileScrollDots(sortedSkillsData.length);
   const educationCarousel = useMobileScrollDots(sortedFormationData.length);
   const catalogProjects: ProjectCardData[] = [
@@ -1135,6 +1184,12 @@ function App() {
     };
   }, [detailCarouselIndex, structuredProjectData, activePage]);
 
+  useEffect(() => {
+    setDesktopReferencePage((current) =>
+      Math.min(current, Math.max(desktopReferencePages.length - 1, 0))
+    );
+  }, [desktopReferencePages.length]);
+
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
     if (activePage !== 'main') {
@@ -1257,6 +1312,28 @@ function App() {
   const goToReferenceCard = (index: number) => {
     setReferenceCarouselIndex(index);
   };
+
+  const renderReferenceCard = (reference: ReferenceContact) => (
+    <div className="ref-card mobile-peek-item" key={reference.name}>
+      <div className="ref-card-head">
+        <div className="ref-av">{reference.initials}</div>
+        <div className="ref-card-meta">
+          <p className="ref-name">{reference.name}</p>
+          <p className="ref-org">{reference.organization}</p>
+        </div>
+      </div>
+      <div className="ref-card-body">
+        <p className="ref-role">{reference.role}</p>
+        <div className="ref-contact ref-contact-links">
+          {reference.phones.map((phone) => (
+            <a key={phone.href} className="ref-contact-link" href={phone.href}>
+              {phone.display}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   const goToDetailCarouselItem = (projectId: string, index: number) => {
     setDetailCarouselIndex((current) => ({
@@ -1782,8 +1859,43 @@ function App() {
             <h2 className="sec-ttl">{referencesSection.title}.</h2>
             <span className="sec-sub">{referencesSection.subtitle}</span>
           </div>
+          <div className="ref-desktop-carousel">
+            <div
+              className="ref-desktop-track"
+              style={{ transform: `translateX(-${desktopReferencePage * 100}%)` }}
+            >
+              {desktopReferencePages.map((page, pageIndex) => (
+                <div className="ref-desktop-page" key={`ref-page-${pageIndex}`}>
+                  <div className="ref-grid ref-desktop-grid">
+                    {page.map((reference) => renderReferenceCard(reference))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {desktopReferencePages.length > 1 ? (
+            <div
+              className="carousel-dots ref-desktop-dots"
+              aria-label={lang === 'FR' ? 'Pages des references' : 'Reference pages'}
+            >
+              {desktopReferencePages.map((_, index) => (
+                <button
+                  key={`ref-page-dot-${index}`}
+                  type="button"
+                  className={`carousel-dot ${desktopReferencePage === index ? 'active' : ''}`}
+                  onClick={() => setDesktopReferencePage(index)}
+                  aria-label={
+                    lang === 'FR'
+                      ? `Voir la page ${index + 1} des references`
+                      : `View reference page ${index + 1}`
+                  }
+                  aria-current={desktopReferencePage === index ? 'true' : undefined}
+                />
+              ))}
+            </div>
+          ) : null}
           <div
-            className="ref-carousel-shell"
+            className="ref-carousel-shell ref-mobile-carousel"
             ref={referenceCarouselRef}
             onTouchStart={handleCarouselTouchStart('references')}
             onTouchEnd={handleReferenceCarouselTouchEnd}
@@ -1792,25 +1904,7 @@ function App() {
               className="ref-grid mobile-peek-track"
               style={{ transform: `translateX(-${referenceCarouselOffset}px)` }}
             >
-            {sortedReferencesData.map((reference) => (
-              <div className="ref-card mobile-peek-item" key={reference.phoneHref}>
-                <div className="ref-card-head">
-                  <div className="ref-av">{reference.initials}</div>
-                  <div className="ref-card-meta">
-                    <p className="ref-name">{reference.name}</p>
-                    <p className="ref-org">{reference.organization}</p>
-                  </div>
-                </div>
-                <div className="ref-card-body">
-                  <p className="ref-role">{reference.role}</p>
-                  <p className="ref-contact">
-                    <a className="ref-contact-link" href={reference.phoneHref}>
-                      {reference.phoneDisplay}
-                    </a>
-                  </p>
-                </div>
-              </div>
-            ))}
+              {sortedReferencesData.map((reference) => renderReferenceCard(reference))}
             </div>
           </div>
           <div
@@ -1819,7 +1913,7 @@ function App() {
           >
             {sortedReferencesData.map((reference, index) => (
               <button
-                key={`ref-dot-${reference.phoneHref}`}
+                key={`ref-dot-${reference.name}`}
                 type="button"
                 className={`carousel-dot ${referenceCarouselIndex === index ? 'active' : ''}`}
                 onClick={() => goToReferenceCard(index)}
@@ -2475,8 +2569,6 @@ function App() {
                       </div>
                       <div className="pj-body">
                         <h3 className="pj-title">{project.title[lang]}</h3>
-                        <p className="pj-co">{project.companyLine[lang]}</p>
-                        <p className="pj-desc">{project.desc[lang]}</p>
                         <div className="pj-foot">
                           <div className="tags">
                             {getSortedTags(project.tags).map((tag) => (
@@ -2485,7 +2577,6 @@ function App() {
                               </span>
                             ))}
                           </div>
-                          <span className="pj-arrow">→</span>
                         </div>
                       </div>
                     </button>
@@ -2505,8 +2596,6 @@ function App() {
                       </div>
                       <div className="pj-body">
                         <h3 className="pj-title">{project.title[lang]}</h3>
-                        <p className="pj-co">{project.companyLine[lang]}</p>
-                        <p className="pj-desc">{project.desc[lang]}</p>
                         <div className="pj-foot">
                           <div className="tags">
                             {getSortedTags(project.tags).map((tag) => (
@@ -2515,9 +2604,6 @@ function App() {
                               </span>
                             ))}
                           </div>
-                          <span className="project-card-note">
-                            {lang === 'FR' ? 'Aperçu' : 'Preview'}
-                          </span>
                         </div>
                       </div>
                     </article>

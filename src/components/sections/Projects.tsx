@@ -184,8 +184,6 @@ const Projects: React.FC<ProjectsProps> = ({
             </div>
             <div className="pj-body">
               <h3 className="pj-title">{project.title[lang]}</h3>
-              <p className="pj-co">{project.companyLine[lang]}</p>
-              <p className="pj-desc">{project.desc[lang]}</p>
               <div className="pj-foot">
                 <div className="tags">
                   {project.tags.map((tag) => (
@@ -194,7 +192,6 @@ const Projects: React.FC<ProjectsProps> = ({
                     </span>
                   ))}
                 </div>
-                <span className="pj-arrow">→</span>
               </div>
             </div>
           </button>
