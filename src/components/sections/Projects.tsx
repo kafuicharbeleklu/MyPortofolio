@@ -116,7 +116,7 @@ const Projects: React.FC<ProjectsProps> = ({
         onClick={() => onProjectClick(featuredProject.id)}
         aria-label={
           lang === 'FR'
-            ? `Voir le detail du projet ${featuredProject.title.FR}`
+            ? `Voir le détail du projet ${featuredProject.title.FR}`
             : `View details of the ${featuredProject.title.EN} project`
         }
       >
@@ -166,7 +166,7 @@ const Projects: React.FC<ProjectsProps> = ({
             onClick={() => onProjectClick(project.id)}
             aria-label={
               lang === 'FR'
-                ? `Voir le detail du projet ${project.title.FR}`
+                ? `Voir le détail du projet ${project.title.FR}`
                 : `View details of the ${project.title.EN} project`
             }
           >
