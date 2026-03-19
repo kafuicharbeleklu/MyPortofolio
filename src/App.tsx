@@ -11,116 +11,26 @@ import Footer from './components/sections/Footer';
 import LanguageToggle from './components/LanguageToggle';
 import { assetPaths, withBaseAsset } from './config/assets';
 import { getSkillsData, getTimelineData, getFormationData } from './data';
+import useLightbox from './hooks/useLightbox';
+import useLocalRouting, {
+  createIsDetailPage,
+  isNavigableSection,
+} from './hooks/useLocalRouting';
 import useMobileScrollDots from './hooks/useMobileScrollDots';
 import usePrefersReducedMotion from './hooks/usePrefersReducedMotion';
+import useProjectLoader from './hooks/useProjectLoader';
 import { Language, t } from './translations';
-
-type ReferenceContact = {
-  initials: string;
-  name: string;
-  organization: string;
-  role: string;
-  phones: {
-    display: string;
-    href: string;
-  }[];
-};
-
-type ProjectFilterKey =
-  | 'all'
-  | 'cybersecurity'
-  | 'network'
-  | 'cloud'
-  | 'infrastructure'
-  | 'bi';
-
-type ProjectTag = {
-  label: string;
-  className: string;
-};
-
-type ProjectCardData = {
-  id: string;
-  sortDate: number;
-  title: Record<Language, string>;
-  companyLine: Record<Language, string>;
-  desc: Record<Language, string>;
-  category: Record<Language, string>;
-  categoryKey: Exclude<ProjectFilterKey, 'all'>;
-  tags: ProjectTag[];
-  background: string;
-  accent: string;
-  icon: 'shield' | 'signal' | 'domain' | 'server' | 'cloud' | 'grid';
-  coverImage?: string | null;
-  detailPage: boolean;
-};
-
-type StructuredProjectData = {
-  title: string;
-  slug: string;
-  tagline: string;
-  description: string;
-  category: string;
-  status: string | null;
-  duration: string | null;
-  role: string | null;
-  primary_language?: string;
-  tech_stack: {
-    frontend?: string[];
-    backend?: string[];
-    database?: string[];
-    devops?: string[];
-    tools?: string[];
-  };
-  features: string[];
-  challenges: string;
-  learnings: string;
-  links: {
-    github: string | null;
-    live: string | null;
-    demo: string | null;
-  };
-  assets: {
-    screenshots: string[];
-    has_video: boolean;
-  };
-  keywords: string[];
-};
-
-type StructuredProjectConfig = {
-  dataPath: string;
-  client: Record<Language, string>;
-  role: Record<Language, string> | null;
-  environment: Record<Language, string> | null;
-  fallbackStatus: Record<Language, string> | null;
-  relatedIds: string[];
-  resourceLinks?: {
-    href: string;
-    label: Record<Language, string>;
-  }[];
-};
-
-type PaginationToken = number | 'ellipsis-left' | 'ellipsis-right';
-type StaticDetailPage = 'siem' | 'moov' | 'orabank' | 'biasa';
-type ActiveSection = '' | 'hero' | 'about' | 'skills' | 'parcours' | 'formation' | 'projets' | 'refs' | 'contact';
-type SectionWithSubcopy = {
-  sub?: string;
-  subtitle?: string;
-};
-type TranslationPageSections = {
-  education?: {
-    num: string;
-    title: string;
-    subtitle: string;
-  };
-  references?: {
-    num: string;
-    title: string;
-    subtitle: string;
-  };
-  skills: SectionWithSubcopy;
-  experience: SectionWithSubcopy;
-};
+import type {
+  PaginationToken,
+  ProjectCardData,
+  ProjectFilterKey,
+  ProjectTag,
+  ReferenceContact,
+  SectionWithSubcopy,
+  StructuredProjectConfig,
+  StructuredProjectData,
+  TranslationPageSections,
+} from './types/portfolio';
 
 const getProjectsPerPage = () => {
   if (typeof window === 'undefined') {
@@ -378,37 +288,10 @@ const structuredProjectConfigs: Record<string, StructuredProjectConfig> = {
 };
 
 type StructuredProjectId = keyof typeof structuredProjectConfigs;
-type ActivePage =
-  | 'main'
-  | 'biography'
-  | 'all-projects'
-  | StaticDetailPage
-  | StructuredProjectId;
-
-const navigableSections = [
-  'hero',
-  'about',
-  'skills',
-  'parcours',
-  'formation',
-  'projets',
-  'refs',
-  'contact',
-] as const;
-
-const staticDetailPages = ['siem', 'moov', 'orabank', 'biasa'] as const;
-
-const isNavigableSection = (value: string): value is Exclude<ActiveSection, ''> =>
-  navigableSections.includes(value as Exclude<ActiveSection, ''>);
-
-const isStructuredProjectId = (value: string): value is StructuredProjectId =>
-  value in structuredProjectConfigs;
-
-const isStaticDetailPage = (value: string): value is StaticDetailPage =>
-  staticDetailPages.includes(value as StaticDetailPage);
-
-const isDetailPage = (value: string): value is Exclude<ActivePage, 'main' | 'all-projects'> =>
-  value === 'biography' || isStructuredProjectId(value) || isStaticDetailPage(value);
+const structuredProjectIds = Object.keys(
+  structuredProjectConfigs
+) as StructuredProjectId[];
+const isDetailPage = createIsDetailPage(structuredProjectIds);
 
 const getSectionSubcopy = (section: SectionWithSubcopy) =>
   section.subtitle ?? section.sub ?? '';
@@ -650,21 +533,12 @@ const projectCatalog: ProjectCardData[] = [
 ];
 
 function App() {
-  const [activePage, setActivePage] = useState<ActivePage>('main');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<ActiveSection>('');
   const [projectSearch, setProjectSearch] = useState('');
   const [projectFilter, setProjectFilter] = useState<ProjectFilterKey>('all');
   const [projectPage, setProjectPage] = useState(1);
   const [projectsPerPage, setProjectsPerPage] = useState(() => getProjectsPerPage());
   const [isProjectFilterMenuOpen, setIsProjectFilterMenuOpen] = useState(false);
-  const [structuredProjectData, setStructuredProjectData] = useState<
-    Record<string, StructuredProjectData | null>
-  >({});
-  const [projectImageLightbox, setProjectImageLightbox] = useState<{
-    items: { src: string; alt: string }[];
-    index: number;
-  } | null>(null);
   const [referenceCarouselIndex, setReferenceCarouselIndex] = useState(0);
   const [desktopReferencePage, setDesktopReferencePage] = useState(0);
   const [referenceCarouselOffset, setReferenceCarouselOffset] = useState(0);
@@ -675,15 +549,6 @@ function App() {
   const projectFilterMenuRef = useRef<HTMLDivElement | null>(null);
   const allProjectsSectionRef = useRef<HTMLElement | null>(null);
   const carouselTouchStartX = useRef<Record<string, number | null>>({});
-  const projectLightboxScrollY = useRef(0);
-  const projectLightboxBodyStyles = useRef<{
-    overflow: string;
-    position: string;
-    width: string;
-    top: string;
-    left: string;
-    right: string;
-  } | null>(null);
   const [lang, setLang] = useState<Language>(() => {
     if (typeof window === 'undefined') {
       return 'FR';
@@ -697,6 +562,17 @@ function App() {
     return window.navigator.language.toLowerCase().startsWith('fr') ? 'FR' : 'EN';
   });
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { projects: structuredProjectData, loadProjectDetail } = useProjectLoader(
+    structuredProjectConfigs,
+    withBaseAsset
+  );
+  const {
+    lightbox: projectImageLightbox,
+    openLightbox: openProjectImageLightbox,
+    closeLightbox: closeProjectImageLightbox,
+    stepLightbox: stepProjectImageLightbox,
+    goToLightbox: goToProjectImageLightbox,
+  } = useLightbox();
   const v = t[lang];
   const typedSections = v as TranslationPageSections;
   const skillsData = getSkillsData(lang);
@@ -1236,6 +1112,17 @@ function App() {
       behavior: getScrollBehavior(),
     });
   };
+  const {
+    activePage,
+    activeSection,
+    navigateTo,
+    navigateToSection,
+    setObservedSection,
+  } = useLocalRouting<StructuredProjectId>({
+    onSectionNavigation: scrollToElement,
+  });
+  const isStructuredProjectId = (value: string): value is StructuredProjectId =>
+    structuredProjectIds.includes(value as StructuredProjectId);
 
   useEffect(() => {
     if (activePage !== 'main') return;
@@ -1243,7 +1130,7 @@ function App() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting && isNavigableSection(entry.target.id)) {
-          setActiveSection(entry.target.id);
+          setObservedSection(entry.target.id);
         }
       });
     }, { rootMargin: '-30% 0px -70% 0px' });
@@ -1252,7 +1139,7 @@ function App() {
     sections.forEach(sec => observer.observe(sec));
 
     return () => observer.disconnect();
-  }, [activePage]);
+  }, [activePage, setObservedSection]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1310,37 +1197,10 @@ function App() {
   }, [isProjectFilterMenuOpen]);
 
   useEffect(() => {
-    let isCancelled = false;
-
-    const loadStructuredProjects = async () => {
-      const entries = await Promise.all(
-        Object.entries(structuredProjectConfigs).map(async ([projectId, config]) => {
-          try {
-            const response = await fetch(withBaseAsset(config.dataPath));
-            if (!response.ok) {
-              throw new Error(`Unable to load ${config.dataPath}`);
-            }
-
-            const payload = (await response.json()) as StructuredProjectData[];
-            return [projectId, payload[0] ?? null] as const;
-          } catch (error) {
-            console.error(`Failed to load structured project data for ${projectId}`, error);
-            return [projectId, null] as const;
-          }
-        })
-      );
-
-      if (!isCancelled) {
-        setStructuredProjectData(Object.fromEntries(entries));
-      }
-    };
-
-    loadStructuredProjects();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+    structuredProjectIds.forEach((projectId) => {
+      void loadProjectDetail(projectId);
+    });
+  }, [loadProjectDetail]);
 
   useEffect(() => {
     const syncReferenceCarousel = () => {
@@ -1397,80 +1257,13 @@ function App() {
     );
   }, [desktopReferencePages.length]);
 
-  useEffect(() => {
-    if (!projectImageLightbox || typeof window === 'undefined') {
+  const scrollToSection = (id: string) => {
+    if (!isNavigableSection(id)) {
       return;
     }
 
-    const { body } = document;
-    projectLightboxScrollY.current = window.scrollY;
-    projectLightboxBodyStyles.current = {
-      overflow: body.style.overflow,
-      position: body.style.position,
-      width: body.style.width,
-      top: body.style.top,
-      left: body.style.left,
-      right: body.style.right,
-    };
-
-    body.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.width = '100%';
-    body.style.top = `-${projectLightboxScrollY.current}px`;
-    body.style.left = '0';
-    body.style.right = '0';
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setProjectImageLightbox(null);
-        return;
-      }
-
-      if (event.key === 'ArrowLeft') {
-        stepProjectImageLightbox(-1);
-        return;
-      }
-
-      if (event.key === 'ArrowRight') {
-        stepProjectImageLightbox(1);
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-
-      if (projectLightboxBodyStyles.current) {
-        body.style.overflow = projectLightboxBodyStyles.current.overflow;
-        body.style.position = projectLightboxBodyStyles.current.position;
-        body.style.width = projectLightboxBodyStyles.current.width;
-        body.style.top = projectLightboxBodyStyles.current.top;
-        body.style.left = projectLightboxBodyStyles.current.left;
-        body.style.right = projectLightboxBodyStyles.current.right;
-      } else {
-        body.style.overflow = '';
-        body.style.position = '';
-        body.style.width = '';
-        body.style.top = '';
-        body.style.left = '';
-        body.style.right = '';
-      }
-
-      window.scrollTo(0, projectLightboxScrollY.current);
-    };
-  }, [projectImageLightbox]);
-
-  const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
-    if (activePage !== 'main') {
-      setActivePage('main');
-      setTimeout(() => {
-        scrollToElement(id);
-      }, 100);
-    } else {
-      scrollToElement(id);
-    }
+    navigateToSection(id);
   };
 
   const handleDiscoverProfile = () => scrollToSection('about');
@@ -1502,16 +1295,20 @@ function App() {
       return;
     }
 
+    if (isStructuredProjectId(id)) {
+      void loadProjectDetail(id);
+    }
+
     setDetailCarouselIndex((current) => ({
       ...current,
       [id]: 0,
     }));
-    setActivePage(id);
+    navigateTo(id);
     window.scrollTo({ top: 0, behavior: getScrollBehavior() });
   };
 
   const backToMain = () => {
-    setActivePage('main');
+    navigateTo('main');
     setTimeout(() => {
       scrollToElement('projets');
     }, 100);
@@ -1632,56 +1429,6 @@ function App() {
       ...current,
       [projectId]: index,
     }));
-  };
-
-  const openProjectImageLightbox = (
-    items: { src: string; alt: string }[],
-    index: number
-  ) => {
-    if (!items.length) {
-      return;
-    }
-
-    const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
-    setProjectImageLightbox({
-      items,
-      index: clampedIndex,
-    });
-  };
-
-  const stepProjectImageLightbox = (delta: number) => {
-    setProjectImageLightbox((current) => {
-      if (!current) {
-        return current;
-      }
-
-      const nextIndex = Math.max(
-        0,
-        Math.min(current.index + delta, current.items.length - 1)
-      );
-
-      return {
-        ...current,
-        index: nextIndex,
-      };
-    });
-  };
-
-  const goToProjectImageLightbox = (index: number) => {
-    setProjectImageLightbox((current) => {
-      if (!current) {
-        return current;
-      }
-
-      return {
-        ...current,
-        index: Math.max(0, Math.min(index, current.items.length - 1)),
-      };
-    });
-  };
-
-  const closeProjectImageLightbox = () => {
-    setProjectImageLightbox(null);
   };
 
   const renderStructuredProjectPage = (projectId: string) => {
@@ -2122,6 +1869,7 @@ function App() {
         <Hero lang={lang} 
           onDiscoverProfile={handleDiscoverProfile} 
           onViewProjects={handleViewProjects} 
+          onViewBiography={() => showDetail('biography')}
         />
 
         <About lang={lang} onReadMore={() => showDetail('biography')} />
@@ -2247,7 +1995,7 @@ function App() {
           onProjectClick={showDetail}
           onViewAll={() => {
             setProjectPage(1);
-            setActivePage('all-projects');
+            navigateTo('all-projects');
             window.scrollTo({ top: 0, behavior: getScrollBehavior() });
           }}
         />
