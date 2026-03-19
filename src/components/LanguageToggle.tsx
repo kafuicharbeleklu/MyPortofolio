@@ -178,8 +178,8 @@ const LanguageToggle: React.FC<LanguageToggleProps> = ({ lang, onToggle }) => {
         ref={buttonRef}
       >
         <svg
-          width="18"
-          height="18"
+          width="24"
+          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
