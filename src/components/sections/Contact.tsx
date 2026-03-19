@@ -65,7 +65,7 @@ const Contact: React.FC<ContactProps> = ({ lang }) => {
               </>
             ) : (
               <>
-                Let&apos;s talk about
+                Let’s talk about
                 <br />
                 your next project.
               </>
@@ -73,8 +73,8 @@ const Contact: React.FC<ContactProps> = ({ lang }) => {
           </h3>
           <p>
             {lang === 'FR'
-              ? "Disponible immédiatement pour des missions en administration systèmes, cybersécurité, support avancé ou gestion d'infrastructure IT, à Lomé comme à l'international."
-              : 'Available immediately for opportunities in systems administration, cybersecurity, advanced support, or IT infrastructure management, both in Lome and internationally.'}
+              ? "Disponible immédiatement pour des missions en administration systèmes, cybersécurité, support avancé ou gestion d’infrastructure IT, à Lomé comme à l’international."
+              : 'Available immediately for opportunities in systems administration, cybersecurity, advanced support, or IT infrastructure management, both in Lomé and internationally.'}
           </p>
           <div className="contact-items">
             <a className="c-item c-item-link" href={`mailto:${contactEmail}`}>
@@ -167,7 +167,7 @@ const Contact: React.FC<ContactProps> = ({ lang }) => {
               </div>
               <div>
                 <small>{lang === 'FR' ? 'Localisation' : 'Location'}</small>
-                <p>{lang === 'FR' ? 'Lomé, Togo · Mobilité internationale' : 'Lome, Togo · International mobility'}</p>
+                <p>{lang === 'FR' ? 'Lomé, Togo · Mobilité internationale' : 'Lomé, Togo · International mobility'}</p>
               </div>
             </div>
           </div>
