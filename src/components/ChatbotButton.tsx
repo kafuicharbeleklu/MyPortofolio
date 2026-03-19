@@ -103,6 +103,8 @@ const ChatbotButton: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const remainingMessages = Math.max(0, maxSessionMessages - sentCount);
   const isSessionLimitReached = sentCount >= maxSessionMessages;
+  const isInputEmpty = !input.trim();
+  const isSendDisabled = isInputEmpty || isLoading || isSessionLimitReached;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -206,11 +208,10 @@ const ChatbotButton: React.FC = () => {
             ))}
             {isLoading && (
               <div className="chat-loading" role="status" aria-live="polite">
-                <span className="chat-loading-label">Kafui réfléchit</span>
-                <span className="chat-loading-dots" aria-hidden="true">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                <span className="chat-loading-indicator" aria-hidden="true">
+                  <span className="dot" />
+                  <span className="dot" />
+                  <span className="dot" />
                 </span>
               </div>
             )}
@@ -219,25 +220,27 @@ const ChatbotButton: React.FC = () => {
 
           {isChatAvailable ? (
             <div className="chat-input-area">
-              <input
-                type="text"
-                className="chat-input"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Écrivez un message..."
-                disabled={isLoading || isSessionLimitReached}
-                aria-label="Message à envoyer"
-              />
-              <button
-                type="button"
-                className="chat-send-btn"
-                onClick={handleSend}
-                disabled={isLoading || isSessionLimitReached}
-                aria-label="Envoyer le message"
-              >
-                <Send size={18} />
-              </button>
+              <div className="chat-compose-row">
+                <input
+                  type="text"
+                  className="chat-input"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  placeholder="Écrivez un message..."
+                  disabled={isLoading || isSessionLimitReached}
+                  aria-label="Message à envoyer"
+                />
+                <button
+                  type="button"
+                  className="chat-send-btn"
+                  onClick={handleSend}
+                  disabled={isSendDisabled}
+                  aria-label="Envoyer le message"
+                >
+                  <Send size={16} strokeWidth={2.1} />
+                </button>
+              </div>
               <div className="chat-meta">
                 <p className="chat-remaining-count">
                   {remainingMessages}/{maxSessionMessages} messages restants
