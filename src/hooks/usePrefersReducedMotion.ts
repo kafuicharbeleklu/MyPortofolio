@@ -23,7 +23,6 @@ const usePrefersReducedMotion = () => {
       setPrefersReducedMotion(event.matches);
     };
 
-    setPrefersReducedMotion(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
 
     return () => {

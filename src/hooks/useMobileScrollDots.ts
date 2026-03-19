@@ -12,10 +12,7 @@ const useMobileScrollDots = (itemCount: number) => {
 
   useEffect(() => {
     itemRefs.current = itemRefs.current.slice(0, itemCount);
-    if (activeIndex > Math.max(0, itemCount - 1)) {
-      setActiveIndex(0);
-    }
-  }, [activeIndex, itemCount]);
+  }, [itemCount]);
 
   useEffect(() => {
     if (!isMobileViewport() || typeof IntersectionObserver === 'undefined') {
@@ -70,11 +67,9 @@ const useMobileScrollDots = (itemCount: number) => {
     return () => observer.disconnect();
   }, [itemCount]);
 
-  const setItemRef =
-    (index: number) =>
-    (node: HTMLElement | null) => {
-      itemRefs.current[index] = node;
-    };
+  const registerItem = (index: number, node: HTMLElement | null) => {
+    itemRefs.current[index] = node;
+  };
 
   const scrollToIndex = (index: number) => {
     const target = itemRefs.current[index];
@@ -88,13 +83,13 @@ const useMobileScrollDots = (itemCount: number) => {
       block: 'nearest',
     });
 
-    setActiveIndex(index);
+    setActiveIndex(Math.max(0, Math.min(index, itemCount - 1)));
   };
 
   return {
     containerRef,
-    setItemRef,
-    activeIndex,
+    registerItem,
+    activeIndex: Math.max(0, Math.min(activeIndex, Math.max(0, itemCount - 1))),
     scrollToIndex,
   };
 };

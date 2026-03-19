@@ -40,7 +40,7 @@ type FormationItem = {
 
 type MobileDotsController = {
   containerRef: React.RefObject<HTMLDivElement | null>;
-  setItemRef: (index: number) => (node: HTMLElement | null) => void;
+  registerItem: (index: number, node: HTMLElement | null) => void;
   activeIndex: number;
   scrollToIndex: (index: number) => void;
 };
@@ -209,7 +209,12 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
         <div className="skills-grid" ref={skillsCarousel.containerRef}>
           {sortedSkillsData.map((skill, index) => (
-            <div className="skill-card" key={index} ref={skillsCarousel.setItemRef(index)} data-carousel-index={index}>
+            <div
+              className="skill-card"
+              key={index}
+              ref={(node) => skillsCarousel.registerItem(index, node)}
+              data-carousel-index={index}
+            >
               <div className="skill-icon" style={{ background: skill.bg }}>
                 {skill.icon}
               </div>
@@ -263,7 +268,12 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
         <div className="edu-grid" ref={educationCarousel.containerRef}>
           {sortedFormationData.map((item, index) => (
-            <div className="edu-card" key={index} ref={educationCarousel.setItemRef(index)} data-carousel-index={index}>
+            <div
+              className="edu-card"
+              key={index}
+              ref={(node) => educationCarousel.registerItem(index, node)}
+              data-carousel-index={index}
+            >
               <p className="edu-year">{item.year}</p>
               <h3 className="edu-title">{item.title}</h3>
               <p className="edu-school" dangerouslySetInnerHTML={{ __html: item.school }} />

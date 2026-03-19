@@ -52,6 +52,33 @@ const getProjectsPerPage = () => {
   return 3;
 };
 
+const isMobilePeekCarousel = () =>
+  typeof window !== 'undefined' && window.innerWidth <= 768;
+
+const measurePeekCarouselOffset = (
+  shell: HTMLDivElement | null,
+  activeIndex: number
+) => {
+  if (!shell || !isMobilePeekCarousel()) {
+    return 0;
+  }
+
+  const track = shell.querySelector<HTMLElement>('.mobile-peek-track');
+  const items = Array.from(shell.querySelectorAll('.mobile-peek-item')) as HTMLElement[];
+
+  if (!track || !items.length) {
+    return 0;
+  }
+
+  const safeIndex = Math.max(0, Math.min(activeIndex, items.length - 1));
+  const activeItem = items[safeIndex];
+  const activeCenter = activeItem.offsetLeft + activeItem.offsetWidth / 2;
+  const rawOffset = activeCenter - shell.clientWidth / 2;
+  const maxOffset = Math.max(0, track.scrollWidth - shell.clientWidth);
+
+  return Math.max(0, Math.min(rawOffset, maxOffset));
+};
+
 const buildPaginationTokens = (
   currentPage: number,
   totalPages: number
@@ -1306,35 +1333,6 @@ const usePortfolioModel = () => {
     setTimeout(() => {
       scrollToElement('projets');
     }, 100);
-  };
-
-  const isMobilePeekCarousel = () =>
-    typeof window !== 'undefined' && window.innerWidth <= 768;
-
-  const measurePeekCarouselOffset = (
-    shell: HTMLDivElement | null,
-    activeIndex: number
-  ) => {
-    if (!shell || !isMobilePeekCarousel()) {
-      return 0;
-    }
-
-    const track = shell.querySelector<HTMLElement>('.mobile-peek-track');
-    const items = Array.from(
-      shell.querySelectorAll('.mobile-peek-item')
-    ) as HTMLElement[];
-
-    if (!track || !items.length) {
-      return 0;
-    }
-
-    const safeIndex = Math.max(0, Math.min(activeIndex, items.length - 1));
-    const activeItem = items[safeIndex];
-    const activeCenter = activeItem.offsetLeft + activeItem.offsetWidth / 2;
-    const rawOffset = activeCenter - shell.clientWidth / 2;
-    const maxOffset = Math.max(0, track.scrollWidth - shell.clientWidth);
-
-    return Math.max(0, Math.min(rawOffset, maxOffset));
   };
 
   const stepReferenceCarousel = (direction: 1 | -1) => {

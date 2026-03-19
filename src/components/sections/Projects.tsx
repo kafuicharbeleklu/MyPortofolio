@@ -161,7 +161,7 @@ const Projects: React.FC<ProjectsProps> = ({
             key={project.id}
             type="button"
             className="pj-card card-action"
-            ref={mobileProjectsCarousel.setItemRef(index)}
+            ref={(node) => mobileProjectsCarousel.registerItem(index, node)}
             data-carousel-index={index}
             onClick={() => onProjectClick(project.id)}
             aria-label={
