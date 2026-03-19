@@ -279,6 +279,26 @@ const structuredProjectConfigs: Record<string, StructuredProjectConfig> = {
       },
     ],
   },
+  postgresql_ssl: {
+    dataPath: 'projects/postgresql_ssl/projects_data.json',
+    client: {
+      FR: 'Projet personnel PostgreSQL sous Windows Server',
+      EN: 'Personal PostgreSQL project on Windows Server',
+    },
+    role: {
+      FR: 'Configuration SSL/TLS et securisation des acces',
+      EN: 'SSL/TLS setup and access hardening',
+    },
+    environment: {
+      FR: 'PostgreSQL · Windows Server · OpenSSL',
+      EN: 'PostgreSQL · Windows Server · OpenSSL',
+    },
+    fallbackStatus: {
+      FR: 'Termine',
+      EN: 'Completed',
+    },
+    relatedIds: ['mfa', 'ubuntu_ldap'],
+  },
 };
 
 const renderProjectIcon = (icon: ProjectCardData['icon'], accent: string) => {
@@ -931,6 +951,36 @@ function App() {
       background: '#2E3431',
       accent: '#97D7A4',
       icon: 'server',
+      detailPage: true,
+    },
+    {
+      id: 'postgresql_ssl',
+      sortDate: 202503150900,
+      title: {
+        FR: 'PostgreSQL SSL/TLS',
+        EN: 'PostgreSQL SSL/TLS',
+      },
+      companyLine: {
+        FR: 'PostgreSQL · Windows Server · OpenSSL',
+        EN: 'PostgreSQL · Windows Server · OpenSSL',
+      },
+      desc: {
+        FR: "Configuration d'un chiffrement SSL/TLS auto-signe pour securiser les connexions PostgreSQL sous Windows Server.",
+        EN: 'Auto-signed SSL/TLS setup to secure PostgreSQL connections on Windows Server.',
+      },
+      category: {
+        FR: 'Infrastructure & Securite',
+        EN: 'Infrastructure & Security',
+      },
+      categoryKey: 'infrastructure',
+      tags: [
+        { label: 'PostgreSQL', className: 'tr' },
+        { label: 'SSL/TLS', className: 'tr' },
+        { label: 'OpenSSL', className: 'tr' },
+      ],
+      background: '#263142',
+      accent: '#8CB7E8',
+      icon: 'shield',
       detailPage: true,
     },
   ];
