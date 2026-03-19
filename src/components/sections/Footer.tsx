@@ -59,7 +59,7 @@ const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
               <li>
                 <a href="tel:+22870664225">+228 70 66 42 25</a>
               </li>
-              <li>{lang === 'FR' ? 'Lomé, Togo' : 'Lome, Togo'}</li>
+              <li>{lang === 'FR' ? 'Lomé, Togo' : 'Lomé, Togo'}</li>
             </ul>
           </div>
         </div>
