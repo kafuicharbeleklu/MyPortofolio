@@ -6,7 +6,7 @@ export const getSkillsData = (lang: Language) => [
     title: lang === 'FR' ? 'Cybersécurité' : 'Cybersecurity',
     desc:
       lang === 'FR'
-        ? "Wazuh SIEM/XDR, détection d'intrusion, audit sécurité et politiques de protection proactive."
+        ? "Wazuh SIEM/XDR, détection d’intrusion, audit sécurité et politiques de protection proactive."
         : 'Wazuh SIEM/XDR, intrusion detection, security auditing, and proactive protection policies.',
     bg: '#EDE0D4',
     icon: (
@@ -196,8 +196,8 @@ export const getFormationData = (lang: Language) => [
     title: lang === 'FR' ? 'Master II Professionnel' : 'Professional Master II',
     school:
       lang === 'FR'
-        ? "Collège de Paris Supérieur · Lomé<br />Réseaux & Systèmes d'Information"
-        : 'College de Paris Superieur · Lome<br />Information Systems & Networks',
+        ? "Collège de Paris Supérieur · Lomé<br />Réseaux & Systèmes d’Information"
+        : 'Collège de Paris Supérieur · Lomé<br />Information Systems & Networks',
     gradeNode: (
       <div className="edu-grade">
         <big>15,07</big>
@@ -211,7 +211,7 @@ export const getFormationData = (lang: Language) => [
     title: lang === 'FR' ? 'Licence Professionnelle' : 'Professional Bachelor',
     school:
       lang === 'FR'
-        ? "IAI-TOGO · Institut Africain d'Informatique<br />Administration Système & Réseau"
+        ? "IAI-TOGO · Institut Africain d’Informatique<br />Administration Système & Réseau"
         : 'IAI-TOGO · African Institute of Computer Science<br />Systems & Network Administration',
     gradeNode: <p className="edu-check">✓ {lang === 'FR' ? 'Diplôme obtenu' : 'Degree obtained'}</p>,
   },
