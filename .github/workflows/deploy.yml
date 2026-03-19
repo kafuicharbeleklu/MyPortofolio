@@ -24,6 +24,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify chatbot API URL
+        run: |
+          if [ -z "${VITE_CHATBOT_API_URL}" ]; then
+            echo "Missing VITE_CHATBOT_API_URL secret"
+            exit 1
+          fi
+        env:
+          VITE_CHATBOT_API_URL: ${{ secrets.VITE_CHATBOT_API_URL }}
+
       - name: Build
         run: npm run build
         env:

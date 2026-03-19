@@ -29,9 +29,9 @@ const ChatbotButton: React.FC = () => {
     : localMissingKeyMessage;
   const isChatAvailable = Boolean(chatbotApiUrl);
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { text: isChatAvailable ? assistantGreeting : missingKeyMessage, isUser: false },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    isChatAvailable ? [{ text: assistantGreeting, isUser: false }] : []
+  );
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
