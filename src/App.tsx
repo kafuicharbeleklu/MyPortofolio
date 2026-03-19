@@ -1,9 +1,13 @@
-import usePortfolioModel from './hooks/usePortfolioModel';
+import React, { Suspense } from 'react';
+
+const PortfolioRoot = React.lazy(() => import('./components/PortfolioRoot'));
 
 function App() {
-  const { content } = usePortfolioModel();
-
-  return content;
+  return (
+    <Suspense fallback={null}>
+      <PortfolioRoot />
+    </Suspense>
+  );
 }
 
 export default App;

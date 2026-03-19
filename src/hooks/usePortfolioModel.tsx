@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { assetPaths, withBaseAsset } from '../config/assets';
 import { getSkillsData, getTimelineData, getFormationData } from '../data';
@@ -10,10 +10,7 @@ import useLocalRouting, {
 import useMobileScrollDots from './useMobileScrollDots';
 import usePrefersReducedMotion from './usePrefersReducedMotion';
 import useProjectLoader from './useProjectLoader';
-import BiographyPage from '../pages/BiographyPage';
 import HomePage from '../pages/HomePage';
-import { ProjectDetailLightbox } from '../pages/ProjectDetailPage';
-import ProjectsPage from '../pages/ProjectsPage';
 import { Language, t } from '../translations';
 import type {
   PaginationToken,
@@ -26,6 +23,14 @@ import type {
   StructuredProjectData,
   TranslationPageSections,
 } from '../types/portfolio';
+
+const BiographyPage = lazy(() => import('../pages/BiographyPage'));
+const ProjectsPage = lazy(() => import('../pages/ProjectsPage'));
+const ProjectDetailLightbox = lazy(() =>
+  import('../pages/ProjectDetailPage').then((module) => ({
+    default: module.ProjectDetailLightbox,
+  }))
+);
 
 const getProjectsPerPage = () => {
   if (typeof window === 'undefined') {
@@ -1192,12 +1197,6 @@ const usePortfolioModel = () => {
   }, [isProjectFilterMenuOpen]);
 
   useEffect(() => {
-    structuredProjectIds.forEach((projectId) => {
-      void loadProjectDetail(projectId);
-    });
-  }, [loadProjectDetail]);
-
-  useEffect(() => {
     const syncReferenceCarousel = () => {
       if (!isMobilePeekCarousel()) {
         setReferenceCarouselOffset(0);
@@ -2144,46 +2143,50 @@ const usePortfolioModel = () => {
   const biographyPage = (
     <>
       {/* BIOGRAPHIE */}
-      {activePage === 'biography' && (
-        <BiographyPage
-          lang={lang}
-          bioExpertiseItems={bioExpertiseItems}
-          scrollToSection={scrollToSection}
-        />
-      )}
+      <Suspense fallback={null}>
+        {activePage === 'biography' && (
+          <BiographyPage
+            lang={lang}
+            bioExpertiseItems={bioExpertiseItems}
+            scrollToSection={scrollToSection}
+          />
+        )}
+      </Suspense>
     </>
   );
 
   const projectsPage = (
     <>
       {/* ====== ALL PROJECTS PAGE ====== */}
-      {activePage === 'all-projects' && (
-        <ProjectsPage
-          lang={lang}
-          activeProjectFilterLabel={activeProjectFilterLabel}
-          allProjectsSectionRef={allProjectsSectionRef}
-          isProjectFilterMenuOpen={isProjectFilterMenuOpen}
-          projectFilterMenuRef={projectFilterMenuRef}
-          projectSearch={projectSearch}
-          setProjectSearch={setProjectSearch}
-          sortedProjectFilters={sortedProjectFilters}
-          projectFilter={projectFilter}
-          selectProjectFilter={selectProjectFilter}
-          setIsProjectFilterMenuOpen={setIsProjectFilterMenuOpen}
-          paginatedProjectRange={paginatedProjectRange}
-          filteredProjects={filteredProjects}
-          paginatedProjects={paginatedProjects}
-          projectPaginationTokens={projectPaginationTokens}
-          projectPage={projectPage}
-          totalProjectPages={totalProjectPages}
-          changeProjectPage={changeProjectPage}
-          renderProjectIcon={renderProjectIcon}
-          getSortedTags={getSortedTags}
-          showDetail={showDetail}
-          backToMain={backToMain}
-          scrollToSection={scrollToSection}
-        />
-      )}
+      <Suspense fallback={null}>
+        {activePage === 'all-projects' && (
+          <ProjectsPage
+            lang={lang}
+            activeProjectFilterLabel={activeProjectFilterLabel}
+            allProjectsSectionRef={allProjectsSectionRef}
+            isProjectFilterMenuOpen={isProjectFilterMenuOpen}
+            projectFilterMenuRef={projectFilterMenuRef}
+            projectSearch={projectSearch}
+            setProjectSearch={setProjectSearch}
+            sortedProjectFilters={sortedProjectFilters}
+            projectFilter={projectFilter}
+            selectProjectFilter={selectProjectFilter}
+            setIsProjectFilterMenuOpen={setIsProjectFilterMenuOpen}
+            paginatedProjectRange={paginatedProjectRange}
+            filteredProjects={filteredProjects}
+            paginatedProjects={paginatedProjects}
+            projectPaginationTokens={projectPaginationTokens}
+            projectPage={projectPage}
+            totalProjectPages={totalProjectPages}
+            changeProjectPage={changeProjectPage}
+            renderProjectIcon={renderProjectIcon}
+            getSortedTags={getSortedTags}
+            showDetail={showDetail}
+            backToMain={backToMain}
+            scrollToSection={scrollToSection}
+          />
+        )}
+      </Suspense>
     </>
   );
 
@@ -2193,12 +2196,14 @@ const usePortfolioModel = () => {
       {detailPages}
       {biographyPage}
       {projectsPage}
-      <ProjectDetailLightbox
-        lightbox={projectImageLightbox}
-        onClose={closeProjectImageLightbox}
-        onStep={stepProjectImageLightbox}
-        onGoTo={goToProjectImageLightbox}
-      />
+      <Suspense fallback={null}>
+        <ProjectDetailLightbox
+          lightbox={projectImageLightbox}
+          onClose={closeProjectImageLightbox}
+          onStep={stepProjectImageLightbox}
+          onGoTo={goToProjectImageLightbox}
+        />
+      </Suspense>
     </div>
   );
 
