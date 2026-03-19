@@ -1,18 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
-import { GenerateContentResponse, GoogleGenAI } from '@google/genai';
 import { motion } from 'motion/react';
 
-const geminiApiKey = (
-  import.meta.env.VITE_GEMINI_API_KEY ||
-  process.env.GEMINI_API_KEY ||
-  ''
-).trim();
+const chatbotApiUrl = (import.meta.env.VITE_CHATBOT_API_URL || '').trim();
 
 const assistantGreeting =
   "Bonjour ! Je suis l'assistant virtuel de Kafui. Comment puis-je vous aider aujourd'hui ?";
 const localMissingKeyMessage =
-  "Le chatbot n'est pas configure. Ajoutez VITE_GEMINI_API_KEY dans .env.local, puis redemarrez l'application.";
+  "Le chatbot n'est pas configure. Ajoutez VITE_CHATBOT_API_URL dans .env.local, puis redemarrez l'application.";
 const githubPagesMissingKeyMessage =
   "Le chatbot IA n'est pas disponible sur cette version GitHub Pages. Utilisez plutot l'email ou LinkedIn pour me contacter.";
 const chatbotPanelId = 'chatbot-panel';
@@ -26,40 +21,18 @@ type ChatMessage = {
 const ChatbotButton: React.FC = () => {
   const isGitHubPagesHost =
     typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+  const shouldRenderChatbot = Boolean(chatbotApiUrl) || !isGitHubPagesHost;
   const missingKeyMessage = isGitHubPagesHost
     ? githubPagesMissingKeyMessage
     : localMissingKeyMessage;
+  const isChatAvailable = Boolean(chatbotApiUrl);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { text: geminiApiKey ? assistantGreeting : missingKeyMessage, isUser: false },
+    { text: isChatAvailable ? assistantGreeting : missingKeyMessage, isUser: false },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const chatRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const getChatSession = () => {
-    if (!geminiApiKey) {
-      return null;
-    }
-
-    if (!chatRef.current) {
-      const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-      chatRef.current = ai.chats.create({
-        model: 'gemini-3-flash-preview',
-        config: {
-          systemInstruction:
-            "Tu es l'assistant virtuel de Kafui Charbel Eklu, un Administrateur Systeme et Reseau. Reponds de maniere professionnelle, concise et utile en francais.",
-        },
-      });
-    }
-
-    return chatRef.current;
-  };
-
-  useEffect(() => {
-    getChatSession();
-  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,8 +47,7 @@ const ChatbotButton: React.FC = () => {
     setInput('');
     setMessages((prev) => [...prev, { text: userMessage, isUser: true }]);
 
-    const chat = getChatSession();
-    if (!chat) {
+    if (!isChatAvailable) {
       setMessages((prev) => [...prev, { text: missingKeyMessage, isUser: false }]);
       return;
     }
@@ -83,13 +55,37 @@ const ChatbotButton: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response: GenerateContentResponse = await chat.sendMessage({
-        message: userMessage,
+      const history = messages.slice(1).map((message) => ({
+        role: message.isUser ? 'user' : 'assistant',
+        text: message.text,
+      }));
+
+      const response = await fetch(chatbotApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          history,
+        }),
       });
+
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            reply?: string;
+            error?: string;
+          }
+        | null;
+
+      if (!response.ok) {
+        throw new Error(payload?.error || 'La requete du chatbot a echoue.');
+      }
+
       setMessages((prev) => [
         ...prev,
         {
-          text: response.text || "Desole, je n'ai pas pu generer de reponse.",
+          text: payload?.reply || "Desole, je n'ai pas pu generer de reponse.",
           isUser: false,
         },
       ]);
@@ -98,7 +94,8 @@ const ChatbotButton: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
-          text: 'Une erreur est survenue. Verifiez la configuration Gemini puis reessayez.',
+          text:
+            "Une erreur reseau est survenue. Verifiez l'URL du worker Cloudflare puis reessayez.",
           isUser: false,
         },
       ]);
@@ -106,6 +103,10 @@ const ChatbotButton: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  if (!shouldRenderChatbot) {
+    return null;
+  }
 
   return (
     <>
@@ -119,7 +120,7 @@ const ChatbotButton: React.FC = () => {
         >
           <div className="chat-header">
             <div className="chat-header-left">
-              <div className={`chat-status-dot ${geminiApiKey ? 'online' : 'offline'}`}></div>
+              <div className={`chat-status-dot ${isChatAvailable ? 'online' : 'offline'}`}></div>
               <h3 id={chatbotTitleId}>Assistant Virtuel</h3>
             </div>
             <button
@@ -154,7 +155,7 @@ const ChatbotButton: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {geminiApiKey ? (
+          {isChatAvailable ? (
             <div className="chat-input-area">
               <input
                 type="text"
@@ -180,8 +181,8 @@ const ChatbotButton: React.FC = () => {
             <div className="chat-unavailable">
               <p className="chat-unavailable-copy">
                 {isGitHubPagesHost
-                  ? "Le chatbot IA n'est pas disponible sur cette version GitHub Pages."
-                  : "Ajoutez une cle Gemini locale pour activer l'assistant."}
+                  ? "Le chatbot IA n'est pas disponible tant que le worker Cloudflare n'est pas configure."
+                  : "Ajoutez une URL de worker Cloudflare pour activer l'assistant."}
               </p>
             </div>
           )}
