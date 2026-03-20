@@ -153,14 +153,19 @@ const ChatbotButton: React.FC = () => {
       });
 
       const payload = (await response.json().catch(() => null)) as ChatbotResponsePayload | null;
+      console.log('[Chatbot] Réponse Worker complète:', payload);
+      console.log('[Chatbot] Structure:', JSON.stringify(payload).slice(0, 300));
+
       const workerError = extractErrorMessage(payload);
 
       if (response.status === 429) {
+        console.error('[Chatbot] Erreur HTTP:', response.status, payload);
         throw new Error(workerError || rateLimitMessage);
       }
 
       if (!response.ok) {
-        throw new Error(workerError || 'La requête du chatbot a échoué.');
+        console.error('[Chatbot] Erreur HTTP:', response.status, payload);
+        throw new Error(workerError || `HTTP ${response.status}`);
       }
 
       const reply = payload?.reply?.trim() || '';
@@ -170,9 +175,11 @@ const ChatbotButton: React.FC = () => {
 
       setMessages((prev) => [...prev, { text: reply, isUser: false }]);
     } catch (error) {
-      console.error('Erreur chatbot:', error);
+      console.error('[Chatbot] Erreur complète:', error);
       const message =
-        error instanceof Error ? toUserFacingError(error.message) : genericFailureMessage;
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : genericFailureMessage;
       setMessages((prev) => [...prev, { text: message, isUser: false }]);
     } finally {
       setIsLoading(false);
