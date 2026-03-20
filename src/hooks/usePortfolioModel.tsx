@@ -1032,7 +1032,7 @@ const usePortfolioModel = () => {
   const recentMainProjects = [...catalogProjectsWithCovers]
     .filter((project) => project.detailPage)
     .sort((a, b) => b.sortDate - a.sortDate || alphaCollator.compare(a.title[lang], b.title[lang]))
-    .slice(0, 3);
+    .slice(0, 4);
   const featuredMainProject = projectById.siem ?? recentMainProjects[0];
   const bioExpertiseItems = sortAlphabetically(
     [
