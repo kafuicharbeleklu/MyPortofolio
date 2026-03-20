@@ -1,5 +1,6 @@
 import React from 'react';
 import { t, Language } from '../../translations';
+import useMobileScrollDots from '../../hooks/useMobileScrollDots';
 
 type ProjectTag = {
   label: string;
@@ -151,6 +152,7 @@ const Projects: React.FC<ProjectsProps> = ({
 }) => {
   const v = t[lang];
   const masonryProjects = recentProjects.slice(0, 4);
+  const projectsCarousel = useMobileScrollDots(masonryProjects.length + 1);
 
   return (
     <section className="sec" id="projets">
@@ -164,11 +166,13 @@ const Projects: React.FC<ProjectsProps> = ({
         </span>
       </div>
 
-      <div className="projects-main-grid">
+      <div className="projects-main-grid" ref={projectsCarousel.containerRef}>
         <button
           type="button"
           className="proj-feat projects-featured card-action"
           onClick={() => onProjectClick(featuredProject.id)}
+          ref={(node) => projectsCarousel.registerItem(0, node)}
+          data-carousel-index={0}
           aria-label={
             lang === 'FR'
               ? `Voir le détail du projet ${featuredProject.title.FR}`
@@ -212,12 +216,14 @@ const Projects: React.FC<ProjectsProps> = ({
           </div>
         </button>
 
-        {masonryProjects.map((project) => (
+        {masonryProjects.map((project, index) => (
           <button
             key={project.id}
             type="button"
             className="pj-card card-action"
             onClick={() => onProjectClick(project.id)}
+            ref={(node) => projectsCarousel.registerItem(index + 1, node)}
+            data-carousel-index={index + 1}
             aria-label={
               lang === 'FR'
                 ? `Voir le détail du projet ${project.title.FR}`
@@ -251,6 +257,26 @@ const Projects: React.FC<ProjectsProps> = ({
           </button>
         ))}
       </div>
+
+      {masonryProjects.length > 0 ? (
+        <div
+          className="carousel-dots mobile-scroll-dots project-mobile-dots"
+          aria-label={lang === 'FR' ? 'Position dans les réalisations' : 'Project position'}
+        >
+          {[featuredProject, ...masonryProjects].map((project, index) => (
+            <button
+              key={`project-dot-${project.id}`}
+              type="button"
+              className={`carousel-dot ${projectsCarousel.activeIndex === index ? 'active' : ''}`}
+              onClick={() => projectsCarousel.scrollToIndex(index)}
+              aria-label={
+                lang === 'FR' ? `Voir le projet ${index + 1}` : `View project ${index + 1}`
+              }
+              aria-current={projectsCarousel.activeIndex === index ? 'true' : undefined}
+            />
+          ))}
+        </div>
+      ) : null}
 
       <div className="btn-center">
         <button type="button" className="kp-btn-dark" onClick={onViewAll}>
