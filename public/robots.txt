@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kafuicharbeleklu.github.io/MyPortofolio/sitemap.xml
