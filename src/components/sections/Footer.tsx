@@ -20,7 +20,7 @@ const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
           </div>
 
           <div className="footer-col">
-            <h4 className="footer-col-title">{v.footer.navTitle}</h4>
+            <h3 className="footer-col-title">{v.footer.navTitle}</h3>
             <ul className="footer-nav">
               <li>
                 <button type="button" className="footer-link-button" onClick={() => onNavigate('about')}>
@@ -51,7 +51,7 @@ const Footer: React.FC<FooterProps> = ({ lang, onNavigate }) => {
           </div>
 
           <div className="footer-col">
-            <h4 className="footer-col-title">{v.footer.contactTitle}</h4>
+            <h3 className="footer-col-title">{v.footer.contactTitle}</h3>
             <ul className="footer-nav">
               <li>
                 <a href="mailto:charbelkafuieklu@gmail.com">charbelkafuieklu@gmail.com</a>

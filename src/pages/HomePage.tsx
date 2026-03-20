@@ -218,7 +218,7 @@ const HomePage: React.FC<HomePageProps> = ({
               <div className="skill-icon" style={{ background: skill.bg }}>
                 {skill.icon}
               </div>
-              <h4>{skill.title}</h4>
+              <h3>{skill.title}</h3>
               <p>{skill.desc}</p>
             </div>
           ))}

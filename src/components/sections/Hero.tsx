@@ -321,6 +321,9 @@ const Hero: React.FC<HeroProps> = ({
                                   : 'Portrait of Kafui Charbel Eklu'
                               }
                               className="kp-hero-portrait-image"
+                              loading="eager"
+                              fetchPriority="high"
+                              decoding="async"
                             />
                           </button>
                           <button
