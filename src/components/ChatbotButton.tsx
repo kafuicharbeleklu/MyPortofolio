@@ -66,6 +66,14 @@ const toUserFacingError = (message: string) => {
     return genericFailureMessage;
   }
 
+  if (
+    message.includes('Failed to fetch') ||
+    message.includes('NetworkError') ||
+    message.includes('Load failed')
+  ) {
+    return genericFailureMessage;
+  }
+
   if (message.includes('Limite de messages atteinte')) {
     return rateLimitMessage;
   }
@@ -249,7 +257,7 @@ const ChatbotButton: React.FC = () => {
                     flex: 1,
                     height: '44px',
                     padding: '0 12px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--radius-card)',
                     border: '1px solid rgba(0,0,0,0.15)',
                     fontSize: '14px',
                     outline: 'none',
@@ -265,7 +273,7 @@ const ChatbotButton: React.FC = () => {
                     flexShrink: 0,
                     width: '44px',
                     height: '44px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--radius-card)',
                     background: '#c0392b',
                     border: 'none',
                     cursor: 'pointer',
