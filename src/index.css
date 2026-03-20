@@ -3171,7 +3171,7 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   width: 100%;
   display: flex;
   gap: 0.5rem;
-  align-items: center;
+  align-items: stretch;
 }
 .chat-meta {
   width: 100%;
@@ -3255,7 +3255,8 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   width: 100%;
   flex: 1;
   min-width: 0;
-  min-height: 2.75rem;
+  height: 44px;
+  min-height: 44px;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-soft);
   border: 1px solid var(--sand);
@@ -3275,30 +3276,32 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
 }
 .chat-send-btn {
   width: auto;
-  height: 42px;
-  min-height: 42px;
+  height: 44px;
+  min-height: 44px;
   min-width: 0;
   padding: 0 18px;
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-soft);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: stretch;
   box-shadow: 0 10px 24px rgba(212, 149, 106, 0.22);
-  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+.chat-send-btn svg {
+  color: #fff;
+  stroke: currentColor;
 }
 .chat-send-btn:hover {
-  background: #c97d4d;
-  transform: translateY(-1px);
+  filter: brightness(0.9);
 }
 .chat-send-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
+  filter: none;
   box-shadow: none;
 }
 .chat-fab {
