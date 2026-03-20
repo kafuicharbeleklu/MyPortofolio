@@ -1365,7 +1365,7 @@ const usePortfolioModel = () => {
   };
 
   const handleCarouselTouchStart = (key: string) => (event: React.TouchEvent<HTMLDivElement>) => {
-    carouselTouchStartX.current[key] = event.changedTouches[0]?.clientX ?? null;
+    carouselTouchStartX.current[key] = event.touches[0]?.clientX ?? null;
   };
 
   const handleReferenceCarouselTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -1395,12 +1395,17 @@ const usePortfolioModel = () => {
         return;
       }
 
-      const delta = endX - startX;
-      if (Math.abs(delta) < 36) {
+      const diff = startX - endX;
+      if (Math.abs(diff) <= 40) {
         return;
       }
 
-      stepDetailCarousel(projectId, totalItems, delta < 0 ? 1 : -1);
+      if (diff > 0) {
+        stepDetailCarousel(projectId, totalItems, 1);
+        return;
+      }
+
+      stepDetailCarousel(projectId, totalItems, -1);
     };
 
   const goToReferenceCard = (index: number) => {
@@ -1664,6 +1669,7 @@ const usePortfolioModel = () => {
                     }}
                     onTouchStart={handleCarouselTouchStart(projectId)}
                     onTouchEnd={handleDetailCarouselTouchEnd(projectId, screenshotItems.length)}
+                    style={{ touchAction: 'pan-y' }}
                   >
                     <div
                       className="detail-shot-grid mobile-peek-track"

@@ -10,7 +10,9 @@ function PortfolioRoot() {
   return (
     <>
       {content}
-      <LanguageToggle lang={lang} onToggle={setLang} />
+      <div style={isLightboxOpen ? { display: 'none' } : undefined}>
+        <LanguageToggle lang={lang} onToggle={setLang} />
+      </div>
       <Suspense fallback={null}>
         <div style={isLightboxOpen ? { display: 'none' } : undefined}>
           <ChatbotButton />
