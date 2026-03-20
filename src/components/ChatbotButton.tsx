@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageCircle, Send, X } from 'lucide-react';
+import { MessageCircle, X } from 'lucide-react';
 
 const apiUrl = import.meta.env.VITE_CHATBOT_API_URL;
 console.log('[Chatbot] API URL au démarrage:', apiUrl);
@@ -219,26 +219,77 @@ const ChatbotButton: React.FC = () => {
           </div>
 
           {isChatAvailable ? (
-            <div className="chat-input-area">
-              <div className="chat-compose-row">
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                padding: '12px',
+                borderTop: '1px solid rgba(0,0,0,0.1)',
+                background: 'white',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
                 <input
                   type="text"
-                  className="chat-input"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
                   placeholder="Écrivez un message..."
                   disabled={isLoading || isSessionLimitReached}
                   aria-label="Message à envoyer"
+                  style={{
+                    flex: 1,
+                    height: '44px',
+                    padding: '0 12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(0,0,0,0.15)',
+                    fontSize: '14px',
+                    outline: 'none',
+                    background: 'white',
+                  }}
                 />
                 <button
                   type="button"
-                  className="chat-send-btn"
                   onClick={handleSend}
                   disabled={isSendDisabled}
                   aria-label="Envoyer le message"
+                  style={{
+                    flexShrink: 0,
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '10px',
+                    background: '#c0392b',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: isSendDisabled ? 0.4 : 1,
+                    transition: 'opacity 0.2s',
+                  }}
                 >
-                  <Send size={16} strokeWidth={2.1} />
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
                 </button>
               </div>
               <div className="chat-meta">

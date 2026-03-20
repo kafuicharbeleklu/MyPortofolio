@@ -3159,20 +3159,6 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
 .dot:nth-child(3) {
   animation-delay: 0.4s;
 }
-.chat-input-area {
-  padding: 1rem;
-  border-top: 1px solid #eee;
-  background: #fff;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.chat-compose-row {
-  width: 100%;
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-}
 .chat-meta {
   width: 100%;
   display: flex;
@@ -3250,59 +3236,6 @@ h4 { font-size: var(--text-card-title); line-height: 1.25; }
   border-color: var(--ink-3);
   color: var(--ink);
   background: #fff;
-}
-.chat-input {
-  width: 100%;
-  flex: 1;
-  min-width: 0;
-  height: 44px;
-  min-height: 44px;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-soft);
-  border: 1px solid var(--sand);
-  outline: none;
-  font-size: 0.875rem;
-  font-family: inherit;
-  background: #fff;
-  color: var(--ink);
-  transition: border-color 0.15s;
-}
-.chat-input:focus {
-  border-color: var(--ink-3);
-}
-.chat-input:disabled {
-  background: var(--bg-main);
-  cursor: not-allowed;
-}
-.chat-send-btn {
-  width: auto;
-  height: 44px;
-  min-height: 44px;
-  min-width: 0;
-  padding: 0 18px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-soft);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 10px 24px rgba(212, 149, 106, 0.22);
-  transition: opacity 0.2s ease, filter 0.2s ease;
-}
-.chat-send-btn svg {
-  color: #fff;
-  stroke: currentColor;
-}
-.chat-send-btn:hover {
-  filter: brightness(0.9);
-}
-.chat-send-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  filter: none;
-  box-shadow: none;
 }
 .chat-fab {
   position: fixed;
