@@ -136,4 +136,12 @@ export type TranslationPageSections = {
 export type LightboxItem = {
   src: string;
   alt: string;
+  meta?: {
+    badge: string;
+    title: string;
+    companyLine: string;
+    description: string;
+    tags: string[];
+    detailLabel: string;
+  };
 };

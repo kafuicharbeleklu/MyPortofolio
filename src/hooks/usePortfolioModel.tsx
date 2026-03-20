@@ -1017,6 +1017,19 @@ const usePortfolioModel = () => {
           .map((path) => ({
             src: /^https?:\/\//.test(path) ? path : withBaseAsset(path),
             alt: `${project.title[lang]} screenshot`,
+            meta: {
+              badge:
+                project.id === 'siem'
+                  ? lang === 'FR'
+                    ? 'Projet phare'
+                    : 'Featured project'
+                  : project.category[lang],
+              title: project.title[lang],
+              companyLine: project.companyLine[lang],
+              description: detail.description || detail.tagline || project.desc[lang],
+              tags: project.tags.map((tag) => tag.label),
+              detailLabel: lang === 'FR' ? 'Voir le détail' : 'View details',
+            },
           }))
       : [];
 

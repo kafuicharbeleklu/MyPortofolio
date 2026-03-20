@@ -56,6 +56,9 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
     return null;
   }
 
+  const currentItem = lightbox.items[lightbox.index];
+  const meta = currentItem.meta;
+
   return (
     <div
       className="project-image-lightbox"
@@ -76,32 +79,64 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
         className="project-image-lightbox-dialog"
         onClick={(event) => event.stopPropagation()}
       >
-        <img
-          className="project-image-lightbox-image"
-          src={lightbox.items[lightbox.index].src}
-          alt={lightbox.items[lightbox.index].alt}
-        />
+        <div className="project-image-lightbox-media">
+          <img
+            className="project-image-lightbox-image"
+            src={currentItem.src}
+            alt={currentItem.alt}
+          />
 
-        {lightbox.items.length > 1 ? (
-          <>
-            <button
-              type="button"
-              className="project-image-lightbox-nav project-image-lightbox-nav-prev"
-              aria-label="Previous image"
-              onClick={() => onStep(-1)}
-              disabled={lightbox.index === 0}
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              className="project-image-lightbox-nav project-image-lightbox-nav-next"
-              aria-label="Next image"
-              onClick={() => onStep(1)}
-              disabled={lightbox.index === lightbox.items.length - 1}
-            >
-              ›
-            </button>
+          {lightbox.items.length > 1 ? (
+            <>
+              <button
+                type="button"
+                className="project-image-lightbox-nav project-image-lightbox-nav-prev"
+                aria-label="Previous image"
+                onClick={() => onStep(-1)}
+                disabled={lightbox.index === 0}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="project-image-lightbox-nav project-image-lightbox-nav-next"
+                aria-label="Next image"
+                onClick={() => onStep(1)}
+                disabled={lightbox.index === lightbox.items.length - 1}
+              >
+                ›
+              </button>
+            </>
+          ) : null}
+        </div>
+
+        <aside className="project-image-lightbox-info">
+          {meta ? (
+            <>
+              <span className="project-image-lightbox-badge">{meta.badge}</span>
+              <div className="project-image-lightbox-copy">
+                <h3 className="project-image-lightbox-title">{meta.title}</h3>
+                <p className="project-image-lightbox-company">{meta.companyLine}</p>
+                <p className="project-image-lightbox-description">{meta.description}</p>
+              </div>
+              <div className="project-image-lightbox-tags">
+                {meta.tags.map((tag) => (
+                  <span key={`${meta.title}-${tag}`} className="tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="project-image-lightbox-cta"
+                onClick={onClose}
+              >
+                {meta.detailLabel} →
+              </button>
+            </>
+          ) : null}
+
+          {lightbox.items.length > 1 ? (
             <div className="carousel-dots project-image-lightbox-dots">
               {lightbox.items.map((item, index) => (
                 <button
@@ -114,8 +149,8 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
                 />
               ))}
             </div>
-          </>
-        ) : null}
+          ) : null}
+        </aside>
       </div>
     </div>
   );
