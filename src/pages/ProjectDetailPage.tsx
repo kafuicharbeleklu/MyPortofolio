@@ -53,10 +53,14 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
   onGoTo,
 }) => {
   const [isZoomed, setIsZoomed] = useState(false);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [transformOrigin, setTransformOrigin] = useState('center center');
+  const touchStartXRef = useRef(0);
+  const touchEndXRef = useRef(0);
+  const pinchGestureRef = useRef(false);
 
   useEffect(() => {
     setIsZoomed(false);
+    setTransformOrigin('center center');
   }, [lightbox?.index, lightbox?.items]);
 
   if (!lightbox) {
@@ -74,32 +78,88 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
     Boolean(currentItem.alt.trim()) && !genericAltCandidates.includes(normalizedAlt);
   const displayCaption = hasSpecificCaption ? currentItem.alt : fallbackProjectName;
 
-  const handleImageToggle = () => {
-    setIsZoomed((current) => !current);
+  const updateTransformOrigin = (
+    currentTarget: EventTarget & HTMLButtonElement,
+    clientX: number,
+    clientY: number
+  ) => {
+    const rect = currentTarget.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
+    setTransformOrigin(`${x}% ${y}%`);
+  };
+
+  const handleImageToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!isZoomed) {
+      updateTransformOrigin(event.currentTarget, event.clientX, event.clientY);
+      setIsZoomed(true);
+      return;
+    }
+
+    setIsZoomed(false);
+    setTransformOrigin('center center');
+  };
+
+  const handleImageMouseMove = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!isZoomed) {
+      return;
+    }
+
+    updateTransformOrigin(event.currentTarget, event.clientX, event.clientY);
   };
 
   const handleTouchStart = (event: React.TouchEvent<HTMLButtonElement>) => {
-    const touch = event.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    if (event.touches.length === 2) {
+      pinchGestureRef.current = true;
+      touchStartXRef.current = 0;
+      touchEndXRef.current = 0;
+      return;
+    }
+
+    if (event.touches.length !== 1) {
+      return;
+    }
+
+    pinchGestureRef.current = false;
+    touchStartXRef.current = event.touches[0].clientX;
+    touchEndXRef.current = event.touches[0].clientX;
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLButtonElement>) => {
+    if (event.touches.length === 2) {
+      pinchGestureRef.current = true;
+    }
   };
 
   const handleTouchEnd = (event: React.TouchEvent<HTMLButtonElement>) => {
-    if (isZoomed || !touchStartRef.current || lightbox.items.length <= 1) {
-      touchStartRef.current = null;
+    if (pinchGestureRef.current) {
+      pinchGestureRef.current = false;
+      touchStartXRef.current = 0;
+      touchEndXRef.current = 0;
       return;
     }
 
-    const touch = event.changedTouches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = touch.clientY - touchStartRef.current.y;
-
-    touchStartRef.current = null;
-
-    if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+    if (isZoomed || lightbox.items.length <= 1 || touchStartXRef.current === 0) {
+      touchStartXRef.current = 0;
+      touchEndXRef.current = 0;
       return;
     }
 
-    onStep(deltaX < 0 ? 1 : -1);
+    touchEndXRef.current = event.changedTouches[0].clientX;
+    const diff = touchStartXRef.current - touchEndXRef.current;
+    touchStartXRef.current = 0;
+    touchEndXRef.current = 0;
+
+    if (Math.abs(diff) <= 50) {
+      return;
+    }
+
+    if (diff > 0) {
+      onStep(1);
+      return;
+    }
+
+    onStep(-1);
   };
 
   return (
@@ -128,14 +188,24 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
           className="project-image-lightbox-media"
           aria-label={isZoomed ? 'Reduce image zoom' : 'Zoom image'}
           onClick={handleImageToggle}
+          onMouseMove={handleImageMouseMove}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          style={{ touchAction: 'pinch-zoom', overflow: 'hidden' }}
         >
           <img
             key={currentItem.src}
-            className={`project-image-lightbox-image ${isZoomed ? 'is-zoomed' : ''}`}
+            className="project-image-lightbox-image"
             src={currentItem.src}
             alt={currentItem.alt}
+            style={{
+              transform: isZoomed ? 'scale(2)' : 'scale(1)',
+              transformOrigin,
+              transition: 'transform 300ms ease',
+              cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+              objectFit: isZoomed ? 'cover' : 'contain',
+            }}
           />
         </button>
 

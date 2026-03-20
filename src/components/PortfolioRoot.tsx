@@ -5,14 +5,16 @@ import usePortfolioModel from '../hooks/usePortfolioModel';
 const ChatbotButton = React.lazy(() => import('./ChatbotButton'));
 
 function PortfolioRoot() {
-  const { content, lang, setLang } = usePortfolioModel();
+  const { content, lang, setLang, isLightboxOpen } = usePortfolioModel();
 
   return (
     <>
       {content}
       <LanguageToggle lang={lang} onToggle={setLang} />
       <Suspense fallback={null}>
-        <ChatbotButton />
+        <div style={isLightboxOpen ? { display: 'none' } : undefined}>
+          <ChatbotButton />
+        </div>
       </Suspense>
     </>
   );

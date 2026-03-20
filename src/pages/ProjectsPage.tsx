@@ -285,15 +285,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
                 className="projects-pagination"
                 aria-label={lang === 'FR' ? 'Pagination des projets' : 'Projects pagination'}
               >
-                <button
-                  type="button"
-                  className="projects-pagination-btn projects-pagination-nav"
-                  onClick={() => changeProjectPage(projectPage - 1)}
-                  disabled={projectPage === 1}
-                >
-                  {lang === 'FR' ? 'Précédent' : 'Previous'}
-                </button>
-
                 <div className="projects-pagination-pages">
                   {projectPaginationTokens.map((token) =>
                     typeof token === 'number' ? (
@@ -317,15 +308,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
                     )
                   )}
                 </div>
-
-                <button
-                  type="button"
-                  className="projects-pagination-btn projects-pagination-nav"
-                  onClick={() => changeProjectPage(projectPage + 1)}
-                  disabled={projectPage === totalProjectPages}
-                >
-                  {lang === 'FR' ? 'Suivant' : 'Next'}
-                </button>
               </nav>
             ) : null}
           </>

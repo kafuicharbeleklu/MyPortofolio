@@ -2218,7 +2218,12 @@ const usePortfolioModel = () => {
     </div>
   );
 
-  return { content, lang, setLang };
+  return {
+    content,
+    lang,
+    setLang,
+    isLightboxOpen: Boolean(projectImageLightbox),
+  };
 };
 
 export default usePortfolioModel;
