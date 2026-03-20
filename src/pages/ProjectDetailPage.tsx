@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { LightboxItem } from '../types/portfolio';
 
 interface ProjectDetailPageProps {
@@ -52,13 +52,19 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
   onStep,
   onGoTo,
 }) => {
+  const [isZoomed, setIsZoomed] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    setIsZoomed(false);
+  }, [lightbox?.index, lightbox?.items]);
+
   if (!lightbox) {
     return null;
   }
 
   const currentItem = lightbox.items[lightbox.index];
-  const meta = currentItem.meta;
-  const fallbackProjectName = meta?.title || currentItem.alt;
+  const fallbackProjectName = currentItem.meta?.title || currentItem.alt;
   const normalizedAlt = currentItem.alt.trim().toLowerCase();
   const genericAltCandidates = [
     `${fallbackProjectName} screenshot`.toLowerCase(),
@@ -68,6 +74,34 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
     Boolean(currentItem.alt.trim()) && !genericAltCandidates.includes(normalizedAlt);
   const displayCaption = hasSpecificCaption ? currentItem.alt : fallbackProjectName;
 
+  const handleImageToggle = () => {
+    setIsZoomed((current) => !current);
+  };
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLButtonElement>) => {
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLButtonElement>) => {
+    if (isZoomed || !touchStartRef.current || lightbox.items.length <= 1) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+
+    touchStartRef.current = null;
+
+    if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+      return;
+    }
+
+    onStep(deltaX < 0 ? 1 : -1);
+  };
+
   return (
     <div
       className="project-image-lightbox"
@@ -76,52 +110,75 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
       aria-label="Project image preview"
       onClick={onClose}
     >
-      <button
-        type="button"
-        className="project-image-lightbox-close"
-        aria-label="Close image preview"
-        onClick={onClose}
-      >
-        ×
-      </button>
-
       <div
         className="project-image-lightbox-dialog"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="project-image-lightbox-media">
+        <button
+          type="button"
+          className="project-image-lightbox-close"
+          aria-label="Close image preview"
+          onClick={onClose}
+        >
+          ×
+        </button>
+
+        <button
+          type="button"
+          className="project-image-lightbox-media"
+          aria-label={isZoomed ? 'Reduce image zoom' : 'Zoom image'}
+          onClick={handleImageToggle}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <img
-            className="project-image-lightbox-image"
+            key={currentItem.src}
+            className={`project-image-lightbox-image ${isZoomed ? 'is-zoomed' : ''}`}
             src={currentItem.src}
             alt={currentItem.alt}
           />
+        </button>
 
-          {lightbox.items.length > 1 ? (
-            <>
-              <button
-                type="button"
-                className="project-image-lightbox-nav project-image-lightbox-nav-prev"
-                aria-label="Previous image"
-                onClick={() => onStep(-1)}
-                disabled={lightbox.index === 0}
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="project-image-lightbox-nav project-image-lightbox-nav-next"
-                aria-label="Next image"
-                onClick={() => onStep(1)}
-                disabled={lightbox.index === lightbox.items.length - 1}
-              >
-                ›
-              </button>
-            </>
-          ) : null}
-        </div>
+        {lightbox.items.length > 1 ? (
+          <>
+            <button
+              type="button"
+              className="project-image-lightbox-nav project-image-lightbox-nav-prev"
+              aria-label="Previous image"
+              onClick={() => onStep(-1)}
+              disabled={lightbox.index === 0}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              className="project-image-lightbox-nav project-image-lightbox-nav-next"
+              aria-label="Next image"
+              onClick={() => onStep(1)}
+              disabled={lightbox.index === lightbox.items.length - 1}
+            >
+              ›
+            </button>
+          </>
+        ) : null}
 
-        <aside className="project-image-lightbox-info">
-          <div className="project-image-lightbox-copy">
+        {lightbox.items.length > 1 && lightbox.items.length <= 8 ? (
+          <div className="carousel-dots project-image-lightbox-dots">
+            {lightbox.items.map((item, index) => (
+              <button
+                key={`${item.src}-${index}`}
+                type="button"
+                className={`carousel-dot ${lightbox.index === index ? 'active' : ''}`}
+                onClick={() => onGoTo(index)}
+                aria-label={`View image ${index + 1}`}
+                aria-current={lightbox.index === index ? 'true' : undefined}
+              />
+            ))}
+          </div>
+        ) : null}
+
+        <div className="project-image-lightbox-info-bar">
+          <div className="project-image-lightbox-info-copy">
             <p className="project-image-lightbox-counter">
               Image {lightbox.index + 1} / {lightbox.items.length}
             </p>
@@ -131,32 +188,14 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
               <p className="project-image-lightbox-project-name">{displayCaption}</p>
             )}
           </div>
-
-          <div className="project-image-lightbox-info-footer">
-            {lightbox.items.length > 1 ? (
-              <div className="carousel-dots project-image-lightbox-dots">
-                {lightbox.items.map((item, index) => (
-                  <button
-                    key={`${item.src}-${index}`}
-                    type="button"
-                    className={`carousel-dot ${lightbox.index === index ? 'active' : ''}`}
-                    onClick={() => onGoTo(index)}
-                    aria-label={`View image ${index + 1}`}
-                    aria-current={lightbox.index === index ? 'true' : undefined}
-                  />
-                ))}
-              </div>
-            ) : null}
-
-            <button
-              type="button"
-              className="project-image-lightbox-link"
-              onClick={onClose}
-            >
-              Voir la page complète →
-            </button>
-          </div>
-        </aside>
+          <button
+            type="button"
+            className="project-image-lightbox-link"
+            onClick={onClose}
+          >
+            Voir le détail →
+          </button>
+        </div>
       </div>
     </div>
   );
