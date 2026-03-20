@@ -58,6 +58,15 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
 
   const currentItem = lightbox.items[lightbox.index];
   const meta = currentItem.meta;
+  const fallbackProjectName = meta?.title || currentItem.alt;
+  const normalizedAlt = currentItem.alt.trim().toLowerCase();
+  const genericAltCandidates = [
+    `${fallbackProjectName} screenshot`.toLowerCase(),
+    `${fallbackProjectName} capture`.toLowerCase(),
+  ];
+  const hasSpecificCaption =
+    Boolean(currentItem.alt.trim()) && !genericAltCandidates.includes(normalizedAlt);
+  const displayCaption = hasSpecificCaption ? currentItem.alt : fallbackProjectName;
 
   return (
     <div
@@ -75,6 +84,7 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
       >
         ×
       </button>
+
       <div
         className="project-image-lightbox-dialog"
         onClick={(event) => event.stopPropagation()}
@@ -111,45 +121,41 @@ export const ProjectDetailLightbox: React.FC<ProjectDetailLightboxProps> = ({
         </div>
 
         <aside className="project-image-lightbox-info">
-          {meta ? (
-            <>
-              <span className="project-image-lightbox-badge">{meta.badge}</span>
-              <div className="project-image-lightbox-copy">
-                <h3 className="project-image-lightbox-title">{meta.title}</h3>
-                <p className="project-image-lightbox-company">{meta.companyLine}</p>
-                <p className="project-image-lightbox-description">{meta.description}</p>
-              </div>
-              <div className="project-image-lightbox-tags">
-                {meta.tags.map((tag) => (
-                  <span key={`${meta.title}-${tag}`} className="tag">
-                    {tag}
-                  </span>
+          <div className="project-image-lightbox-copy">
+            <p className="project-image-lightbox-counter">
+              Image {lightbox.index + 1} / {lightbox.items.length}
+            </p>
+            {hasSpecificCaption ? (
+              <p className="project-image-lightbox-caption">{displayCaption}</p>
+            ) : (
+              <p className="project-image-lightbox-project-name">{displayCaption}</p>
+            )}
+          </div>
+
+          <div className="project-image-lightbox-info-footer">
+            {lightbox.items.length > 1 ? (
+              <div className="carousel-dots project-image-lightbox-dots">
+                {lightbox.items.map((item, index) => (
+                  <button
+                    key={`${item.src}-${index}`}
+                    type="button"
+                    className={`carousel-dot ${lightbox.index === index ? 'active' : ''}`}
+                    onClick={() => onGoTo(index)}
+                    aria-label={`View image ${index + 1}`}
+                    aria-current={lightbox.index === index ? 'true' : undefined}
+                  />
                 ))}
               </div>
-              <button
-                type="button"
-                className="project-image-lightbox-cta"
-                onClick={onClose}
-              >
-                {meta.detailLabel} →
-              </button>
-            </>
-          ) : null}
+            ) : null}
 
-          {lightbox.items.length > 1 ? (
-            <div className="carousel-dots project-image-lightbox-dots">
-              {lightbox.items.map((item, index) => (
-                <button
-                  key={`${item.src}-${index}`}
-                  type="button"
-                  className={`carousel-dot ${lightbox.index === index ? 'active' : ''}`}
-                  onClick={() => onGoTo(index)}
-                  aria-label={`View image ${index + 1}`}
-                  aria-current={lightbox.index === index ? 'true' : undefined}
-                />
-              ))}
-            </div>
-          ) : null}
+            <button
+              type="button"
+              className="project-image-lightbox-link"
+              onClick={onClose}
+            >
+              Voir la page complète →
+            </button>
+          </div>
         </aside>
       </div>
     </div>
